@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { AxiosError, type AxiosResponse } from 'axios'
-import { describeMeetingError, normalizeMeeting, normalizeMeetingDetail } from '@/api/meetingsApi'
+import { describeMeetingError, normalizeCandidate, normalizeMeeting, normalizeMeetingDetail } from '@/api/meetingsApi'
 import { normalizeMeetingReport } from '@/api/operationsReportsApi'
+import { formatMeetingWhen } from '@/components/operations/meetings/meetingsUi'
 
 describe('normalizeMeeting', () => {
   it('fills every field the UI relies on from a bare row', () => {
@@ -9,7 +10,11 @@ describe('normalizeMeeting', () => {
     expect(m).toEqual({
       id: 3, title: 'اجتماع بلا عنوان', type: 'general', status: 'scheduled', display_status: 'scheduled', meeting_date: null,
       start_time: null, end_time: null, department: null, organizer: null, has_report: false, report_id: null,
-      capabilities: { can_manage: false, can_upload_report: false, can_view_report: false }, created_at: null,
+      meeting_url: null, audience: 'general', my_attendance: null, participants_count: null,
+      capabilities: {
+        can_view: true, can_join: false, can_confirm_attendance: false, can_manage: false, can_upload_report: false,
+        can_view_report: false, can_view_attendance: false, can_view_quality_data: false,
+      }, created_at: null,
     })
   })
 
@@ -30,7 +35,7 @@ describe('normalizeMeeting', () => {
 
   it('takes the capabilities only from explicit true values', () => {
     const m = normalizeMeeting({ id: 1, capabilities: { can_manage: 'yes', can_upload_report: true, can_view_report: 1 } })
-    expect(m?.capabilities).toEqual({ can_manage: false, can_upload_report: true, can_view_report: false })
+    expect(m?.capabilities).toMatchObject({ can_manage: false, can_upload_report: true, can_view_report: false })
   })
 
   it('drops rows without an id and non-objects', () => {
@@ -52,8 +57,7 @@ describe('normalizeMeetingDetail', () => {
       action_items: [{ id: 2, title: 'بند', assigned_to: { id: 4, name: 'ليلى' }, due_date: '2026-05-01', status: 'completed' }],
       report: { id: 9, absentees: ['أ', 7], challenges: 'تحدٍّ', uploaded_by: { id: 1, name: 'نورة' }, created_at: '2026-10-01T00:00:00Z' },
     })
-    expect(d?.agenda).toBe('البند الأول\nالثاني')
-    expect(d?.attendees).toEqual([{ name: 'أحمد' }, { name: 'سارة', role: 'مديرة' }])
+    expect(d?.agenda).toEqual(['البند الأول', 'الثاني'])
     expect(d?.decisions).toEqual([{ id: 1, text: 'قرار — تفصيل' }])
     expect(d?.action_items).toEqual([{ id: 2, text: 'بند', owner: 'ليلى', due_at: '2026-05-01', done: true }])
     expect(d?.report).toMatchObject({ id: 9, absentees: ['أ'], challenges: 'تحدٍّ', uploaded_by: { id: 1, name: 'نورة' }, uploaded_at: '2026-10-01T00:00:00Z' })
@@ -61,7 +65,38 @@ describe('normalizeMeetingDetail', () => {
 
   it('has a null report and empty lists when the server sent none', () => {
     const d = normalizeMeetingDetail({ id: 1 })
-    expect(d).toMatchObject({ report: null, decisions: [], action_items: [], attendees: [], agenda: null, meeting_url: null })
+    expect(d).toMatchObject({ report: null, decisions: [], action_items: [], participants: [], agenda: [], meeting_url: null, attendance_summary: null, participants_visible: false })
+  })
+})
+
+describe('attendance and participants', () => {
+  it('reads the audience, the viewers own attendance and the join link', () => {
+    const m = normalizeMeeting({ id: 1, audience: 'explicit', meeting_url: 'https://meet.test/a', my_attendance: { status: 'joined', joined_at: '2026-10-01T10:00:00Z', confirmed_at: null }, participants_count: 4 })
+    expect(m).toMatchObject({ audience: 'explicit', meeting_url: 'https://meet.test/a', participants_count: 4 })
+    expect(m?.my_attendance).toEqual({ status: 'joined', joined_at: '2026-10-01T10:00:00Z', confirmed_at: null })
+  })
+
+  it('falls back safely on an unknown audience or participant status', () => {
+    expect(normalizeMeeting({ id: 1, audience: 'zzz', department: { id: 1, name: 'إ' } })?.audience).toBe('department')
+    expect(normalizeMeeting({ id: 1, audience: 'zzz' })?.audience).toBe('general')
+    expect(normalizeMeeting({ id: 1, my_attendance: { status: 'weird' } })?.my_attendance?.status).toBe('invited')
+  })
+
+  it('maps participants and the summary for someone who may see them, and drops malformed rows', () => {
+    const d = normalizeMeetingDetail({
+      id: 1, participants_visible: true,
+      participants: [{ user: { id: 5, name: 'سارة', department: 'البرامج' }, status: 'attended' }, { user: { id: 'x' } }, null, { status: 'joined' }],
+      attendance_summary: { invited: 3, joined: 1, attended: 1, absent: 1 },
+    })
+    expect(d?.participants).toHaveLength(1)
+    expect(d?.participants[0]).toMatchObject({ status: 'attended', user: { id: 5, name: 'سارة', department: 'البرامج' } })
+    expect(d?.attendance_summary).toEqual({ invited: 3, joined: 1, attended: 1, absent: 1 })
+    expect(d?.participants_visible).toBe(true)
+  })
+
+  it('reads the candidate pool and ignores rows without an id or a name', () => {
+    expect(normalizeCandidate({ id: 3, name: 'ليلى', role: 'instructor', role_title: null, department: 'الجودة' })).toEqual({ id: 3, name: 'ليلى', role: 'instructor', role_title: null, department: 'الجودة' })
+    for (const bad of [null, {}, { id: 3 }, { name: 'x' }, 'x']) expect(normalizeCandidate(bad)).toBeNull()
   })
 })
 
@@ -104,5 +139,19 @@ describe('operations report source meeting', () => {
     expect(normalizeMeetingReport({ id: 1, meeting: { id: 4, title: 'اجتماع', type: 'zzz' } })?.meeting?.type).toBe('general')
     expect(normalizeMeetingReport({ id: 1 })?.meeting).toBeNull()
     expect(normalizeMeetingReport({ id: 1, meeting: { id: 4 } })?.meeting).toBeNull()
+  })
+})
+
+describe('formatMeetingWhen', () => {
+  it('writes one spaced line: date، start – end, 24-hour', () => {
+    expect(formatMeetingWhen({ meeting_date: '2026-10-15', start_time: '22:00', end_time: '23:00' })).toBe('15 أكتوبر 2026، 22:00 – 23:00')
+    expect(formatMeetingWhen({ meeting_date: '2026-10-15', start_time: '09:30', end_time: null })).toBe('15 أكتوبر 2026، 09:30')
+    expect(formatMeetingWhen({ meeting_date: '2026-10-15', start_time: null, end_time: null })).toBe('15 أكتوبر 2026')
+    expect(formatMeetingWhen({ meeting_date: null, start_time: '09:30', end_time: '10:00' })).toBe('09:30 – 10:00')
+    expect(formatMeetingWhen({ meeting_date: null, start_time: null, end_time: null })).toBe('—')
+  })
+
+  it('never runs the date and the time together', () => {
+    expect(formatMeetingWhen({ meeting_date: '2026-10-15', start_time: '22:00', end_time: '23:00' })).not.toMatch(/\d{4}\d{2}:/)
   })
 })

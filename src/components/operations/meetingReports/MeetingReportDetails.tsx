@@ -177,7 +177,24 @@ export function MeetingReportDetails({ reportId, titleHint, onClose }: Props) {
                     <span className="tabular-nums text-muted-400" dir="ltr">{detail.attended_count}/{detail.ratings_count}</span>
                   )}
                 </h3>
-                {detail.ratings.length === 0 ? (
+                {detail.ratings.length === 0 && detail.attendance ? (
+                  <div className="space-y-3" data-testid="report-attendance">
+                    <dl className="grid grid-cols-3 gap-3 text-center">
+                      {([['المدعوون', detail.attendance.invited], ['حضروا', detail.attendance.attended], ['لم يحضروا', detail.attendance.absent]] as const).map(([k, v]) => (
+                        <div key={k} className="rounded-2xl bg-paper px-3 py-2.5">
+                          <dd className="text-lg font-black tabular-nums text-navy">{v}</dd>
+                          <dt className="text-[11px] font-bold text-muted-500">{k}</dt>
+                        </div>
+                      ))}
+                    </dl>
+                    {detail.attendance.attendees.length > 0 && (
+                      <p className="text-sm font-semibold leading-7 text-ink-500"><span className="font-black text-emerald-700">الحاضرون: </span>{detail.attendance.attendees.join('، ')}</p>
+                    )}
+                    {detail.attendance.absent_names.length > 0 && (
+                      <p className="text-sm font-semibold leading-7 text-ink-500"><span className="font-black text-accent-700">الغائبون: </span>{detail.attendance.absent_names.join('، ')}</p>
+                    )}
+                  </div>
+                ) : detail.ratings.length === 0 ? (
                   <p className="text-sm font-semibold text-muted-500">لم يُسجَّل حضور لهذا الاجتماع.</p>
                 ) : (
                   <ul className="space-y-1.5">

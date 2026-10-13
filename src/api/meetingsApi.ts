@@ -1,26 +1,32 @@
 import axios from 'axios'
 import apiClient from './axios'
 import type {
+  AttendanceSummary,
+  MeetingAudience,
+  MeetingCandidate,
   MeetingCapabilities,
   MeetingDisplayStatus,
+  MeetingParticipantRow,
   MeetingRef,
   MeetingReportView,
   MeetingStatus,
   MeetingType,
+  MyAttendance,
   OpsActionItem,
   OpsMeeting,
   OpsMeetingDetail,
+  ParticipantStatus,
 } from '@/types/operations'
 
 /**
- * Meetings API. The admin schedule (/dashboard/admin/meetings) and the lounge
- * (/dashboard/department/meeting-lounge) read the SAME rows through
- * `/department/meetings`.
+ * Meetings API. The admin schedule (/dashboard/admin/meetings), the lounge
+ * (/dashboard/department/meeting-lounge) and the meeting page read the SAME rows
+ * through `/department/meetings`.
  *
  * Every response is normalized here, once, into the shapes in `types/operations`.
  * A meeting the page receives always has a title, a type and a display status;
- * missing relations are `null`, never `undefined`; the capability flags are
- * the server's decision and default to "no" when absent.
+ * missing relations are `null`, never `undefined`; every capability flag is the
+ * server's decision and defaults to "no" when absent.
  */
 
 // ── Normalization ────────────────────────────────────────────────────────────
@@ -33,6 +39,8 @@ const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFi
 const TYPES: readonly MeetingType[] = ['executive', 'department', 'programs', 'partnerships', 'quality', 'external_partner', 'general']
 const STATUSES: readonly MeetingStatus[] = ['scheduled', 'in_progress', 'completed', 'cancelled']
 const DISPLAY: readonly MeetingDisplayStatus[] = ['scheduled', 'in_progress', 'awaiting_report', 'report_submitted', 'cancelled']
+const AUDIENCES: readonly MeetingAudience[] = ['explicit', 'department', 'general']
+const PARTICIPANT_STATUSES: readonly ParticipantStatus[] = ['invited', 'joined', 'attended', 'absent']
 /** Names an older server build used for three of the types. */
 const TYPE_ALIASES: Record<string, MeetingType> = { exec: 'executive', departments: 'department', external: 'external_partner' }
 
@@ -63,9 +71,23 @@ function hhmm(v: unknown): string | null {
 function capabilities(v: unknown): MeetingCapabilities {
   const c = isRec(v) ? v : {}
   return {
+    can_view: c.can_view !== false,
+    can_join: c.can_join === true,
+    can_confirm_attendance: c.can_confirm_attendance === true,
     can_manage: c.can_manage === true,
     can_upload_report: c.can_upload_report === true,
     can_view_report: c.can_view_report === true,
+    can_view_attendance: c.can_view_attendance === true,
+    can_view_quality_data: c.can_view_quality_data === true,
+  }
+}
+
+function myAttendance(v: unknown): MyAttendance | null {
+  if (!isRec(v)) return null
+  return {
+    status: pick(v.status, PARTICIPANT_STATUSES, 'invited'),
+    joined_at: str(v.joined_at),
+    confirmed_at: str(v.confirmed_at),
   }
 }
 
@@ -76,7 +98,7 @@ export function normalizeMeeting(raw: unknown): OpsMeeting | null {
 
   const status = pick(raw.status, STATUSES, 'scheduled')
   const hasReport = raw.has_report === true
-  // An older server sent no display_status: derive the two cases it can express.
+  // An older server sent no display_status: derive the cases it can express.
   const fallbackDisplay: MeetingDisplayStatus = status === 'cancelled' ? 'cancelled' : hasReport ? 'report_submitted' : status === 'in_progress' ? 'in_progress' : status === 'completed' ? 'awaiting_report' : 'scheduled'
 
   return {
@@ -90,6 +112,10 @@ export function normalizeMeeting(raw: unknown): OpsMeeting | null {
     end_time: hhmm(raw.end_time),
     department: ref(raw.department),
     organizer: ref(raw.organizer),
+    meeting_url: str(raw.meeting_url),
+    audience: pick(raw.audience, AUDIENCES, raw.department ? 'department' : 'general'),
+    my_attendance: myAttendance(raw.my_attendance),
+    participants_count: num(raw.participants_count),
     has_report: hasReport,
     report_id: num(raw.report_id),
     capabilities: capabilities(raw.capabilities),
@@ -118,13 +144,19 @@ function report(raw: unknown): MeetingReportView | null {
   }
 }
 
-function agendaText(v: unknown): string | null {
-  if (typeof v === 'string') return str(v)
+function agendaLines(v: unknown): string[] {
+  if (typeof v === 'string') return v.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
   if (Array.isArray(v)) {
-    const lines = v.map((x) => (typeof x === 'string' ? x : isRec(x) ? str(x.title) ?? str(x.text) : null)).filter((x): x is string => !!x)
-    return lines.length > 0 ? lines.join('\n') : null
+    return v
+      .map((x) => (typeof x === 'string' ? x.trim() : isRec(x) ? (str(x.title) ?? str(x.text) ?? '') : ''))
+      .filter((x) => x !== '')
   }
-  return null
+  return []
+}
+
+function summary(v: unknown): AttendanceSummary | null {
+  if (!isRec(v)) return null
+  return { invited: num(v.invited) ?? 0, joined: num(v.joined) ?? 0, attended: num(v.attended) ?? 0, absent: num(v.absent) ?? 0 }
 }
 
 export function normalizeMeetingDetail(raw: unknown): OpsMeetingDetail | null {
@@ -146,24 +178,41 @@ export function normalizeMeetingDetail(raw: unknown): OpsMeetingDetail | null {
     return [{ id, text, owner: ref(a.assigned_to)?.name ?? null, due_at: day(a.due_date), done: a.status === 'completed' }]
   })
 
-  const attendees = (Array.isArray(raw.attendees) ? raw.attendees : []).flatMap((a): OpsMeetingDetail['attendees'] => {
-    if (typeof a === 'string' && a.trim()) return [{ name: a }]
-    if (isRec(a) && str(a.name)) return [{ name: str(a.name)!, ...(str(a.role) ? { role: str(a.role)! } : {}) }]
-    return []
+  const participants = (Array.isArray(raw.participants) ? raw.participants : []).flatMap((p): MeetingParticipantRow[] => {
+    if (!isRec(p) || !isRec(p.user)) return []
+    const id = num(p.user.id)
+    const name = str(p.user.name)
+    if (id === null || name === null) return []
+    return [{
+      user: { id, name, department: str(p.user.department) },
+      status: pick(p.status, PARTICIPANT_STATUSES, 'invited'),
+      joined_at: str(p.joined_at),
+      confirmed_at: str(p.confirmed_at),
+    }]
   })
 
   return {
     ...base,
     description: str(raw.description),
-    meeting_url: str(raw.meeting_url),
     recording_link: str(raw.recording_url) ?? str(raw.recording_link),
-    agenda: agendaText(raw.agenda),
-    attendees,
+    agenda: agendaLines(raw.agenda),
+    timezone: str(raw.timezone) ?? 'Europe/Amsterdam',
+    updated_at: str(raw.updated_at),
+    participants_visible: raw.participants_visible === true,
+    participants,
+    attendance_summary: summary(raw.attendance_summary),
     decisions,
     action_items: actionItems,
-    minutes: str(raw.minutes),
     report: report(raw.report),
   }
+}
+
+export function normalizeCandidate(raw: unknown): MeetingCandidate | null {
+  if (!isRec(raw)) return null
+  const id = num(raw.id)
+  const name = str(raw.name)
+  if (id === null || name === null) return null
+  return { id, name, role: str(raw.role), role_title: str(raw.role_title), department: str(raw.department) }
 }
 
 // ── Requests ─────────────────────────────────────────────────────────────────
@@ -181,11 +230,14 @@ export type MeetingCreationAccess = {
   creatable_departments: MeetingRef[] | null
 }
 
+export type MeetingsWhen = 'upcoming' | 'live' | 'past'
+
 export type MeetingsQuery = {
   q?: string
   type?: MeetingType
   status?: MeetingStatus
   report_status?: 'submitted' | 'pending'
+  when?: MeetingsWhen
   department_id?: number
   date_from?: string
   date_to?: string
@@ -242,6 +294,10 @@ export type NewMeetingInput = {
   start_time: string
   end_time?: string
   meeting_url?: string
+  /** One agenda item per line. */
+  agenda?: string
+  /** Explicit invitees. Omit for a department-wide meeting. */
+  participant_ids?: number[]
 }
 
 function unwrapRow(payload: unknown): unknown {
@@ -262,6 +318,47 @@ export async function fetchMeeting(id: number): Promise<OpsMeetingDetail> {
   return detail
 }
 
+/**
+ * People who can be invited when scheduling: the chosen department's members, or,
+ * with no department, EMC members inside the viewer's scope. The server decides;
+ * nothing is filtered on the client.
+ */
+export async function fetchMeetingCandidates(departmentId?: number): Promise<MeetingCandidate[]> {
+  const res = await apiClient.get<unknown>('/department/meeting-participants', { params: departmentId ? { department_id: departmentId } : undefined })
+  const rows = unwrapRow(res.data)
+  return (Array.isArray(rows) ? rows : []).map(normalizeCandidate).filter((c): c is MeetingCandidate => c !== null)
+}
+
+export type AttendanceCandidate = MeetingCandidate & {
+  status: ParticipantStatus
+  joined_at: string | null
+}
+
+/** The attendance roster for a meeting's report: who can be marked, and who already joined. */
+export async function fetchMeetingParticipantPool(meetingId: number): Promise<{ rows: AttendanceCandidate[]; audience: MeetingAudience }> {
+  const res = await apiClient.get<unknown>(`/department/meetings/${meetingId}/participants`)
+  const body = isRec(res.data) ? res.data : {}
+  const rows = (Array.isArray(body.data) ? body.data : []).flatMap((r): AttendanceCandidate[] => {
+    const c = normalizeCandidate(r)
+    if (!c || !isRec(r)) return []
+    return [{ ...c, status: pick(r.status, PARTICIPANT_STATUSES, 'invited'), joined_at: str(r.joined_at) }]
+  })
+  return { rows, audience: pick(body.audience, AUDIENCES, 'general') }
+}
+
+async function postAttendance(meetingId: number, action: 'join' | 'confirm-attendance'): Promise<OpsMeetingDetail> {
+  const res = await apiClient.post<unknown>(`/department/meetings/${meetingId}/${action}`)
+  const meeting = normalizeMeetingDetail(unwrapRow(res.data))
+  if (!meeting) throw new Error('تعذر قراءة الاجتماع بعد تسجيل الحضور')
+  return meeting
+}
+
+/** "انضمام": records that the person opened the meeting. Resolves with the meeting, including its join link. */
+export const joinMeeting = (meetingId: number) => postAttendance(meetingId, 'join')
+
+/** "تأكيد الحضور": for in-person meetings or when there is no link. */
+export const confirmMeetingAttendance = (meetingId: number) => postAttendance(meetingId, 'confirm-attendance')
+
 export async function updateMeetingActionItem(
   meetingId: number,
   actionItemId: number,
@@ -270,9 +367,11 @@ export async function updateMeetingActionItem(
   await apiClient.patch(`/department/meetings/${meetingId}/action-items/${actionItemId}`, body)
 }
 
-/** Body of the periodic meeting report submitted from MeetingReportModal. */
+/** Body of the official meeting report submitted from MeetingReportModal. */
 export type MeetingReportPayload = {
+  /** Free-text extra absentees (names). Absent participants are derived on the server from `attendance`. */
   absentees: string[]
+  attendance: Array<{ user_id: number; attended: boolean }>
   team_commitment_score: number
   team_commitment_notes: string
   completed_tasks_summary: string
@@ -282,6 +381,9 @@ export type MeetingReportPayload = {
   executive_requests: string
   next_month_goals: string
   improvement_suggestions: string
+  notes: string
+  decisions: Array<{ title: string; description?: string }>
+  action_items: Array<{ title: string; assigned_to?: number; due_date?: string }>
 }
 
 /**

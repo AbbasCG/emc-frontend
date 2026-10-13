@@ -125,9 +125,25 @@ export type MeetingRef = { id: number; name: string }
 
 /** What the signed-in viewer may do with this meeting, as decided by the server. */
 export type MeetingCapabilities = {
+  can_view: boolean
+  can_join: boolean
+  can_confirm_attendance: boolean
   can_manage: boolean
   can_upload_report: boolean
   can_view_report: boolean
+  can_view_attendance: boolean
+  can_view_quality_data: boolean
+}
+
+/** Who the meeting is for: invited people, a whole department, or nobody in particular. */
+export type MeetingAudience = 'explicit' | 'department' | 'general'
+
+export type ParticipantStatus = 'invited' | 'joined' | 'attended' | 'absent'
+
+export type MyAttendance = {
+  status: ParticipantStatus
+  joined_at: string | null
+  confirmed_at: string | null
 }
 
 export type OpsMeeting = {
@@ -136,17 +152,46 @@ export type OpsMeeting = {
   type: MeetingType
   status: MeetingStatus
   display_status: MeetingDisplayStatus
-  /** `YYYY-MM-DD` */
+  /** `YYYY-MM-DD`, the meeting's own wall-clock date (Europe/Amsterdam). */
   meeting_date: string | null
-  /** `HH:MM` */
+  /** `HH:MM` 24-hour */
   start_time: string | null
   end_time: string | null
   department: MeetingRef | null
   organizer: MeetingRef | null
+  /** The join link. Present only for someone assigned to the meeting. */
+  meeting_url: string | null
+  audience: MeetingAudience
+  my_attendance: MyAttendance | null
+  /** Only present for someone who may see attendance. */
+  participants_count: number | null
   has_report: boolean
   report_id: number | null
   capabilities: MeetingCapabilities
   created_at: string | null
+}
+
+/** One person who can be invited or marked present. `department` is shown as secondary text. */
+export type MeetingCandidate = {
+  id: number
+  name: string
+  role: string | null
+  role_title: string | null
+  department: string | null
+}
+
+export type MeetingParticipantRow = {
+  user: { id: number; name: string; department: string | null }
+  status: ParticipantStatus
+  joined_at: string | null
+  confirmed_at: string | null
+}
+
+export type AttendanceSummary = {
+  invited: number
+  joined: number
+  attended: number
+  absent: number
 }
 
 /** The one official report of a meeting (the periodic report filed from the lounge). */
@@ -168,13 +213,17 @@ export type MeetingReportView = {
 
 export type OpsMeetingDetail = OpsMeeting & {
   description: string | null
-  meeting_url: string | null
   recording_link: string | null
-  agenda: string | null
-  attendees: { name: string; role?: string }[]
+  agenda: string[]
+  timezone: string
+  updated_at: string | null
+  /** False for a normal assigned user: names and counts are hidden. */
+  participants_visible: boolean
+  participants: MeetingParticipantRow[]
+  attendance_summary: AttendanceSummary | null
+  /** Only for someone who may read the report. */
   decisions: { id: number; text: string }[]
   action_items: OpsActionItem[]
-  minutes: string | null
   report: MeetingReportView | null
 }
 

@@ -4,7 +4,9 @@ import { AlertTriangle, Building2, CalendarDays, ChevronLeft, ExternalLink, File
 import { describeMeetingError, fetchMeeting, type MeetingError } from '@/api/meetingsApi'
 import type { MeetingReportView, OpsMeetingDetail } from '@/types/operations'
 import { MeetingStatusBadge } from './MeetingStatusBadge'
-import { DISPLAY_STATUS_META, formatDay, meetingTypeLabel, timeRange } from './meetingsUi'
+import { DISPLAY_STATUS_META, formatMeetingWhen, meetingTypeLabel } from './meetingsUi'
+import { JoinActions, ParticipantsSection } from './AttendanceSections'
+import { useMeetingAttendance } from './useMeetingAttendance'
 import { formatDateTime } from '@/components/operations/meetingReports/meetingReportsUi'
 
 type Props = {
@@ -16,6 +18,8 @@ type Props = {
   onClose: () => void
   /** Open the report form for this meeting (offered only when the server allows it). */
   onUploadReport?: (id: number) => void
+  /** The meeting changed (joined, confirmed): refresh the row behind. */
+  onUpdated?: (meeting: OpsMeetingDetail) => void
 }
 
 const REPORT_SECTIONS: Array<[keyof MeetingReportView, string]> = [
@@ -65,11 +69,15 @@ export function ReportBlock({ report }: { report: MeetingReportView }) {
  * report (or the next step when there is none), and a link to the full page.
  * Loads on its own so a failed fetch never disturbs the list behind it.
  */
-export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, onUploadReport }: Props) {
+export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, onUploadReport, onUpdated }: Props) {
   const [detail, setDetail] = useState<OpsMeetingDetail | null>(null)
   const [error, setError] = useState<MeetingError | null>(null)
   const [nonce, setNonce] = useState(0)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const attendance = useMeetingAttendance((m) => {
+    setDetail(m)
+    onUpdated?.(m)
+  })
 
   useEffect(() => {
     let alive = true
@@ -165,10 +173,7 @@ export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, 
                     <CalendarDays size={16} className="mt-0.5 text-muted-400" aria-hidden="true" />
                     <div>
                       <dt className="text-[11px] font-bold text-muted-400">الموعد</dt>
-                      <dd className="text-sm font-bold text-navy">
-                        {formatDay(detail.meeting_date)}
-                        {timeRange(detail) && <span className="ms-2 text-muted-500" dir="ltr">{timeRange(detail)}</span>}
-                      </dd>
+                      <dd className="text-sm font-bold text-navy">{formatMeetingWhen(detail)}</dd>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
@@ -201,6 +206,8 @@ export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, 
                 </dl>
               </section>
 
+              <JoinActions meeting={detail} busy={attendance.busyId === detail.id} onJoin={attendance.join} onConfirm={attendance.confirm} />
+
               <section aria-label="تقرير الاجتماع" className="rounded-3xl border border-line bg-white p-5 shadow-sm">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-black text-navy">
                   <FileText size={16} className="text-brand-500" aria-hidden="true" />
@@ -209,7 +216,7 @@ export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, 
                 {detail.report ? (
                   <ReportBlock report={detail.report} />
                 ) : detail.has_report ? (
-                  <p className="text-sm font-semibold text-muted-500">تم رفع تقرير لهذا الاجتماع، وهو متاح للمخوَّلين بقراءته فقط.</p>
+                  <p className="text-sm font-semibold text-muted-500">تم رفع التقرير الرسمي لهذا الاجتماع. محتواه متاح لمنظّم الاجتماع وفريق الجودة فقط.</p>
                 ) : detail.display_status === 'cancelled' ? (
                   <p className="text-sm font-semibold text-muted-500">{DISPLAY_STATUS_META.cancelled.hint}.</p>
                 ) : (
@@ -232,6 +239,8 @@ export function MeetingDetailsDrawer({ meetingId, titleHint, basePath, onClose, 
                   </div>
                 )}
               </section>
+
+              <ParticipantsSection meeting={detail} />
 
               <Link
                 to={`${basePath}/${detail.id}`}

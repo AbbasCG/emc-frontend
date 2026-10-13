@@ -87,6 +87,15 @@ export type NamedRef = { id: number; name: string }
  * (no title/date/department/author) used to crash the page precisely because
  * the previous type promised fields the data did not have.
  */
+export type ReportAttendance = {
+  invited: number
+  attended: number
+  absent: number
+  /** Names, on the details view only. */
+  attendees: string[]
+  absent_names: string[]
+}
+
 /** The scheduled meeting a report was filed for (reports filed from the lounge); null for a standalone department report. */
 export type MeetingReportSource = { id: number; title: string; type: MeetingType }
 
@@ -98,6 +107,8 @@ export type MeetingReport = {
   department: NamedRef | null
   author: NamedRef | null
   meeting: MeetingReportSource | null
+  /** Who attended: from the meeting's participants, or the department report's ratings; null when none was recorded. */
+  attendance: ReportAttendance | null
   ratings_count: number
   attended_count: number
   created_at: string | null
@@ -180,6 +191,21 @@ function source(v: unknown): MeetingReportSource | null {
   return { id, title, type: (typeof v.type === 'string' && MEETING_TYPES.includes(v.type) ? v.type : 'general') as MeetingType }
 }
 
+function names(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((n): n is string => typeof n === 'string' && n.trim() !== '') : []
+}
+
+function attendance(v: unknown): ReportAttendance | null {
+  if (!isRec(v)) return null
+  return {
+    invited: num(v.invited),
+    attended: num(v.attended),
+    absent: num(v.absent),
+    attendees: names(v.attendees),
+    absent_names: names(v.absent),
+  }
+}
+
 /** `2026-10-12T00:00:00.000000Z` and `2026-10-12` both become `2026-10-12`; anything else becomes null. */
 function dateOnly(v: unknown): string | null {
   const s = str(v)
@@ -203,6 +229,7 @@ export function normalizeMeetingReport(raw: unknown): MeetingReport | null {
     department: ref(raw.department),
     author: ref(raw.author),
     meeting: source(raw.meeting),
+    attendance: attendance(raw.attendance),
     ratings_count: num(raw.ratings_count),
     attended_count: num(raw.attended_count),
     created_at: str(raw.created_at),

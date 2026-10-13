@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { AxiosError, type AxiosResponse } from 'axios'
 import { normalizeMeetingReport, normalizeMeetingReportDetail } from '@/api/operationsReportsApi'
-import { activeFilterCount, describeReportsError, EMPTY_FILTERS, formatDay, scoreTone } from '@/components/operations/meetingReports/meetingReportsUi'
+import { activeFilterCount, describeReportsError, EMPTY_FILTERS, formatDateTime, formatDay, scoreTone } from '@/components/operations/meetingReports/meetingReportsUi'
 
 describe('normalizeMeetingReport', () => {
   it('turns a legacy all-null row into a displayable one', () => {
     const r = normalizeMeetingReport({ id: 3, title: null, meeting_date: null, department: null, author: null, created_at: '2026-10-12T22:23:06.000000Z' })
     expect(r).toEqual({
-      id: 3, title: 'تقرير اجتماع', meeting_date: '2026-10-12', department: null, author: null, meeting: null,
+      id: 3, title: 'تقرير اجتماع', meeting_date: '2026-10-12', department: null, author: null, meeting: null, attendance: null,
       ratings_count: 0, attended_count: 0, created_at: '2026-10-12T22:23:06.000000Z',
     })
   })
@@ -81,5 +81,15 @@ describe('display helpers', () => {
     expect([scoreTone(9.5), scoreTone(7), scoreTone(5)]).toEqual(['high', 'mid', 'low'])
     expect(activeFilterCount(EMPTY_FILTERS)).toBe(0)
     expect(activeFilterCount({ q: ' x ', department_id: 2, date_from: '', date_to: '2026-01-01' })).toBe(3)
+  })
+})
+
+describe('platform date and time format', () => {
+  it('shows the date, a comma, and 24-hour time in Amsterdam', () => {
+    // 09:30 UTC on 12 Oct 2026 is 11:30 in Amsterdam (CEST).
+    expect(formatDateTime('2026-10-12T09:30:00Z')).toBe('12 أكتوبر 2026، 11:30')
+    expect(formatDateTime('2026-01-05T22:15:00Z')).toBe('5 يناير 2026، 23:15')
+    expect(formatDateTime(null)).toBe('—')
+    expect(formatDateTime('nope')).toBe('—')
   })
 })

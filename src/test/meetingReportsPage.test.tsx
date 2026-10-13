@@ -533,3 +533,34 @@ describe('meeting reports page — reports filed from the lounge', () => {
     expect(screen.queryByTestId('report-source')).not.toBeInTheDocument()
   })
 })
+
+describe('meeting reports page — attendance for quality', () => {
+  it('shows the attendance bar on the card and the names of who attended and who did not in the details', async () => {
+    const attendance = { invited: 3, attended: 2, absent: 1 }
+    serve({
+      list: () => listResponse([row({ attendance })]),
+      detail: () => ({
+        data: { data: { ...row({ attendance: { ...attendance, attendees: ['سارة', 'نورة'], absent: ['أحمد'] } }), achieved: 'تم', extras: {}, ratings: [] } },
+      }),
+    })
+    render(<MeetingReportsPage />)
+
+    const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('button')!
+    expect(within(card).getByText('2/3')).toBeInTheDocument()
+
+    await userEvent.click(card)
+    const panel = await screen.findByRole('dialog')
+    const block = await within(panel).findByTestId('report-attendance')
+    expect(block).toHaveTextContent('الحاضرون: سارة، نورة')
+    expect(block).toHaveTextContent('الغائبون: أحمد')
+    expect(within(block).getByText('المدعوون')).toBeInTheDocument()
+  })
+
+  it('falls back to the report\'s recorded ratings when no attendance summary came with it', async () => {
+    serve({ list: () => listResponse([row({ ratings_count: 4, attended_count: 3 })]) })
+    render(<MeetingReportsPage />)
+
+    const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('button')!
+    expect(within(card).getByText('3/4')).toBeInTheDocument()
+  })
+})

@@ -11,8 +11,9 @@ import { formatDay } from './meetingReportsUi'
  * row with no department or author renders cleanly.
  */
 export function MeetingReportCard({ report, onOpen }: { report: MeetingReport; onOpen: (id: number) => void }) {
-  const total = report.ratings_count
-  const attended = Math.min(report.attended_count, total)
+  // Attendance recorded with the report (meeting participants), else the department report's ratings.
+  const total = report.attendance?.invited ?? report.ratings_count
+  const attended = Math.min(report.attendance?.attended ?? report.attended_count, total)
   const pct = total > 0 ? Math.round((attended / total) * 100) : null
 
   return (

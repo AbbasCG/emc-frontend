@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import {
   AlertTriangle, CalendarCheck2, CalendarPlus, ChevronLeft, ChevronRight, Flag, LayoutDashboard, Lock, Plus, RefreshCw, SearchX, Users,
 } from 'lucide-react'
-import type { MeetingsQuery } from '@/api/meetingsApi'
+import type { MeetingsQuery, MeetingsWhen } from '@/api/meetingsApi'
 import { usePageAccess } from '@/contexts/PageAccessContext'
 import MeetingCard from '@/components/operations/MeetingCard'
 import CreateMeetingForm from '@/components/operations/CreateMeetingForm'
@@ -14,6 +14,7 @@ import { MeetingsFilters } from './MeetingsFilters'
 import { MeetingsKpis } from './MeetingsKpis'
 import { EMPTY_MEETING_FILTERS, activeMeetingFilterCount, type MeetingFilters } from './meetingsUi'
 import { useDebounced, useMeetings } from './useMeetings'
+import { useMeetingAttendance } from './useMeetingAttendance'
 
 /**
  * One workspace, two surfaces over the SAME meetings:
@@ -26,6 +27,13 @@ import { useDebounced, useMeetings } from './useMeetings'
  */
 
 export type WorkspaceMode = 'admin' | 'lounge'
+
+const WHEN_TABS: Array<{ value: MeetingsWhen | ''; label: string }> = [
+  { value: 'upcoming', label: 'القادمة' },
+  { value: 'live', label: 'الجارية الآن' },
+  { value: 'past', label: 'السابقة' },
+  { value: '', label: 'الكل' },
+]
 
 const PAGE_SIZE = 12
 
@@ -56,6 +64,8 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
 
   const [filters, setFilters] = useState<MeetingFilters>(EMPTY_MEETING_FILTERS)
   const [page, setPage] = useState(1)
+  // The lounge opens on what is coming up; the admin schedule opens on everything.
+  const [when, setWhen] = useState<MeetingsWhen | ''>(mode === 'lounge' ? 'upcoming' : '')
   const [openId, setOpenId] = useState<number | null>(null)
   const [formType, setFormType] = useState<MeetingType | null>(null)
   const [reportFor, setReportFor] = useState<{ id: number; title: string } | null>(null)
@@ -66,6 +76,7 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
     () => ({
       page,
       per_page: PAGE_SIZE,
+      ...(when ? { when } : {}),
       ...(debouncedQ ? { q: debouncedQ } : {}),
       ...(filters.type ? { type: filters.type } : {}),
       ...(filters.department_id !== '' ? { department_id: filters.department_id } : {}),
@@ -73,15 +84,16 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
       ...(filters.date_to ? { date_to: filters.date_to } : {}),
       ...(filters.report_status ? { report_status: filters.report_status } : {}),
     }),
-    [page, debouncedQ, filters.type, filters.department_id, filters.date_from, filters.date_to, filters.report_status],
+    [page, when, debouncedQ, filters.type, filters.department_id, filters.date_from, filters.date_to, filters.report_status],
   )
 
   const { data, error, initialLoading, refreshing, reload, patchMeeting } = useMeetings(query)
+  const attendance = useMeetingAttendance(patchMeeting)
 
   const rows = data?.rows ?? []
   const access = data?.access
   const canCreate = access?.can_create === true
-  const filtersActive = activeMeetingFilterCount(filters) > 0
+  const filtersActive = activeMeetingFilterCount(filters) > 0 || (mode === 'lounge' && when !== '')
   const departmentChoices = access?.creatable_departments ?? []
 
   function changeFilters(next: MeetingFilters) {
@@ -97,6 +109,7 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
     // Clear any filter that could hide the new meeting, then refetch so it is on screen at once.
     setFormType(null)
     setFilters(EMPTY_MEETING_FILTERS)
+    setWhen('')
     setPage(1)
     reload()
   }
@@ -176,6 +189,26 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
 
       {!error && <MeetingsKpis stats={data?.stats ?? null} loading={initialLoading} />}
 
+      {mode === 'lounge' && (
+        <div role="tablist" aria-label="تصنيف الاجتماعات حسب الوقت" className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-white p-1.5 shadow-sm">
+          {WHEN_TABS.map((t) => (
+            <button
+              key={t.value || 'all'}
+              type="button"
+              role="tab"
+              aria-selected={when === t.value}
+              onClick={() => {
+                setWhen(t.value)
+                setPage(1)
+              }}
+              className={`shrink-0 rounded-xl px-4 py-2 text-xs font-black transition ${when === t.value ? 'bg-navy text-white' : 'text-muted-600 hover:bg-slate-50'}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <MeetingsFilters value={filters} onChange={changeFilters} departments={departmentChoices.length > 1 ? departmentChoices : []} />
 
       {error ? (
@@ -214,7 +247,14 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
                 : 'ستظهر هنا اجتماعات إدارتك عند جدولتها.'}
           </p>
           {filtersActive ? (
-            <button type="button" onClick={() => changeFilters(EMPTY_MEETING_FILTERS)} className="mt-5 rounded-xl border border-line px-5 py-2.5 text-sm font-bold text-navy transition hover:bg-slate-50">
+            <button
+              type="button"
+              onClick={() => {
+                changeFilters(EMPTY_MEETING_FILTERS)
+                setWhen('')
+              }}
+              className="mt-5 rounded-xl border border-line px-5 py-2.5 text-sm font-bold text-navy transition hover:bg-slate-50"
+            >
               مسح التصفية
             </button>
           ) : canCreate ? (
@@ -228,7 +268,15 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
         <>
           <ul className={`grid gap-4 transition-opacity lg:grid-cols-2 ${refreshing ? 'opacity-60' : ''}`} aria-busy={refreshing} data-testid="meetings-list">
             {rows.map((m) => (
-              <MeetingCard key={m.id} m={m} onOpen={setOpenId} onUploadReport={startReport} />
+              <MeetingCard
+                key={m.id}
+                m={m}
+                onOpen={setOpenId}
+                onUploadReport={startReport}
+                onJoin={(id) => void attendance.join(id, m.meeting_url)}
+                onConfirm={(id) => void attendance.confirm(id)}
+                busyId={attendance.busyId}
+              />
             ))}
           </ul>
 
@@ -266,6 +314,7 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
           basePath={copy.basePath}
           onClose={() => setOpenId(null)}
           onUploadReport={startReport}
+          onUpdated={patchMeeting}
         />
       )}
 

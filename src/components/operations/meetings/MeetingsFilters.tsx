@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ListFilter, Search, X } from 'lucide-react'
 import type { MeetingRef, MeetingType } from '@/types/operations'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import { EMPTY_MEETING_FILTERS, activeMeetingFilterCount, type MeetingFilters } from './meetingsUi'
 
 const field =
@@ -77,14 +78,8 @@ export function MeetingsFilters({ value, onChange, departments }: Props) {
             <option value="submitted">تم رفع التقرير</option>
           </select>
         </label>
-        <label className="grid gap-1.5 text-[11px] font-black text-muted-500">
-          من تاريخ
-          <input type="date" dir="ltr" value={value.date_from} max={value.date_to || undefined} onChange={(e) => set('date_from', e.target.value)} className={field} />
-        </label>
-        <label className="grid gap-1.5 text-[11px] font-black text-muted-500">
-          إلى تاريخ
-          <input type="date" dir="ltr" value={value.date_to} min={value.date_from || undefined} onChange={(e) => set('date_to', e.target.value)} className={field} />
-        </label>
+        <EmcDatePicker label="من تاريخ" layout="stacked" showPresets={false} value={value.date_from} maxDate={value.date_to || undefined} onChange={(v) => set('date_from', v)} />
+        <EmcDatePicker label="إلى تاريخ" layout="stacked" showPresets={false} value={value.date_to} minDate={value.date_from || undefined} onChange={(v) => set('date_to', v)} />
         <div className="flex items-end">
           <button
             type="button"

@@ -203,6 +203,16 @@ function EventDrawer({
           </Link>
         )}
 
+        {event.details_url && (
+          <Link
+            to={event.details_url}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-[#0C2A4B] transition hover:bg-slate-50"
+          >
+            تفاصيل الاجتماع
+            <ExternalLink size={14} />
+          </Link>
+        )}
+
         {event.meeting_link && (
           <div className="space-y-2">
             <MeetingLinkAction event={event} />

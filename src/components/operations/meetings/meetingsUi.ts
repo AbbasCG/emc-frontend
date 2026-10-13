@@ -1,5 +1,5 @@
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
-import type { MeetingDisplayStatus, MeetingType, OpsMeeting } from '@/types/operations'
+import type { MeetingDisplayStatus, MeetingType, OpsMeeting, ParticipantStatus } from '@/types/operations'
 import { formatDay } from '@/components/operations/meetingReports/meetingReportsUi'
 
 export { formatDay }
@@ -33,6 +33,18 @@ export function meetingTypeLabel(type: MeetingType): string {
   return MEETING_TYPE_AR[type] ?? MEETING_TYPE_AR.general
 }
 
+/**
+ * One consistent line for when a meeting happens: "15 أكتوبر 2026، 22:00 – 23:00".
+ * The date and times are the meeting's own wall-clock values (no timezone shift),
+ * 24-hour, with the comma and en dash spaced so nothing runs together.
+ */
+export function formatMeetingWhen(m: { meeting_date: string | null; start_time: string | null; end_time: string | null }): string {
+  const day = formatDay(m.meeting_date)
+  const time = m.start_time ? (m.end_time ? `${m.start_time} – ${m.end_time}` : m.start_time) : ''
+  if (day === '—') return time || '—'
+  return time ? `${day}، ${time}` : day
+}
+
 /** "10:00" or "10:00 – 11:30", or an empty string. */
 export function timeRange(m: Pick<OpsMeeting, 'start_time' | 'end_time'>): string {
   if (!m.start_time) return ''
@@ -52,4 +64,12 @@ export const EMPTY_MEETING_FILTERS: MeetingFilters = { q: '', type: '', departme
 
 export function activeMeetingFilterCount(f: MeetingFilters): number {
   return [f.q.trim() !== '', f.type !== '', f.department_id !== '', f.date_from !== '', f.date_to !== '', f.report_status !== ''].filter(Boolean).length
+}
+
+/** What each participant status is called on screen (never the raw value). */
+export const PARTICIPANT_STATUS_META: Record<ParticipantStatus, { label: string; tone: StatusTone }> = {
+  invited: { label: 'مدعو', tone: 'neutral' },
+  joined: { label: 'انضم', tone: 'live' },
+  attended: { label: 'حضر', tone: 'success' },
+  absent: { label: 'لم يحضر', tone: 'warn' },
 }

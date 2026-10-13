@@ -13,14 +13,20 @@ const dayFormat = new Intl.DateTimeFormat('ar', {
   numberingSystem: 'latn',
 })
 
-const dateTimeFormat = new Intl.DateTimeFormat('ar', {
+const timeFormat = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: 'Europe/Amsterdam',
+})
+
+const dayInAmsterdam = new Intl.DateTimeFormat('ar', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
   calendar: 'gregory',
   numberingSystem: 'latn',
+  timeZone: 'Europe/Amsterdam',
 })
 
 function parse(value: string | null | undefined): Date | null {
@@ -36,9 +42,14 @@ export function formatDay(value: string | null | undefined): string {
   return d ? dayFormat.format(d) : '—'
 }
 
+/**
+ * "12 أكتوبر 2026، 11:30" - the platform format: Arabic month, Latin digits, 24-hour
+ * time, a comma between date and time, shown in Europe/Amsterdam (the zone every EMC
+ * timestamp is displayed in).
+ */
 export function formatDateTime(value: string | null | undefined): string {
   const d = parse(value)
-  return d ? dateTimeFormat.format(d) : '—'
+  return d ? `${dayInAmsterdam.format(d)}، ${timeFormat.format(d)}` : '—'
 }
 
 export type ScoreTone = 'high' | 'mid' | 'low'
