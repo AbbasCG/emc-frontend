@@ -67,6 +67,7 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
   // Guards against a slow response for a previous identity overwriting a newer
   // one — switching accounts must never resolve to the old user's access.
   const requestRef = useRef(0)
+  const lastLoadedAt = useRef(0)
 
   const load = useCallback(async () => {
     const requestId = ++requestRef.current
@@ -77,6 +78,7 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
       if (requestId !== requestRef.current) return
       setPages(manifest.pages)
       setStatus('ready')
+      lastLoadedAt.current = Date.now()
     } catch {
       if (requestId !== requestRef.current) return
       // Deliberately clear: a failed manifest must not leave stale grants in
@@ -96,6 +98,35 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
 
     void load()
   }, [isAuthenticated, user?.id, load])
+
+  // An admin can change someone's access while that person has the app open. Re-read the
+  // manifest quietly whenever the tab comes back into view (at most once a minute), so a new
+  // grant or revoke reaches the menu without a re-login. It never flips the status to
+  // `loading` (which would blank the menu), and a failed quiet refresh keeps the last decision
+  // the backend made rather than inventing a new one.
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      if (Date.now() - lastLoadedAt.current < 60_000) return
+
+      const requestId = ++requestRef.current
+      fetchMyPageAccess()
+        .then((manifest) => {
+          if (requestId !== requestRef.current) return
+          setPages(manifest.pages)
+          setStatus('ready')
+          lastLoadedAt.current = Date.now()
+        })
+        .catch(() => {
+          // Keep the previous decision; only an explicit load() clears it.
+        })
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [isAuthenticated])
 
   const value = useMemo<PageAccessContextValue>(() => {
     const allowedKeys = new Set(pages.filter((p) => p.allowed).map((p) => p.key))
