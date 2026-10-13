@@ -1,179 +1,243 @@
-import { useState, useEffect, useCallback } from 'react'
-import axios from 'axios'
-import { Loader2, Inbox, Check, X } from 'lucide-react'
-import apiClient from '@/api/axios'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight, Inbox, Loader2, Lock, RefreshCw, ShieldAlert } from 'lucide-react'
+import DashboardPageShell from '@/components/ui/DashboardPageShell'
 import toast from '@/lib/toast'
-import type { HrRequest } from './HrMyRequestsPage'
+import { cn } from '@/lib/utils'
+import {
+  classifyIncomingError,
+  fetchDraftSuggestion,
+  fetchIncomingRequests,
+  incomingErrorMessage,
+  updateIncomingRequestStatus,
+  type HrRequestStatus,
+  type IncomingList,
+  type IncomingRequest,
+  type OpportunityDraft,
+} from '@/api/hrIncomingRequestsApi'
+import { IncomingFilters } from '@/components/hrIncoming/IncomingFilters'
+import { IncomingKpis } from '@/components/hrIncoming/IncomingKpis'
+import { IncomingRequestCard } from '@/components/hrIncoming/IncomingRequestCard'
+import { OpportunityDraftModal } from '@/components/hrIncoming/OpportunityDraftModal'
+import { RequestDetailsDrawer } from '@/components/hrIncoming/RequestDetailsDrawer'
+import { EMPTY_FILTERS, type IncomingFilterState, type MatchState } from '@/components/hrIncoming/hrIncomingUi'
 
-/** Server-provided message from an API error response, if any. */
-function apiMessage(err: unknown): string | undefined {
-  if (!axios.isAxiosError(err)) return undefined
-  const data = err.response?.data as { message?: string } | undefined
-  return typeof data?.message === 'string' ? data.message : undefined
+/**
+ * /dashboard/hr/incoming-requests — الطلبات الواردة.
+ *
+ * HR's workspace for department staffing needs: a filterable list, a details drawer, smart
+ * volunteer matching and draft vacancy opportunities. It is decision support only. It never
+ * assigns or contacts a volunteer, sends anything, or publishes anything.
+ *
+ * Every permission decision comes from the server (the `capabilities` it returns and 403s); the
+ * page only shows or hides controls to match, and an action the server refuses is reported.
+ */
+
+const EMPTY_STATS = { total: 0, pending: 0, inProgress: 0, approved: 0, rejected: 0, withDrafts: 0 }
+const NO_CAPS = { canViewAll: false, canManage: false, canMatchVolunteers: false, canCreateDraft: false }
+
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={cn('animate-pulse rounded-2xl bg-deepBlue/[0.06]', className)} />
+}
+
+function StateCard({ icon: Icon, title, body, action, danger = false }: { icon: typeof Inbox; title: string; body: string; action?: React.ReactNode; danger?: boolean }) {
+  return (
+    <div role={danger ? 'alert' : 'status'} className="mx-auto max-w-lg rounded-3xl border border-deepBlue/[0.07] bg-white p-8 text-center shadow-sm">
+      <span className={cn('mx-auto grid h-14 w-14 place-items-center rounded-full ring-1', danger ? 'bg-red-50 text-red-500 ring-red-100' : 'bg-customBlue/[0.07] text-customBlue ring-customBlue/15')}>
+        <Icon size={26} aria-hidden="true" />
+      </span>
+      <h2 className="mt-4 text-base font-black text-deepBlue">{title}</h2>
+      <p className="mt-1.5 text-sm font-bold leading-relaxed text-deepBlue/60">{body}</p>
+      {action ? <div className="mt-5">{action}</div> : null}
+    </div>
+  )
 }
 
 export default function HrIncomingRequestsPage() {
-  const [requests, setRequests] = useState<HrRequest[]>([])
+  const [filters, setFilters] = useState<IncomingFilterState>(EMPTY_FILTERS)
+  const [appliedQ, setAppliedQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [data, setData] = useState<IncomingList | null>(null)
   const [loading, setLoading] = useState(true)
-  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [error, setError] = useState<'forbidden' | 'error' | null>(null)
 
-  // No synchronous setState before the first await: loading starts `true`,
-  // so the effect below can invoke this loader legally (all setStates land
-  // after the await — see docs/04-references/effect-patterns.md P1).
-  const loadRequests = useCallback(async () => {
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [statusBusy, setStatusBusy] = useState(false)
+  const [found, setFound] = useState<Record<number, number>>({})
+  const [draftBusy, setDraftBusy] = useState(false)
+  const [draftForm, setDraftForm] = useState<{ requestId: number; initial: OpportunityDraft; existing: boolean } | null>(null)
+  const requestRef = useRef(0)
+
+  // Typing in the search box waits a moment before it hits the server.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setAppliedQ(filters.q)
+      setPage(1)
+    }, 350)
+    return () => clearTimeout(t)
+  }, [filters.q])
+
+  const load = useCallback(async () => {
+    const request = ++requestRef.current
+    setLoading(true)
+    setError(null)
     try {
-      const res = await apiClient.get<{ data?: HrRequest[] }>('/admin/hr-requests/incoming')
-      setRequests(res.data?.data || [])
-    } catch {
-      toast.error('فشل في جلب الطلبات الواردة')
+      const res = await fetchIncomingRequests({ q: appliedQ, status: filters.status, departmentId: filters.departmentId, hasDraft: filters.hasDraft, dateFrom: filters.dateFrom, dateTo: filters.dateTo, page })
+      if (request !== requestRef.current) return
+      setData(res)
+    } catch (e) {
+      if (request !== requestRef.current) return
+      setData(null)
+      setError(classifyIncomingError(e) === 'forbidden' ? 'forbidden' : 'error')
     } finally {
-      setLoading(false)
+      if (request === requestRef.current) setLoading(false)
     }
-  }, [])
+  }, [appliedQ, filters.status, filters.departmentId, filters.hasDraft, filters.dateFrom, filters.dateTo, page])
 
   useEffect(() => {
-    void (async () => {
-      await loadRequests()
-    })()
-  }, [loadRequests])
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch when a filter or the page changes; the loading flag must reset before the request
+    void load()
+  }, [load])
 
-  // Refresh after a mutation = event-handler path, so the synchronous
-  // setLoading(true) here is allowed and required.
-  const refreshRequests = useCallback(async () => {
-    setLoading(true)
-    await loadRequests()
-  }, [loadRequests])
+  function changeFilters(next: IncomingFilterState) {
+    setFilters(next)
+    if (next.q === filters.q) setPage(1)
+  }
 
-  const updateStatus = async (id: number, status: string) => {
+  const items = useMemo(() => data?.items ?? [], [data])
+  const caps = data?.capabilities ?? NO_CAPS
+  const selected = useMemo(() => items.find((i) => i.id === selectedId) ?? null, [items, selectedId])
+
+  const matchState = (r: IncomingRequest): MatchState =>
+    r.draft ? 'draft_created' : found[r.id] === undefined ? 'not_searched' : found[r.id] > 0 ? 'has_candidates' : 'no_candidates'
+
+  async function changeStatus(status: HrRequestStatus) {
+    if (!selected) return
+    setStatusBusy(true)
     try {
-      setUpdatingId(id)
-      await apiClient.patch(`/admin/hr-requests/${id}/status`, { status })
-      toast.success('تم تحديث حالة الطلب بنجاح')
-      void refreshRequests()
-    } catch (err) {
-      toast.error(apiMessage(err) || 'فشل في تحديث حالة الطلب')
+      await updateIncomingRequestStatus(selected.id, status)
+      toast.success('تم تحديث حالة الطلب.')
+      await load()
+    } catch (e) {
+      toast.error(incomingErrorMessage(e, 'تعذّر تحديث حالة الطلب.'))
     } finally {
-      setUpdatingId(null)
+      setStatusBusy(false)
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200'
-      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200'
-      default: return 'bg-orange-100 text-orange-800 border-orange-200'
+  async function openDraft() {
+    if (!selected || draftBusy) return
+    setDraftBusy(true)
+    try {
+      const { suggestion, existing } = await fetchDraftSuggestion(selected.id)
+      setDraftForm({ requestId: selected.id, initial: existing ?? suggestion, existing: existing !== null })
+    } catch (e) {
+      toast.error(classifyIncomingError(e) === 'forbidden' ? 'لا تملك صلاحية إنشاء مسودة فرصة.' : incomingErrorMessage(e, 'تعذّر تجهيز مسودة الفرصة.'))
+    } finally {
+      setDraftBusy(false)
     }
   }
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'approved': return 'مقبول'
-      case 'rejected': return 'مرفوض'
-      case 'in_progress': return 'جاري التنفيذ'
-      default: return 'قيد الانتظار'
-    }
+  function draftSaved() {
+    toast.success('تم حفظ مسودة الفرصة. لم تُنشر للعامة.')
+    setDraftForm(null)
+    void load()
   }
+
+  const refresh = (
+    <button
+      type="button"
+      onClick={() => void load()}
+      disabled={loading}
+      className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/10 bg-white px-4 py-2.5 text-xs font-black text-deepBlue shadow-sm transition hover:bg-customBlue/[0.05] disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      <RefreshCw size={14} className={cn(loading && 'animate-spin')} aria-hidden="true" />
+      تحديث
+    </button>
+  )
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-customBlue/10 flex items-center justify-center text-customBlue shrink-0">
-            <Inbox size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-deepBlue">الطلبات الواردة (HR والإدارات)</h1>
-            <p className="text-sm font-semibold text-deepBlue/60 mt-1">
-              إدارة طلبات الاحتياج الوظيفي الواردة من مختلف الأقسام
-            </p>
-          </div>
-        </div>
-      </div>
+    <div dir="rtl" className="mx-auto w-full max-w-6xl">
+      <DashboardPageShell
+        eyebrow="الموارد البشرية"
+        title="الطلبات الواردة"
+        description="إدارة طلبات الاحتياج الوظيفي الواردة من مختلف الأقسام"
+        breadcrumbs={[{ label: 'الموارد البشرية', href: '/dashboard/hr' }, { label: 'الطلبات الواردة' }]}
+        actions={refresh}
+      >
+        {error === 'forbidden' ?
+          <StateCard icon={Lock} danger title="لا تملك صلاحية عرض الطلبات الواردة" body="هذه الصفحة خاصة بفريق الموارد البشرية والإدارات المعنية. تواصل مع المسؤول إن كنت تحتاجها." />
+        : (
+          <div className="space-y-5">
+            {data ? <IncomingKpis stats={data.stats ?? EMPTY_STATS} /> : null}
+            <IncomingFilters value={filters} onChange={changeFilters} departments={data?.departments ?? []} />
 
-      <div className="bg-white rounded-2xl border border-deepBlue/[0.08] shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center p-12">
-            <Loader2 className="w-8 h-8 animate-spin text-customBlue" />
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="p-12 text-center text-deepBlue/50 font-semibold">
-            لا توجد طلبات واردة في الوقت الحالي.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead className="bg-[#F6F8FB] text-deepBlue border-b border-deepBlue/[0.08]">
-                <tr>
-                  <th className="px-5 py-4 font-black">القسم الطالب</th>
-                  <th className="px-5 py-4 font-black">المسمى / نوع الطلب</th>
-                  <th className="px-5 py-4 font-black">العدد</th>
-                  <th className="px-5 py-4 font-black">المهارات والمواصفات</th>
-                  <th className="px-5 py-4 font-black">تاريخ الطلب</th>
-                  <th className="px-5 py-4 font-black">الحالة</th>
-                  <th className="px-5 py-4 font-black text-center">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-deepBlue/[0.05]">
-                {requests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#F6F8FB]/50 transition">
-                    <td className="px-5 py-4 font-bold text-deepBlue">
-                      {req.department?.name || '---'}
-                      <div className="text-xs font-semibold text-deepBlue/50 mt-0.5">بواسطة: {req.creator?.name}</div>
-                    </td>
-                    <td className="px-5 py-4 font-bold text-deepBlue">
-                      {req.request_type}
-                    </td>
-                    <td className="px-5 py-4 font-bold text-deepBlue font-latin text-center">
-                      {req.required_count}
-                    </td>
-                    <td className="px-5 py-4 text-deepBlue/70 text-xs max-w-xs truncate" title={req.skills_and_specs}>
-                      {req.skills_and_specs}
-                      {req.notes && (
-                        <div className="text-deepBlue/40 mt-1 truncate" title={req.notes}>ملاحظة: {req.notes}</div>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-deepBlue/60 font-latin text-[13px]">
-                      {new Date(req.created_at).toLocaleDateString('en-CA')}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold border ${getStatusColor(req.status)}`}>
-                        {getStatusLabel(req.status)}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {updatingId === req.id ? (
-                          <Loader2 size={18} className="animate-spin text-customBlue" />
-                        ) : req.status === 'pending' || req.status === 'in_progress' ? (
-                          <>
-                            <button
-                              onClick={() => updateStatus(req.id, 'approved')}
-                              title="قبول واعتماد"
-                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition"
-                            >
-                              <Check size={18} />
-                            </button>
-                            <button
-                              onClick={() => updateStatus(req.id, 'rejected')}
-                              title="رفض"
-                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition"
-                            >
-                              <X size={18} />
-                            </button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-deepBlue/30 font-semibold">مكتمل</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {loading && !data ?
+              <div className="space-y-3" aria-busy="true" aria-label="جارٍ التحميل" data-testid="incoming-loading">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+              </div>
+            : error ?
+              <StateCard
+                icon={ShieldAlert}
+                danger
+                title="تعذّر تحميل الطلبات الواردة"
+                body="حدث خطأ أثناء جلب البيانات. حاول مرة أخرى."
+                action={<button type="button" onClick={() => void load()} className="rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white shadow-emc-md">إعادة المحاولة</button>}
+              />
+            : data && items.length === 0 ?
+              <StateCard
+                icon={Inbox}
+                title={JSON.stringify(filters) === JSON.stringify(EMPTY_FILTERS) ? 'لا توجد طلبات واردة' : 'لا توجد نتائج مطابقة'}
+                body={JSON.stringify(filters) === JSON.stringify(EMPTY_FILTERS) ? 'ستظهر هنا طلبات الاحتياج التي ترسلها الأقسام.' : 'جرّب تغيير التصفية أو مسحها.'}
+              />
+            : (
+              <div className={cn('space-y-4 transition-opacity', loading && 'opacity-60')}>
+                <ul className="space-y-3" aria-label="قائمة الطلبات">
+                  {items.map((r) => <IncomingRequestCard key={r.id} request={r} matchState={matchState(r)} onOpen={() => setSelectedId(r.id)} />)}
+                </ul>
+
+                {data && data.meta.lastPage > 1 ?
+                  <nav aria-label="التنقل بين الصفحات" className="flex items-center justify-center gap-3">
+                    <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/10 bg-white px-3.5 py-2 text-xs font-black text-deepBlue disabled:opacity-50">
+                      <ChevronRight size={14} aria-hidden="true" /> السابق
+                    </button>
+                    <span className="text-xs font-bold text-deepBlue/60">صفحة {data.meta.currentPage} من {data.meta.lastPage}</span>
+                    <button type="button" onClick={() => setPage((p) => Math.min(data.meta.lastPage, p + 1))} disabled={page >= data.meta.lastPage || loading} className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/10 bg-white px-3.5 py-2 text-xs font-black text-deepBlue disabled:opacity-50">
+                      التالي <ChevronLeft size={14} aria-hidden="true" />
+                    </button>
+                  </nav>
+                : null}
+              </div>
+            )}
+
+            {loading && data ?
+              <p className="flex items-center justify-center gap-2 text-xs font-bold text-deepBlue/55" role="status"><Loader2 size={13} className="animate-spin" aria-hidden="true" /> جارٍ التحديث…</p>
+            : null}
           </div>
         )}
-      </div>
+      </DashboardPageShell>
+
+      <RequestDetailsDrawer
+        request={selected}
+        capabilities={caps}
+        onClose={() => setSelectedId(null)}
+        onStatus={(s) => void changeStatus(s)}
+        statusBusy={statusBusy}
+        onMatchResult={(n) => selected && setFound((f) => ({ ...f, [selected.id]: n }))}
+        onOpenDraft={() => void openDraft()}
+        draftBusy={draftBusy}
+      />
+
+      {draftForm ?
+        <OpportunityDraftModal
+          key={`${draftForm.requestId}-${draftForm.existing}`}
+          open
+          requestId={draftForm.requestId}
+          initial={draftForm.initial}
+          isExisting={draftForm.existing}
+          onClose={() => setDraftForm(null)}
+          onSaved={draftSaved}
+        />
+      : null}
     </div>
   )
 }
