@@ -250,6 +250,7 @@ const PartnerDocumentsPage      = lazy(() => import('./pages/platform/partner/Pa
 
 // ── Lazy: dashboard pages — tech admin ───────────────────────────────────────
 const TechAdminDashboardPage = lazy(() => import('./pages/tech-admin/TechAdminDashboardPage'))
+const TechDepartmentDashboardsPage = lazy(() => import('./pages/tech-admin/TechDepartmentDashboardsPage'))
 
 // ── Lazy: EMC Unified Tickets System ─────────────────────────────────────────
 const TicketSubmitPage = lazy(() => import('./components/tickets/TicketSubmitPage'))
@@ -688,6 +689,7 @@ function App() {
                   {/* ── Tech Admin dedicated dashboard ── */}
                   <Route path="/dashboard/tech-admin" element={<Suspense fallback={<RouteFallback />}><TechAdminDashboardPage /></Suspense>} />
                   <Route path="/dashboard/tech-admin/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPathsManagementPage /></Suspense>} />
+                  <Route path="/dashboard/tech-admin/department-dashboards" element={<Suspense fallback={<RouteFallback />}><TechDepartmentDashboardsPage /></Suspense>} />
 
                   {/* ── Dedicated manager home pages ── */}
                   <Route path="/dashboard/programs-manager" element={<ProgramsManagerDashboardPage />} />

@@ -271,6 +271,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       defaultOpen: false,
       items: [
         { label: 'الإعدادات',         href: '/dashboard/settings',                      icon: Settings     },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'إعدادات الحضور',    href: '/dashboard/super-admin/attendance-settings', icon: ClipboardCheck },
         { label: 'البريد الإلكتروني', href: '/dashboard/super-admin/email-settings',    icon: Mail         },
         { label: 'سجلات البريد',      href: '/dashboard/super-admin/email-logs',        icon: ScrollText   },
@@ -298,6 +299,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       items: [
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
         { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
@@ -409,6 +411,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
       defaultOpen: true,
       items: [
         { label: 'لوحة التحكم التقنية', href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
 
         { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },
         { label: 'سجلات التدقيق',   href: '/dashboard/super-admin/audit-logs',  icon: ScrollText      },
@@ -541,6 +544,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
+          { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
