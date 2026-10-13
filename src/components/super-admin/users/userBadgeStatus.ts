@@ -20,7 +20,7 @@ export const VERIFIED_PILL = {
   unknown: 'bg-slate-50 text-slate-500 border-slate-200',
 } as const
 
-export const VERIFIED_LABEL = { yes: 'موثَّق', no: 'غير موثَّق', unknown: 'غير مُرسَل' } as const
+export const VERIFIED_LABEL = { yes: 'موثّق', no: 'غير موثّق', unknown: 'غير مُرسَل' } as const
 
 export function isDeletedUser(u: AdminManagedUser): boolean {
   return !!u.deleted_at
@@ -34,6 +34,7 @@ export function userStatusKey(u: AdminManagedUser): keyof typeof STATUS_PILL {
 }
 
 export function userVerifiedKey(u: AdminManagedUser): keyof typeof VERIFIED_PILL {
+  if (u.email_verified === true && !u.email_verified_at) return 'yes'
   const raw = u.email_verified_at
   if (raw == null || String(raw).trim() === '') return 'no'
   return Number.isFinite(Date.parse(raw)) ? 'yes' : 'unknown'

@@ -51,9 +51,9 @@ export function UsersKpiStrip({
       <EnterpriseMetricTile
         accent="navy"
         icon={MailCheck}
-        label="بريد موثَّق"
+        label="بريد موثّق"
         value={verified}
-        hint={`${unverified} غير موثَّق`}
+        hint={`${unverified} غير موثّق`}
         loading={loading}
       />
     </div>

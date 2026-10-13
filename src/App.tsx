@@ -24,6 +24,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import NotFound from './pages/NotFound'
 
 // ── Lazy: public pages (rarely above-the-fold on first load) ─────────────────
@@ -393,6 +394,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               {ALL_LEGAL_DOCUMENTS.map((doc) => (
                 <Route
                   key={doc.route}

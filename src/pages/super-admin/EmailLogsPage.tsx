@@ -24,6 +24,7 @@ const TYPE_LABELS: Record<string, string> = {
   welcome:                    'ترحيب',
   account_created:            'إنشاء حساب',
   password_reset:             'إعادة تعيين كلمة المرور',
+  email_verification:         'توثيق البريد الإلكتروني',
   course_enrollment:          'تسجيل في دورة',
   course_approved:            'موافقة على دورة',
   course_rejected:            'رفض دورة',
