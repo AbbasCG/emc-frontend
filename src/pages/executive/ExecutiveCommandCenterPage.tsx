@@ -193,7 +193,7 @@ export default function ExecutiveCommandCenterPage() {
                       />
                     ))}
                   </div>
-                  <CommandCenterSourceHealth sources={data.sources} />
+                  <CommandCenterSourceHealth sources={data.sources} smartRules={data.smartRules} />
                 </div>
               </div>
             : null}

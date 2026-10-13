@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { CheckCircle2, ExternalLink, Lock, XCircle } from 'lucide-react'
-import type { CommandCenterSource } from '@/api/executiveCommandCenterApi'
+import type { CommandCenterSource, SmartRuleStatus } from '@/api/executiveCommandCenterApi'
 import { usePageAccess } from '@/contexts/PageAccessContext'
 import { cn } from '@/lib/utils'
 import { SOURCE_META } from './commandCenterUi'
@@ -16,9 +16,10 @@ const QUICK_LINKS: { pageKey: string; label: string; to: string }[] = [
   { pageKey: 'administration.users', label: 'المستخدمون', to: '/dashboard/super-admin/crud/users' },
 ]
 
-export function CommandCenterSourceHealth({ sources }: { sources: CommandCenterSource[] }) {
+export function CommandCenterSourceHealth({ sources, smartRules = [] }: { sources: CommandCenterSource[]; smartRules?: SmartRuleStatus[] }) {
   const { canAccessKey } = usePageAccess()
   const links = QUICK_LINKS.filter((l) => canAccessKey(l.pageKey))
+  const inactive = smartRules.filter((r) => r.status === 'skipped' || r.status === 'disabled')
 
   return (
     <aside className="space-y-4" aria-label="حالة المصادر">
@@ -44,6 +45,11 @@ export function CommandCenterSourceHealth({ sources }: { sources: CommandCenterS
           <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold leading-relaxed text-red-800">
             تعذّر تحميل: {sources.flatMap((s) => s.unavailable).join('، ')}. بقية المصادر تعمل بشكل طبيعي.
           </div>
+        : null}
+        {inactive.length > 0 ?
+          <p className="mt-3 text-[11px] font-bold leading-relaxed text-deepBlue/50" data-testid="inactive-rules">
+            قواعد ذكية غير مفعّلة: {inactive.map((r) => r.label).join('، ')}.
+          </p>
         : null}
       </section>
 

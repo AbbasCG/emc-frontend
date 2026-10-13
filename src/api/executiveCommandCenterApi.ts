@@ -11,7 +11,17 @@ import { unwrapData } from './unwrap'
  */
 
 export type CommandCenterRange = 'today' | 'week' | 'month'
-export type CommandCenterSourceKey = 'tickets' | 'meetings' | 'education' | 'finance' | 'hr' | 'quality' | 'system'
+export type CommandCenterSourceKey =
+  | 'smart_rules'
+  | 'tickets'
+  | 'meetings'
+  | 'education'
+  | 'finance'
+  | 'hr'
+  | 'quality'
+  | 'email'
+  | 'users'
+  | 'system'
 export type CommandCenterSectionKey = 'needs_attention' | 'upcoming' | 'recent_updates' | 'errors'
 export type CommandCenterPriority = 'critical' | 'high' | 'medium' | 'low' | 'info'
 
@@ -31,7 +41,22 @@ export type CommandCenterItem = {
   url: string
   actionLabel: string
   badge: string | null
+  /** The area the item belongs to (a smart alert's source is `smart_rules`; its module says which area). */
+  module: CommandCenterSourceKey
+  /** Present on smart rule alerts only. */
+  smart: SmartAlertDetails | null
 }
+
+/** Extra fields of a smart operational alert. Rules run on the server; the client only displays them. */
+export type SmartAlertDetails = {
+  ruleKey: string
+  priorityScore: number
+  detectedAt: string | null
+  suggestedAction: string
+  relatedEntity: { type: string; id: string; title: string } | null
+}
+
+export type SmartRuleStatus = { key: string; label: string; module: string; status: 'ok' | 'failed' | 'disabled' | 'skipped'; count: number }
 
 export type CommandCenterSection = {
   key: CommandCenterSectionKey
@@ -50,9 +75,10 @@ export type CommandCenterSource = {
 
 export type CommandCenterData = {
   meta: { generatedAt: string | null; range: CommandCenterRange; source: string; priority: string; timezone: string }
-  summary: Record<CommandCenterSectionKey, number> & { sourcesActive: number; sourcesTotal: number }
+  summary: Record<CommandCenterSectionKey, number> & { sourcesActive: number; sourcesTotal: number; smartAlerts: number }
   sections: CommandCenterSection[]
   sources: CommandCenterSource[]
+  smartRules: SmartRuleStatus[]
   capabilities: { canView: boolean; canRefresh: boolean; readOnly: boolean }
 }
 
@@ -64,7 +90,7 @@ export type CommandCenterQuery = {
 }
 
 const SECTION_KEYS: CommandCenterSectionKey[] = ['needs_attention', 'upcoming', 'recent_updates', 'errors']
-const SOURCE_KEYS: CommandCenterSourceKey[] = ['tickets', 'meetings', 'education', 'finance', 'hr', 'quality', 'system']
+const SOURCE_KEYS: CommandCenterSourceKey[] = ['smart_rules', 'tickets', 'meetings', 'education', 'finance', 'hr', 'quality', 'email', 'users', 'system']
 const PRIORITIES: CommandCenterPriority[] = ['critical', 'high', 'medium', 'low', 'info']
 
 function rec(v: unknown): Record<string, unknown> {
@@ -101,6 +127,10 @@ function normalizeItem(raw: unknown): CommandCenterItem | null {
   const source = str(r.source) as CommandCenterSourceKey
   const priority = PRIORITIES.includes(r.priority as CommandCenterPriority) ? (r.priority as CommandCenterPriority) : 'info'
   const actor = rec(r.actor)
+  const entity = rec(r.related_entity)
+  const moduleKey = str(r.module) as CommandCenterSourceKey
+  const isSmart = r.type === 'operational_alert' && typeof r.rule_key === 'string'
+  const score = Math.max(0, Math.min(100, Math.round(num(r.priority_score))))
 
   return {
     id,
@@ -118,6 +148,16 @@ function normalizeItem(raw: unknown): CommandCenterItem | null {
     url: safeInternalUrl(r.url),
     actionLabel: str(r.action_label, 'فتح'),
     badge: strOrNull(r.badge),
+    module: SOURCE_KEYS.includes(moduleKey) ? moduleKey : SOURCE_KEYS.includes(source) ? source : 'system',
+    smart: isSmart ?
+      {
+        ruleKey: str(r.rule_key),
+        priorityScore: score,
+        detectedAt: strOrNull(r.detected_at),
+        suggestedAction: str(r.suggested_action),
+        relatedEntity: entity.type ? { type: str(entity.type), id: str(entity.id), title: str(entity.title) } : null,
+      }
+    : null,
   }
 }
 
@@ -153,6 +193,7 @@ export function normalizeCommandCenter(payload: unknown): CommandCenterData {
       errors: num(summary.errors),
       sourcesActive: num(summary.sources_active),
       sourcesTotal: num(summary.sources_total),
+      smartAlerts: num(summary.smart_alerts),
     },
     sections,
     sources: arr(d.sources).map(rec).filter((s) => SOURCE_KEYS.includes(s.key as CommandCenterSourceKey)).map((s) => ({
@@ -161,6 +202,13 @@ export function normalizeCommandCenter(payload: unknown): CommandCenterData {
       available: s.available === true,
       count: num(s.count),
       unavailable: arr(s.unavailable).map((x) => str(x)),
+    })),
+    smartRules: arr(d.smart_rules).map(rec).filter((x) => str(x.key) !== '').map((x) => ({
+      key: str(x.key),
+      label: str(x.label),
+      module: str(x.module),
+      status: x.status === 'failed' || x.status === 'disabled' || x.status === 'skipped' ? x.status : 'ok',
+      count: num(x.count),
     })),
     capabilities: { canView: caps.can_view !== false, canRefresh: caps.can_refresh !== false, readOnly: caps.read_only !== false },
   }

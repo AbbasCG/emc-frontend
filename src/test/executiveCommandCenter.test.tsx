@@ -30,25 +30,26 @@ const mocked = vi.mocked(fetchCommandCenter)
 function item(over: Partial<CommandCenterItem> = {}): CommandCenterItem {
   return {
     id: 'ticket_new-1', source: 'tickets', type: 'ticket_new', title: 'لا يعمل تسجيل الدخول', description: 'بلاغ جديد بانتظار الاعتماد والتوجيه.',
-    status: 'PENDING_APPROVAL', statusLabel: 'بانتظار الاعتماد', priority: 'high', priorityLabel: 'مهم',
-    timestamp: new Date(Date.now() - 2 * 3600_000).toISOString(), dueAt: null, actor: { name: 'سارة' }, url: '/dashboard/tickets/1', actionLabel: 'فتح التذكرة', badge: 'جديد', ...over,
+    status: 'PENDING_APPROVAL', statusLabel: 'بانتظار الاعتماد', priority: 'high', priorityLabel: 'عاجل',
+    timestamp: new Date(Date.now() - 2 * 3600_000).toISOString(), dueAt: null, actor: { name: 'سارة' }, url: '/dashboard/tickets/1', actionLabel: 'فتح التذكرة', badge: 'جديد', module: 'tickets', smart: null, ...over,
   }
 }
 
 function data(over: Partial<Record<CommandCenterSectionKey, CommandCenterItem[]>> = {}, extra: Partial<CommandCenterData> = {}): CommandCenterData {
   const lists: Record<CommandCenterSectionKey, CommandCenterItem[]> = {
     needs_attention: [item(), item({ id: 'meeting_missing_report-4', source: 'meetings', title: 'اجتماع المتابعة', description: 'انتهى الاجتماع ولم يُرفع تقريره بعد.', priority: 'high', url: '/dashboard/operations/meeting-reports', actionLabel: 'مراجعة التقارير', actor: null })],
-    upcoming: [item({ id: 'meeting_upcoming-9', source: 'meetings', title: 'اجتماع الغد', priority: 'medium', priorityLabel: 'متوسط', url: '/dashboard/department/meeting-lounge/9', actionLabel: 'فتح الاجتماع', dueAt: new Date(Date.now() + 86400_000).toISOString() })],
+    upcoming: [item({ id: 'meeting_upcoming-9', source: 'meetings', title: 'اجتماع الغد', priority: 'medium', priorityLabel: 'مهم', url: '/dashboard/department/meeting-lounge/9', actionLabel: 'فتح الاجتماع', dueAt: new Date(Date.now() + 86400_000).toISOString() })],
     recent_updates: [item({ id: 'ticket_resolved-2', title: 'تم حل المشكلة', priority: 'info', priorityLabel: 'معلومة', description: 'تم حل البلاغ.', actionLabel: 'فتح التذكرة' })],
-    errors: [item({ id: 'email_failures-welcome', source: 'system', title: 'فشل إرسال 6 رسائل: بريد الترحيب', description: 'رسائل لم تُسلَّم.', priority: 'critical', priorityLabel: 'عاجل', url: '/dashboard/super-admin/email-logs', actionLabel: 'فتح سجلات البريد', actor: null })],
+    errors: [item({ id: 'email_failures-welcome', source: 'system', title: 'فشل إرسال 6 رسائل: بريد الترحيب', description: 'رسائل لم تُسلَّم.', module: 'email', priority: 'critical', priorityLabel: 'حرج', url: '/dashboard/super-admin/email-logs', actionLabel: 'فتح سجلات البريد', actor: null })],
     ...over,
   }
   const titles: Record<CommandCenterSectionKey, string> = { needs_attention: 'يحتاج انتباه الآن', upcoming: 'القادم', recent_updates: 'آخر التحديثات', errors: 'مشاكل وتنبيهات' }
   return {
     meta: { generatedAt: '2026-10-13T18:00:00+00:00', range: 'today', source: 'all', priority: 'all', timezone: 'Europe/Amsterdam' },
-    summary: { needs_attention: lists.needs_attention.length, upcoming: lists.upcoming.length, recent_updates: lists.recent_updates.length, errors: lists.errors.length, sourcesActive: 7, sourcesTotal: 7 },
+    summary: { needs_attention: lists.needs_attention.length, upcoming: lists.upcoming.length, recent_updates: lists.recent_updates.length, errors: lists.errors.length, sourcesActive: 10, sourcesTotal: 10, smartAlerts: 0 },
     sections: (Object.keys(titles) as CommandCenterSectionKey[]).map((k) => ({ key: k, title: titles[k], total: lists[k].length, items: lists[k] })),
-    sources: (['tickets', 'meetings', 'education', 'finance', 'hr', 'quality', 'system'] as const).map((k) => ({ key: k, label: { tickets: 'التذاكر', meetings: 'الاجتماعات', education: 'التعليم', finance: 'المالية', hr: 'الموارد البشرية', quality: 'الجودة', system: 'النظام' }[k], available: true, count: 1, unavailable: [] })),
+    sources: (['smart_rules', 'tickets', 'meetings', 'education', 'finance', 'hr', 'quality', 'email', 'users', 'system'] as const).map((k) => ({ key: k, label: { smart_rules: 'التنبيهات الذكية', tickets: 'التذاكر', meetings: 'الاجتماعات', education: 'التعليم', finance: 'المالية', hr: 'الموارد البشرية', quality: 'الجودة', email: 'البريد', users: 'المستخدمون', system: 'النظام' }[k], available: true, count: 1, unavailable: [] })),
+    smartRules: [],
     capabilities: { canView: true, canRefresh: true, readOnly: true },
     ...extra,
   }
@@ -86,7 +87,7 @@ describe('page', () => {
     expect(within(screen.getByTestId('kpi-upcoming')).getByText('1')).toBeTruthy()
     expect(screen.getByTestId('kpi-recent_updates')).toBeTruthy()
     expect(screen.getByTestId('kpi-errors')).toBeTruthy()
-    expect(within(screen.getByTestId('kpi-sources')).getByText('7/7')).toBeTruthy()
+    expect(within(screen.getByTestId('kpi-sources')).getByText('10/10')).toBeTruthy()
   })
 
   it('renders the source filter chips in the required order', async () => {
@@ -94,7 +95,7 @@ describe('page', () => {
     const nav = await screen.findByTestId('source-filters')
 
     expect(within(nav).getAllByRole('button').map((b) => b.textContent?.replace(/\d+$/, '').trim())).toEqual(
-      ['الكل', 'التذاكر', 'الاجتماعات', 'التعليم', 'المالية', 'الموارد البشرية', 'الجودة', 'النظام'],
+      ['الكل', 'التنبيهات الذكية', 'التذاكر', 'الاجتماعات', 'التعليم', 'المالية', 'الموارد البشرية', 'الجودة', 'البريد', 'المستخدمون', 'النظام'],
     )
   })
 
@@ -115,7 +116,7 @@ describe('page', () => {
     const card = within(sec).getAllByTestId('command-center-item')[0]
 
     expect(within(card).getByText('التذاكر')).toBeTruthy()
-    expect(within(card).getByText('مهم')).toBeTruthy()
+    expect(within(card).getByText('عاجل')).toBeTruthy()
     expect(within(card).getByText('بانتظار الاعتماد')).toBeTruthy()
     expect(within(card).getByText('لا يعمل تسجيل الدخول')).toBeTruthy()
     expect(within(card).getByText('سارة')).toBeTruthy()
@@ -209,14 +210,14 @@ describe('states', () => {
   it('warns about unavailable sources', async () => {
     const d = data({}, {})
     d.sources = d.sources.map((s) => (s.key === 'quality' ? { ...s, available: false, unavailable: ['الجودة'] } : s))
-    d.summary.sourcesActive = 6
+    d.summary.sourcesActive = 9
     mocked.mockResolvedValue(d)
     renderPage()
 
     const health = await screen.findByTestId('source-health')
     expect(within(health).getByText('غير متاح')).toBeTruthy()
     expect(within(health).getByRole('alert').textContent).toContain('الجودة')
-    expect(within(screen.getByTestId('kpi-sources')).getByText('6/7')).toBeTruthy()
+    expect(within(screen.getByTestId('kpi-sources')).getByText('9/10')).toBeTruthy()
   })
 
   it('quick links appear only for pages the viewer has access to', async () => {
