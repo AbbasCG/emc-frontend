@@ -429,10 +429,14 @@ export const siteContact = {
   location: { ar: 'أمستردام، هولندا خدمة أونلاين ومجتمعات عربية وهولندية' },
   hours: { ar: 'الأحد الخميس، 9:00 18:00 (بتوقيت أوروبا الوسطى)' },
   social: {
-    website: 'https://edumc.nl',
-    linkedin: 'https://www.linkedin.com/company/edumc',
-    instagram: 'https://www.instagram.com/edumc.nl',
+    website: 'https://edumc.nl/',
+    linkedin: 'https://www.linkedin.com/company/edumastarcentral/',
+    instagram: 'https://www.instagram.com/edumastarcentral?igsh=cXhrM3R5amZhOG55',
     youtube: 'https://www.youtube.com/@edumc',
-    x: 'https://x.com/edumc_nl',
+    x: 'https://x.com/edumastarcenter?s=11',
+    facebook: 'https://www.facebook.com/share/17itBQmpBt/?mibextid=wwXIfr',
+    tiktok: 'https://www.tiktok.com/@edumastarcentral?_r=1&_t=ZG-97ZAYywXre4',
+    telegram: 'https://t.me/edumastarcentral',
+    whatsapp: 'https://whatsapp.com/channel/0029VbAtDXCL2AU0PWYSSW40',
   },
 }
