@@ -1,467 +1,387 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, useSearchParams, Link } from 'react-router';
-import { ticketService } from '@/services/ticketService';
-import type { TicketFilterParams } from '@/services/ticketService';
-import type { Ticket, TicketStatus } from '@/types/ticket';
-import TicketStatusBadge from './TicketStatusBadge';
-import SlaCountdownTimer from './SlaCountdownTimer';
-import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal';
-import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal';
-import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal';
-import {
-  LayoutDashboard,
-  RefreshCw,
-  CheckCircle2,
-  XCircle,
-  UserCheck,
-  AlertTriangle,
-  Filter,
-  Search,
-  Clock,
-  Building2,
-  Layers,
-  ChevronDown,
-  ArrowRight,
-  FileBarChart2,
-  RotateCcw,
-} from 'lucide-react';
-import toast from '@/lib/toast';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router'
+import { Inbox, RefreshCw, SearchX, ShieldAlert, Plus } from 'lucide-react'
+import DashboardPageShell from '@/components/ui/DashboardPageShell'
+import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal'
+import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal'
+import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal'
+import { useAuth } from '@/contexts/AuthContext'
+import { useAbortableResource } from '@/hooks/useAbortableResource'
+import { useContainerWidth } from '@/hooks/useContainerWidth'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useTicketFilters } from '@/hooks/useTicketFilters'
+import { useTicketMeta } from '@/hooks/useTicketMeta'
+import { invalidateTicketDetail, prefetchTicketDetail } from '@/services/ticketDetailCache'
+import { fetchTicketAnalytics, fetchTicketBoard, fetchTicketInsights, fetchTicketList, fetchTicketStats, httpStatus } from '@/services/ticketOpsService'
+import type { Ticket } from '@/types/ticket'
+import type { TicketFilters, TicketView } from '@/types/ticketOps'
+import { cn } from '@/lib/utils'
+import { activeFilterCount, isKpiActive, kpiPatch, toApiParams, type KpiKey } from '@/utils/ticketFilters'
+import { TicketBulkBar } from './ops/TicketBulkBar'
+import { TicketDetailsModal } from './ops/TicketDetailsModal'
+import { TicketFilterBar } from './ops/TicketFilterBar'
+import { TicketInsightsPanel } from './ops/TicketInsightsPanel'
+import { TicketKanbanBoard } from './ops/TicketKanbanBoard'
+import { TicketKpiCards } from './ops/TicketKpiCards'
+import { TicketPagination } from './ops/TicketPagination'
+import { TicketSavedViews } from './ops/TicketSavedViews'
+import { loadColumns, type ColumnKey } from './ops/ticketColumns'
+import { ColumnMenu, TicketTable, type RowAction } from './ops/TicketTable'
+import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from './ops/ticketOpsUi'
 
-// ── Types ──────────────────────────────────────────────────────────────────
-type ActiveModal =
-  | { type: 'approve'; ticketId: number; departmentId: number }
-  | { type: 'reject'; ticketId: number }
-  | { type: 'reassign'; ticketId: number; departmentId: number; unitId?: number }
-  | null;
+// Charts are only needed on the analytics view, so they load on demand and stay out of the main bundle.
+const TicketAnalyticsPanel = lazy(() => import('./ops/TicketAnalyticsPanel'))
 
-const CLOSED_STATUSES = ['RESOLVED', 'REJECTED_BY_ADMIN', 'UNRESOLVED'];
+type ActiveModal = { type: RowAction; ticketId: number; departmentId: number; unitId?: number } | null
 
-const STATUS_FILTER_OPTS = [
-  { value: '', label: 'جميع الحالات' },
-  { value: 'PENDING_APPROVAL', label: 'معلقة — بانتظار الاعتماد' },
-  { value: 'ASSIGNED', label: 'معتمدة — محالة للمكلف' },
-  { value: 'IN_PROGRESS', label: 'قيد التنفيذ' },
-  { value: 'RESOLVED', label: 'تم الحل' },
-  { value: 'UNRESOLVED', label: 'تعذر الحل' },
-  { value: 'REJECTED_BY_ADMIN', label: 'مرفوضة إدارياً' },
-  { value: 'REJECTED_BY_ASSIGNEE', label: 'اعتذر المكلف' },
-];
+/** Below this content width the table needs sideways scrolling, so the card layout is used instead. */
+const TABLE_MIN_WIDTH = 900
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-function formatShortDate(str: string) {
-  return new Date(str).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const VIEW_TABS: { id: TicketView; label: string }[] = [
+  { id: 'table', label: 'الجدول' },
+  { id: 'board', label: 'لوحة كانبان' },
+  { id: 'analytics', label: 'التحليلات' },
+]
+
+function StateCard({ icon: Icon, title, body, action, danger = false }: { icon: typeof Inbox; title: string; body: string; action?: React.ReactNode; danger?: boolean }) {
+  return (
+    <div role={danger ? 'alert' : 'status'} className="mx-auto max-w-lg rounded-3xl border border-deepBlue/[0.07] bg-white p-8 text-center shadow-sm">
+      <span className={cn('mx-auto grid h-14 w-14 place-items-center rounded-full ring-1', danger ? 'bg-red-50 text-red-500 ring-red-100' : 'bg-customBlue/[0.07] text-customBlue ring-customBlue/15')}>
+        <Icon size={26} aria-hidden="true" />
+      </span>
+      <h2 className="mt-4 text-base font-black text-deepBlue">{title}</h2>
+      <p className="mt-1.5 text-sm font-bold leading-relaxed text-deepBlue/60">{body}</p>
+      {action ? <div className="mt-5">{action}</div> : null}
+    </div>
+  )
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
-const TechAdminDashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [tickets, setTickets]       = useState<Ticket[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading]       = useState(true);
-
-  // Filters live in the URL query string, not local state — so returning
-  // here via a ticket's "رجوع" restores the exact same filtered/paged view
-  // (Detail passes `state: { from: location.pathname + location.search }`),
-  // and a bare refresh doesn't silently reset the table either. Mirrors the
-  // established pattern already used by OpsSupportTicketsPage.
-  const [searchParams, setSearchParams] = useSearchParams();
-  const statusFilter = searchParams.get('status') ?? '';
-  const search       = searchParams.get('search') ?? '';
-  const delayedOnly  = searchParams.get('delayed') === '1';
-  const currentPage  = Math.max(1, Number(searchParams.get('page') ?? '1') || 1);
-
-  const updateParams = useCallback((patch: Record<string, string | null>) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      for (const [key, value] of Object.entries(patch)) {
-        if (value === null || value === '') next.delete(key);
-        else next.set(key, value);
-      }
-      return next;
-    }, { replace: true });
-  }, [setSearchParams]);
-
-  const setStatusFilter = (v: string) => updateParams({ status: v, page: null });
-  const setSearch = (v: string) => updateParams({ search: v, page: null });
-  const setDelayedOnly = (v: boolean) => updateParams({ delayed: v ? '1' : null, page: null });
-  const setCurrentPage = (v: number | ((p: number) => number)) => {
-    const next = typeof v === 'function' ? v(currentPage) : v;
-    updateParams({ page: next > 1 ? String(next) : null });
-  };
-
-  // Modal state — the approve/reject/reassign modals own their own unit/user
-  // loading now; this page just decides WHICH one is open, for WHICH ticket.
-  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: TicketFilterParams = {
-        per_page: 25,
-        page: currentPage,
-        ...(statusFilter ? { status: statusFilter } : {}),
-        ...(search.trim() ? { search: search.trim() } : {}),
-        ...(delayedOnly ? { delayed_only: true } : {}),
-      };
-      const res = await ticketService.getTickets(params);
-      if (res.success) {
-        setTickets(res.data.data ?? []);
-        setTotalCount(res.data.total ?? 0);
-      }
-    } catch {
-      toast.error('تعذر تحميل لوحة التحكم');
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter, search, delayedOnly, currentPage]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  const closeModal = () => setActiveModal(null);
-  const handleActionSuccess = () => {
-    closeModal();
-    fetchData();
-  };
-
-  const openTicket = (ticketId: number) => {
-    // Carries the exact filtered/paged URL back through Detail's "رجوع".
-    navigate(`/dashboard/tickets/${ticketId}`, {
-      state: { from: `${location.pathname}${location.search}` },
-    });
-  };
-
-  const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, ticketId: number) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      openTicket(ticketId);
-    }
-  };
-
-  // ── KPI counts — is_delayed is backend-owned (Ticket::getIsDelayedAttribute),
-  //    never recomputed here from expected_resolution_time. ──────────────────
-  const pendingCount  = tickets.filter((t) => t.status === 'PENDING_APPROVAL').length;
-  const activeCount   = tickets.filter((t) => ['ASSIGNED', 'IN_PROGRESS'].includes(t.status)).length;
-  const delayedCount  = tickets.filter((t) => t.is_delayed).length;
-  const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED').length;
-
-  // ── Render ─────────────────────────────────────────────────────────────
+function ListSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 font-sans text-slate-800" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-2" aria-busy="true" aria-label="جارٍ تحميل التذاكر" data-testid="list-loading">
+      {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-deepBlue/[0.06]" />)}
+    </div>
+  )
+}
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold mb-1">
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>لوحة التحكم التقنية</span>
-              <ChevronDown className="w-3 h-3 rotate-[-90deg]" />
-              <span className="text-slate-700">غرفة العمليات — رقابة التذاكر</span>
-            </div>
-            <h1 className="text-2xl font-extrabold text-slate-900">مركز قيادة التذاكر والـ SLA</h1>
-            <p className="text-xs text-slate-500 mt-1">مخصص لمدير الإدارة التقنية ونائبه — اعتماد، رفض، إعادة توجيه، ومراقبة التأخيرات</p>
-          </div>
+/**
+ * /dashboard/tickets/admin — مركز عمليات التذاكر.
+ *
+ * The work queue for ticket coordinators: live figures, advanced filters kept in the URL, a table, a
+ * board and analytics over the same filters, a details drawer, and safe bulk actions.
+ *
+ * Nothing here decides what a user may see or do. The API scopes every list, figure and board to the
+ * viewer, and every button comes from the per-ticket `capabilities` the server sends (and is
+ * re-checked there). This page only presents and navigates.
+ */
+export default function TechAdminDashboardPage() {
+  const { user } = useAuth()
+  const nav = useTicketFilters()
+  const { filters, view, ticketId, days, search } = nav
+  // Table or cards by how much room the CONTENT has (the window minus the sidebar), with the viewport as the fallback before it is measured.
+  const [rootRef, rootWidth] = useContainerWidth<HTMLDivElement>()
+  const viewportWide = useMediaQuery('(min-width: 768px)')
+  const compact = rootWidth > 0 ? rootWidth < TABLE_MIN_WIDTH : !viewportWide
+  const meta = useTicketMeta(filters.department ? Number(filters.department) : null)
+
+  const [columns, setColumns] = useState<ColumnKey[]>(loadColumns)
+  const [modal, setModal] = useState<ActiveModal>(null)
+
+  // One query per distinct input. The figures follow only the scope filters, so pressing a KPI card
+  // or changing the page never re-requests them.
+  const listParams = useMemo(() => toApiParams(filters, { lite: true }), [filters])
+  const scopeParams = useMemo(() => toApiParams(filters, { scope: true }), [filters])
+  const boardParams = useMemo(() => {
+    const p = { ...toApiParams(filters) }
+    for (const k of ['sort', 'dir', 'per_page', 'page']) delete p[k]
+
+    return p
+  }, [filters])
+  const listKey = JSON.stringify(listParams)
+  const scopeKey = JSON.stringify(scopeParams)
+  const boardKey = JSON.stringify(boardParams)
+
+  const list = useAbortableResource((signal) => fetchTicketList(listParams, { signal }), listKey, view === 'table')
+  const stats = useAbortableResource((signal) => fetchTicketStats(scopeParams, { signal }), scopeKey)
+  const insights = useAbortableResource((signal) => fetchTicketInsights(scopeParams, { signal }), scopeKey)
+  const board = useAbortableResource((signal) => fetchTicketBoard(boardParams, 8, { signal }), boardKey, view === 'board')
+  const analytics = useAbortableResource((signal) => fetchTicketAnalytics(scopeParams, days, { signal }), `${scopeKey}|${days}`, view === 'analytics')
+
+  // Entering the queue starts from a clean cache: a ticket changed elsewhere (its full page, another tab of work)
+  // must not open from an older copy.
+  useEffect(() => invalidateTicketDetail(), [])
+
+  const refreshAll = () => {
+    // Anything changed from here (row actions, bulk actions) makes every cached copy untrustworthy.
+    invalidateTicketDetail()
+    list.reload()
+    stats.reload()
+    insights.reload()
+    board.reload()
+    analytics.reload()
+  }
+
+  // A page past the end (a link from before the data shrank) lands on the last page instead of an empty one.
+  const lastPage = list.data?.lastPage ?? 1
+  useEffect(() => {
+    if (view === 'table' && list.data && !list.loading && filters.page > lastPage) nav.update({ page: lastPage }, { replace: true })
+  }, [view, list.data, list.loading, filters.page, lastPage, nav])
+
+  // Selection belongs to ONE filter set: it is simply not applied once the filters change (paging keeps it).
+  const filterKey = useMemo(() => {
+    const rest = { ...listParams }
+    delete rest.page
+
+    return JSON.stringify(rest)
+  }, [listParams])
+  const [selection, setSelection] = useState<{ key: string; map: Map<number, Ticket> }>({ key: filterKey, map: new Map() })
+  const selected = useMemo(() => (selection.key === filterKey ? selection.map : new Map<number, Ticket>()), [selection, filterKey])
+  const setSelected = (fn: (m: Map<number, Ticket>) => Map<number, Ticket>) => setSelection({ key: filterKey, map: fn(new Map(selected)) })
+
+  const items = list.data?.items ?? []
+  const toggle = (id: number) =>
+    setSelected((m) => {
+      const t = items.find((x) => x.id === id)
+      if (m.has(id)) m.delete(id)
+      else if (t) m.set(id, t)
+
+      return m
+    })
+  const toggleAll = (ids: number[], on: boolean) =>
+    setSelected((m) => {
+      ids.forEach((id) => {
+        const t = items.find((x) => x.id === id)
+        if (!on) m.delete(id)
+        else if (t) m.set(id, t)
+      })
+
+      return m
+    })
+
+  const pickKpi = (k: KpiKey) => nav.update(isKpiActive(filters, k) && k !== 'total' ? kpiPatch('total') : kpiPatch(k))
+  const apply = (f: TicketFilters) => nav.update({ ...f, page: 1 })
+  const drill = (patch: Partial<TicketFilters>) => {
+    // From a chart: a clean slate for the card-level filters, keep search/department/dates, and show the table.
+    nav.update({ ...kpiPatch('total'), ...patch }, { view: 'table' })
+  }
+
+  // The element that opened the ticket gets focus back when the modal closes. `ticket-row`/`card` re-render
+  // on refresh, so the id is kept and the element is looked up again at close time when it was replaced.
+  const openerRef = useRef<HTMLElement | null>(null)
+  const openerId = useRef<number | null>(null)
+  const openTicket = useCallback(
+    (id: number) => {
+      const active = document.activeElement
+      openerRef.current = active instanceof HTMLElement && active !== document.body ? active : null
+      openerId.current = id
+      // The core details are requested in this very event, before React renders the modal: the side panels
+      // (suggestions, duplicates) start in effects that run first, and on a server that handles one request
+      // at a time the details would otherwise wait behind them. The cache shares this request with the modal.
+      prefetchTicketDetail(user?.id, id)
+      nav.openTicket(id)
+    },
+    [nav, user?.id],
+  )
+  const returnTarget = (): HTMLElement | null => {
+    const el = openerRef.current
+    if (el?.isConnected) return el
+    const id = openerId.current
+
+    return id === null ? null : document.querySelector<HTMLElement>(`[data-ticket-id="${id}"] button[aria-label^="فتح التذكرة"]`)
+  }
+
+  // Hover intent: a pointer that rests on a row for a moment warms the details cache, so the click is instant.
+  const hoverTimer = useRef<number | undefined>(undefined)
+  const onHover = (e: React.PointerEvent<HTMLElement>) => {
+    const row = (e.target as HTMLElement).closest<HTMLElement>('[data-ticket-id]')
+    window.clearTimeout(hoverTimer.current)
+    if (!row) return
+    const id = Number(row.dataset.ticketId)
+    hoverTimer.current = window.setTimeout(() => prefetchTicketDetail(user?.id, id), 120)
+  }
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
+
+  const previewRow = useMemo<Ticket | null>(() => {
+    if (ticketId === null) return null
+    const fromList = list.data?.items.find((t) => t.id === ticketId)
+    if (fromList) return fromList
+    for (const c of board.data ?? []) {
+      const t = c.tickets.find((x) => x.id === ticketId)
+      if (t) return t
+    }
+
+    return null
+  }, [ticketId, list.data, board.data])
+
+  const onAction = (a: RowAction, t: Ticket) => setModal({ type: a, ticketId: t.id, departmentId: t.department_id, unitId: t.unit_id ?? undefined })
+  const closeModal = () => setModal(null)
+  const modalDone = () => {
+    closeModal()
+    refreshAll()
+  }
+
+  const labels = { active: activeFilterCount(filters, { status: STATUS_LABELS, priority: PRIORITY_LABELS, category: CATEGORY_LABELS }) }
+  const hasFilters = labels.active > 0
+  const total = view === 'table' ? (list.data?.total ?? null) : view === 'board' ? (board.data ? board.data.reduce((n, c) => n + c.count, 0) : null) : (stats.data?.counts.total ?? null)
+  const backSearch = useMemo(() => {
+    const p = new URLSearchParams(search)
+    p.delete('ticket')
+
+    return p.toString()
+  }, [search])
+  const forbidden = httpStatus(list.error) === 403 || httpStatus(stats.error) === 403
+
+  const tabs = (
+    <div role="tablist" aria-label="طريقة العرض" className="inline-flex rounded-2xl bg-deepBlue/[0.06] p-1">
+      {VIEW_TABS.map((t) => (
+        <button key={t.id} type="button" role="tab" aria-selected={view === t.id} onClick={() => nav.setView(t.id)} className={cn('rounded-xl px-4 py-2 text-[12px] font-black transition', view === t.id ? 'bg-white text-customBlue shadow-sm' : 'text-deepBlue/60 hover:text-deepBlue')}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  return (
+    <div ref={rootRef} dir="rtl" className="mx-auto w-full max-w-[1400px] px-1">
+      <DashboardPageShell
+        eyebrow="لوحة التحكم التقنية"
+        title="مركز عمليات التذاكر"
+        description="تابع التذاكر، وحدّد ما يحتاج قرارك، وأسنده وراقب التأخير من مكان واحد."
+        breadcrumbs={[{ label: 'التذاكر', href: '/dashboard/tickets' }, { label: 'مركز العمليات' }]}
+        density="compact"
+        actions={
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/dashboard/tickets/new')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-white text-xs font-bold transition"
-            >
-              <ArrowRight className="w-4 h-4 rotate-180" />
-              إدخال تذكرة جديدة
-            </button>
-            <button
-              onClick={fetchData}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              تحديث
+            <Link to="/dashboard/tickets/new" className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/10 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-sm hover:border-customBlue/40">
+              <Plus size={14} aria-hidden="true" /> تذكرة جديدة
+            </Link>
+            <button type="button" onClick={refreshAll} disabled={list.loading || stats.loading} className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-4 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
+              <RefreshCw size={14} className={cn((list.loading || stats.loading) && 'animate-spin')} aria-hidden="true" /> تحديث
             </button>
           </div>
-        </div>
+        }
+      >
+        {forbidden ?
+          <StateCard icon={ShieldAlert} danger title="لا تملك صلاحية عرض التذاكر" body="هذه الصفحة تعرض تذاكر الإدارات التي تتبعها. تواصل مع المسؤول إن كنت تحتاجها." />
+        : (
+          <div className="space-y-5" onPointerOver={onHover}>
+            <TicketKpiCards stats={stats.data} loading={stats.loading} filters={filters} onPick={pickKpi} />
+            <TicketInsightsPanel insights={insights.data} loading={insights.loading} onOpen={openTicket} />
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: 'معلقة — تنتظر الاعتماد', value: pendingCount,  icon: <Clock className="w-5 h-5" />,          bg: 'bg-amber-50 border-amber-200',  text: 'text-amber-700' },
-            { label: 'نشطة (مُحالة + تُنفَّذ)',  value: activeCount,   icon: <CheckCircle2 className="w-5 h-5" />,   bg: 'bg-blue-50 border-blue-200',    text: 'text-blue-700' },
-            { label: 'متأخرة عن موعد الإغلاق',  value: delayedCount,  icon: <AlertTriangle className="w-5 h-5" />,  bg: 'bg-rose-50 border-rose-200',    text: 'text-rose-700' },
-            { label: 'مغلقة بنجاح (تم الحل)',   value: resolvedCount, icon: <FileBarChart2 className="w-5 h-5" />, bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
-          ].map((kpi, i) => (
-            <div key={i} className={`rounded-2xl border p-5 flex items-center gap-4 ${kpi.bg}`}>
-              <div className={`${kpi.text} shrink-0`}>{kpi.icon}</div>
-              <div>
-                <p className={`text-2xl font-extrabold ${kpi.text}`}>{kpi.value}</p>
-                <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{kpi.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="بحث بالرقم، العنوان، أو اسم المُدخل..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); }}
-              className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            <TicketFilterBar
+              filters={filters}
+              onChange={nav.update}
+              onReset={nav.reset}
+              departments={meta.departments}
+              assignees={meta.users}
+              assigneesLoading={meta.usersLoading}
+              total={total}
+              loading={view === 'table' ? list.loading : view === 'board' ? board.loading : stats.loading}
+              viewsSlot={<TicketSavedViews userId={user?.id} filters={filters} onApply={apply} />}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value);}}
-              className="rounded-xl border border-slate-200 text-sm px-3 py-2.5 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              {STATUS_FILTER_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
-          <label className="flex items-center gap-2 text-xs font-bold text-rose-600 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={delayedOnly}
-              onChange={(e) => { setDelayedOnly(e.target.checked);}}
-              className="rounded accent-rose-600"
-            />
-            متأخرة فقط
-          </label>
-          <span className="text-xs text-slate-400 mr-auto">إجمالي: {totalCount} تذكرة</span>
-        </div>
 
-        {/* Ticket Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          {loading ? (
-            <div className="p-16 text-center">
-              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-slate-400 text-sm">جاري تحميل التذاكر...</p>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2" data-testid="results-toolbar">
+              {tabs}
+              {view === 'table' && !compact ? <ColumnMenu columns={columns} onColumns={setColumns} /> : null}
             </div>
-          ) : tickets.length === 0 ? (
-            <div className="p-16 text-center text-slate-400">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-              <p className="font-bold text-slate-600">لا توجد تذاكر مطابقة للفلتر الحالي</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-right">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">رقم التذكرة</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">العنوان والنوع</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">الإدارة</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">الحالة</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">وقت الإدراج</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">الموعد / العداد</th>
-                    <th className="px-5 py-3.5 text-xs font-bold text-slate-500">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {tickets.map((ticket) => {
-                    const delayed = Boolean(ticket.is_delayed);
-                    const isClosed = CLOSED_STATUSES.includes(ticket.status);
-                    const caps = ticket.capabilities;
 
-                    return (
-                      <tr
-                        key={ticket.id}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`فتح التذكرة ${ticket.ticket_number}`}
-                        onClick={() => openTicket(ticket.id)}
-                        onKeyDown={(e) => handleRowKeyDown(e, ticket.id)}
-                        className={`cursor-pointer hover:bg-slate-100 focus:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 transition ${delayed ? 'bg-rose-50/30' : ''}`}
-                      >
-                        {/* Ticket # — a real link: keyboard/right-click/open-in-new-tab
-                            all still work independently of the row's own click handler. */}
-                        <td className="px-5 py-4">
-                          <Link
-                            to={`/dashboard/tickets/${ticket.id}`}
-                            state={{ from: `${location.pathname}${location.search}` }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-blue-600 hover:text-blue-800 font-mono font-bold text-xs hover:underline"
-                          >
-                            {ticket.ticket_number}
-                          </Link>
-                          {delayed && (
-                            <span className="block mt-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-full w-fit">
-                              ⚠️ متأخرة
-                            </span>
-                          )}
-                        </td>
+            {view === 'table' ?
+              list.loading && !list.data ?
+                <ListSkeleton />
+              : list.error && !list.data ?
+                <StateCard icon={ShieldAlert} danger title="تعذّر تحميل التذاكر" body="حدث خطأ أثناء جلب البيانات. حاول مرة أخرى." action={<button type="button" onClick={list.reload} className="rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white shadow-emc-md">إعادة المحاولة</button>} />
+              : list.data && items.length === 0 ?
+                <StateCard
+                  icon={hasFilters ? SearchX : Inbox}
+                  title={hasFilters ? 'لا توجد تذاكر مطابقة' : 'لا توجد تذاكر'}
+                  body={hasFilters ? 'جرّب تغيير الفلاتر أو مسحها.' : 'ستظهر هنا التذاكر المُدخَلة للإدارات التي تتبعها.'}
+                  action={hasFilters ? <button type="button" onClick={nav.reset} className="rounded-xl bg-customBlue px-5 py-2.5 text-sm font-extrabold text-white">مسح الفلاتر</button> : undefined}
+                />
+              : (
+                <div className={cn('space-y-4 transition-opacity', list.loading && 'opacity-60')} aria-busy={list.loading}>
+                  <TicketTable
+                    tickets={items}
+                    filters={filters}
+                    columns={columns}
+                    onSort={(key) => nav.update(filters.sort === key ? { dir: filters.dir === 'asc' ? 'desc' : 'asc' } : { sort: key, dir: key === 'title' || key === 'ticket_number' ? 'asc' : 'desc' })}
+                    selected={new Set(selected.keys())}
+                    onToggle={toggle}
+                    onToggleAll={toggleAll}
+                    activeId={ticketId}
+                    onOpen={openTicket}
+                    onAction={onAction}
+                    compact={compact}
+                  />
+                  <TicketPagination
+                    page={list.data?.currentPage ?? filters.page}
+                    lastPage={lastPage}
+                    total={list.data?.total ?? 0}
+                    perPage={filters.perPage}
+                    loading={list.loading}
+                    onPage={(p) => nav.update({ page: Math.min(Math.max(1, p), lastPage) })}
+                    onPerPage={(n) => nav.update({ perPage: n })}
+                  />
+                </div>
+              )
+            : null}
 
-                        {/* Title */}
-                        <td className="px-5 py-4 max-w-[220px]">
-                          <p className="font-bold text-slate-800 truncate text-xs">{ticket.title}</p>
-                          <span className={`text-[10px] font-bold mt-0.5 inline-block px-1.5 py-0.5 rounded-full ${
-                            ticket.ticket_category === 'OLD_ISSUE'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-emerald-100 text-emerald-700'
-                          }`}>
-                            {ticket.ticket_category === 'OLD_ISSUE' ? '⚠️ مشكلة' : '💡 مقترح'}
-                          </span>
-                        </td>
+            {view === 'board' ?
+              board.error && !board.data ?
+                <StateCard icon={ShieldAlert} danger title="تعذّر تحميل اللوحة" body="حدث خطأ أثناء جلب البيانات." action={<button type="button" onClick={board.reload} className="rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white">إعادة المحاولة</button>} />
+              : board.data ?
+                <TicketKanbanBoard
+                  columns={board.data}
+                  loading={board.loading}
+                  activeId={ticketId}
+                  onOpen={openTicket}
+                  onAction={onAction}
+                  onShowAll={(status) => nav.update({ status: [status] }, { view: 'table' })}
+                />
+              : <ListSkeleton />
+            : null}
 
-                        {/* Department */}
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[100px]">{ticket.department?.name_ar ?? '—'}</span>
-                          </div>
-                          {ticket.unit && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
-                              <Layers className="w-3 h-3 shrink-0" />
-                              <span className="truncate max-w-[100px]">{ticket.unit.name_ar}</span>
-                            </div>
-                          )}
-                        </td>
+            {view === 'analytics' ?
+              analytics.error && !analytics.data ?
+                <StateCard icon={ShieldAlert} danger title="تعذّر تحميل التحليلات" body="حدث خطأ أثناء جلب البيانات." action={<button type="button" onClick={analytics.reload} className="rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white">إعادة المحاولة</button>} />
+              : (
+                <Suspense fallback={<ListSkeleton />}>
+                  <TicketAnalyticsPanel data={analytics.data} loading={analytics.loading} days={days} onDays={nav.setDays} onDrill={drill} />
+                </Suspense>
+              )
+            : null}
 
-                        {/* Status */}
-                        <td className="px-5 py-4">
-                          <TicketStatusBadge status={ticket.status as TicketStatus} />
-                          {ticket.assignee && (
-                            <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-1">
-                              <UserCheck className="w-3 h-3" />
-                              <span>{ticket.assignee.name}</span>
-                            </div>
-                          )}
-                        </td>
+            {view === 'table' ?
+              <TicketBulkBar
+                selected={[...selected.values()]}
+                onClear={() => setSelected(() => new Map())}
+                onDone={(ok) => {
+                  setSelected((m) => {
+                    ok.forEach((id) => m.delete(id))
 
-                        {/* Created At */}
-                        <td className="px-5 py-4 text-[11px] text-slate-500 whitespace-nowrap">
-                          {formatShortDate(ticket.created_at)}
-                        </td>
-
-                        {/* Deadline / SLA */}
-                        <td className="px-5 py-4">
-                          {ticket.expected_resolution_time ? (
-                            !isClosed ? (
-                              <SlaCountdownTimer
-                                expectedTime={ticket.expected_resolution_time}
-                                status={ticket.status}
-                                showIcon={false}
-                                className="text-[11px]"
-                              />
-                            ) : (
-                              <span className="text-[10px] text-slate-400">
-                                {formatShortDate(ticket.expected_resolution_time)}
-                              </span>
-                            )
-                          ) : (
-                            <span className="text-[10px] text-slate-300">—</span>
-                          )}
-                        </td>
-
-                        {/* Actions — every button gated on the server-computed
-                            capability, never on a re-derived status check, and
-                            every click stops propagation so it never also
-                            triggers the row's own navigation. */}
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {caps?.approve && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveModal({ type: 'approve', ticketId: ticket.id, departmentId: ticket.department_id });
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition"
-                              >
-                                <CheckCircle2 className="w-3 h-3" />
-                                ✅ اعتماد
-                              </button>
-                            )}
-                            {caps?.reject && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveModal({ type: 'reject', ticketId: ticket.id });
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition"
-                              >
-                                <XCircle className="w-3 h-3" />
-                                ❌ رفض
-                              </button>
-                            )}
-                            {caps?.reassign && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveModal({
-                                    type: 'reassign',
-                                    ticketId: ticket.id,
-                                    departmentId: ticket.department_id,
-                                    unitId: ticket.unit_id ?? undefined,
-                                  });
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition"
-                              >
-                                <RotateCcw className="w-3 h-3" />
-                                {ticket.assignee ? '🔄 إعادة توجيه' : '➕ تعيين'}
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalCount > 25 && (
-          <div className="flex justify-center gap-2">
-            <button
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-4 py-2 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-            >
-              السابق
-            </button>
-            <span className="px-4 py-2 text-sm text-slate-500">صفحة {currentPage}</span>
-            <button
-              onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-4 py-2 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-100"
-            >
-              التالي
-            </button>
+                    return m
+                  })
+                  refreshAll()
+                }}
+              />
+            : null}
           </div>
         )}
-      </div>
+      </DashboardPageShell>
 
-      {/* Modals — same shared components TicketDetailPage uses, so both
-          surfaces call the exact same backend operation with no drift. */}
-      {activeModal?.type === 'approve' && (
-        <ApproveTicketModal
-          ticketId={activeModal.ticketId}
-          departmentId={activeModal.departmentId}
-          onClose={closeModal}
-          onSuccess={handleActionSuccess}
-        />
-      )}
-      {activeModal?.type === 'reject' && (
-        <RejectTicketModal
-          ticketId={activeModal.ticketId}
-          onClose={closeModal}
-          onSuccess={handleActionSuccess}
-        />
-      )}
-      {activeModal?.type === 'reassign' && (
-        <ReassignTicketModal
-          ticketId={activeModal.ticketId}
-          departmentId={activeModal.departmentId}
-          currentUnitId={activeModal.unitId}
-          onClose={closeModal}
-          onSuccess={handleActionSuccess}
-        />
-      )}
+      <TicketDetailsModal
+        ticketId={ticketId}
+        preview={previewRow}
+        userKey={user?.id}
+        onClose={nav.closeTicket}
+        onChanged={refreshAll}
+        onOpenOther={nav.openTicket}
+        backSearch={backSearch}
+        insight={insights.data?.find((i) => i.ticketId === ticketId)}
+        returnFocusTo={returnTarget}
+      />
+
+      {modal?.type === 'approve' ? <ApproveTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} onClose={closeModal} onSuccess={modalDone} /> : null}
+      {modal?.type === 'reject' ? <RejectTicketModal ticketId={modal.ticketId} onClose={closeModal} onSuccess={modalDone} /> : null}
+      {modal?.type === 'reassign' ? <ReassignTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} currentUnitId={modal.unitId} onClose={closeModal} onSuccess={modalDone} /> : null}
     </div>
-  );
-};
-
-export default TechAdminDashboardPage;
+  )
+}

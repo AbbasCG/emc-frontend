@@ -88,6 +88,13 @@ const ACTION_LABEL: Record<string, string> = {
   REASSIGNED:      'إعادة توجيه وتغيير المكلف',
   COMMENT:         'تعقيب / استفسار',
   INTERNAL_NOTE:   'ملاحظة داخلية',
+  // The names the backend actually writes (TicketController / TicketActions). The shorter keys above
+  // are kept for older rows, so no history entry shows a raw code.
+  APPROVED_AND_ASSIGNED: 'اعتماد التذكرة وإحالتها',
+  REJECTED_BY_ADMIN:     'رفض التذكرة من الإدارة',
+  ACCEPTED_BY_ASSIGNEE:  'قبول التكليف من المكلف',
+  REJECTED_BY_ASSIGNEE:  'اعتذار المكلف عن الاستلام',
+  PRIORITY_CHANGED:      'تغيير الأولوية',
 };
 
 

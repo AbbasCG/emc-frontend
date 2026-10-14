@@ -35,6 +35,8 @@ export interface TicketCapabilities {
   complete_task: boolean;
   add_internal_note: boolean;
   comment: boolean;
+  /** Manager of an open ticket. Absent on payloads from before the operations center. */
+  change_priority?: boolean;
 }
 
 export interface DepartmentalUnit {
@@ -125,6 +127,9 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   is_delayed?: boolean;
+  /** Work-queue rows (`lite=1`) only: newest activity-log time and the attachment count. */
+  last_activity_at?: string | null;
+  attachments_count?: number;
   /** Present on show()/index() responses; absent is treated as "no actions known yet". */
   capabilities?: TicketCapabilities;
   /** 'staff' on the operational payload from show(); absent on list rows. */

@@ -22,7 +22,7 @@ export async function fetchDepartmentMembers(departmentId: number): Promise<Depa
 
 // ── نطاق الإدارات المتاح للمستخدم ────────────────────────────────────────────
 
-export type DepartmentOption = { id: number; name: string }
+export type DepartmentOption = { id: number; name: string; /** Arabic display name, when the department has one. */ name_ar?: string | null }
 
 /**
  * Mirrors DepartmentAccessService::manifest(). Two deliberately separate
@@ -46,6 +46,8 @@ export type DepartmentAccessManifest = {
   read_scope?: 'restricted' | 'global'
   readable_departments?: DepartmentOption[]
   can_view_multiple_departments?: boolean
+  /** The user's single marked primary department, only when unambiguous and readable; null otherwise (and for global roles). */
+  primary_department_id?: number | null
 }
 
 export async function fetchMyDepartmentAccess(): Promise<DepartmentAccessManifest> {

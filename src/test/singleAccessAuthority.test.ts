@@ -45,10 +45,32 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
 }
 
 /** Strip comments so the scan tests CODE, not prose describing the rule. */
+// Each file is read and stripped once for the whole suite: four tests scan the same ~1,300 files, and on a loaded
+// machine (full suite, parallel workers) repeating that work is what pushed a scan past the default timeout.
+const codeCache = new Map<string, string>()
+const rawCache = new Map<string, string>()
+
+function rawOf(file: string): string {
+  let raw = rawCache.get(file)
+  if (raw === undefined) rawCache.set(file, (raw = readFileSync(file, 'utf8')))
+
+  return raw
+}
+
+/** Cheap pre-check on the raw text: a file that never names the symbol cannot call it, so it needs no comment stripping. */
+function codeMentions(file: string, needle: string, re: RegExp): boolean {
+  return rawOf(file).includes(needle) && re.test(codeOf(file))
+}
+
 function codeOf(file: string): string {
-  return readFileSync(file, 'utf8')
+  const hit = codeCache.get(file)
+  if (hit !== undefined) return hit
+  const code = rawOf(file)
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/^\s*\/\/.*$/gm, '')
+  codeCache.set(file, code)
+
+  return code
 }
 
 describe('single page-access authority', () => {
@@ -62,13 +84,13 @@ describe('single page-access authority', () => {
     const offenders = files
       .map((f) => relative(SRC, f).replace(/\\/g, '/'))
       .filter((rel) => !LEGACY_RULE_ALLOWLIST.has(rel))
-      .filter((rel) => /canAccessDashboardPath\s*\(/.test(codeOf(join(SRC, rel))))
+      .filter((rel) => codeMentions(join(SRC, rel), 'canAccessDashboardPath', /canAccessDashboardPath\s*\(/))
 
     expect(
       offenders,
       'These modules gate on the legacy role matrix. Page access is the backend manifest.',
     ).toEqual([])
-  })
+  }, 30_000) // walks and reads the whole source tree: I/O-bound, so it needs headroom when the machine is busy
 
   it('the route guard and the sidebar filter read the same manifest', () => {
     const guard = codeOf(join(SRC, 'components/DashboardAccessGuard.tsx'))
@@ -101,7 +123,7 @@ describe('single page-access authority', () => {
   it('the rejected local override store was not resurrected', () => {
     const offenders = files
       .map((f) => relative(SRC, f).replace(/\\/g, '/'))
-      .filter((rel) => /userPageOverridesStore/.test(codeOf(join(SRC, rel))))
+      .filter((rel) => codeMentions(join(SRC, rel), 'userPageOverridesStore', /userPageOverridesStore/))
 
     expect(offenders).toEqual([])
   })
@@ -110,7 +132,7 @@ describe('single page-access authority', () => {
     const importers = files
       .map((f) => relative(SRC, f).replace(/\\/g, '/'))
       .filter((rel) => rel !== 'utils/accessDiff.ts')
-      .filter((rel) => /from '@\/utils\/accessDiff'/.test(codeOf(join(SRC, rel))))
+      .filter((rel) => codeMentions(join(SRC, rel), 'utils/accessDiff', /from '@\/utils\/accessDiff'/))
 
     expect(importers, 'accessDiff is measurement only and must stay unimported.').toEqual([])
   })
