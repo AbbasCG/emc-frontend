@@ -21,6 +21,13 @@ function CandidateCard({ c }: { c: VolunteerMatch }) {
         <div className="min-w-0">
           <p className="text-sm font-black text-deepBlue">{c.name}</p>
           <p className="text-[11px] font-bold text-deepBlue/50">{c.statusLabel}{c.desiredDepartment ? ` · ${c.desiredDepartment}` : ''}</p>
+          <span
+            data-testid="candidate-source"
+            data-source={c.source}
+            className={cn('mt-1 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black', c.source === 'direct_application' ? 'bg-customOrange/10 text-customOrange' : 'bg-slate-100 text-slate-600')}
+          >
+            {c.sourceLabel}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-black ring-1', tone.badge)} data-testid="match-label">{c.label}</span>
@@ -145,7 +152,7 @@ export function VolunteerMatchPanel({
             </>
           : <div className="space-y-3 rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 p-4" data-testid="no-matches">
               <p className="text-sm font-black text-amber-900" role="status">لم يتم العثور على مرشح مناسب</p>
-              <p className="text-xs font-semibold leading-relaxed text-amber-900/80">لا توجد طلبات تطوع حالية تطابق هذا الطلب بالدرجة المحددة. يمكنك إنشاء مسودة فرصة تطوعية ومراجعتها قبل أي نشر مستقبلي.</p>
+              <p className="text-xs font-semibold leading-relaxed text-amber-900/80">لا توجد طلبات تطوع حالية تطابق هذا الطلب بالدرجة المحددة. يمكنك إنشاء مسودة فرصة تطوعية ومراجعتها قبل نشرها للعامة.</p>
               {canCreateDraft && !hasDraft ?
                 <button type="button" onClick={onDraft} className="rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-sm transition hover:brightness-105">
                   إنشاء مسودة فرصة

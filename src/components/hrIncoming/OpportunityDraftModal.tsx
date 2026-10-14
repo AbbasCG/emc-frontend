@@ -4,9 +4,7 @@ import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 import { getLaravelFieldErrors } from '@/api/apiErrors'
 import {
   classifyIncomingError,
-  createOpportunityDraft,
   incomingErrorMessage,
-  updateOpportunityDraft,
   type OpportunityDraft,
   type OpportunityDraftInput,
 } from '@/api/hrIncomingRequestsApi'
@@ -22,9 +20,12 @@ type Form = {
   preferredSkills: string
   volunteersNeeded: string
   availability: string
+  duration: string
   locationMode: string
   startDate: string
+  closesAt: string
   applicationInstructions: string
+  departmentId: string
 }
 
 function toForm(d: OpportunityDraft): Form {
@@ -36,9 +37,12 @@ function toForm(d: OpportunityDraft): Form {
     preferredSkills: listToLines(d.preferredSkills),
     volunteersNeeded: d.volunteersNeeded == null ? '' : String(d.volunteersNeeded),
     availability: d.availability,
+    duration: d.duration,
     locationMode: d.locationMode,
     startDate: d.startDate,
+    closesAt: d.closesAt,
     applicationInstructions: d.applicationInstructions,
+    departmentId: d.departmentId == null ? '' : String(d.departmentId),
   }
 }
 
@@ -54,22 +58,29 @@ function Field({ label, error, hint, children }: { label: string; error?: string
 }
 
 /**
- * «مراجعة مسودة الفرصة». The form opens pre-filled from the request; HR edits it freely and
- * saves it as a DRAFT. There is no publish control: «نشر لاحقًا» is a disabled placeholder for
- * a future phase, and the saved draft is never visible outside this workspace.
+ * «مراجعة مسودة الفرصة» — the form HR uses to review and edit an opportunity before it is published.
+ *
+ * It saves through `onSubmit` and never publishes: publishing is a separate, explicit action on the
+ * opportunity. It serves both the opportunity generated from an incoming request (pre-filled, the
+ * department fixed to the request's) and an opportunity created on its own (`departments` given,
+ * so the department can be chosen).
  */
 export function OpportunityDraftModal({
   open,
-  requestId,
   initial,
-  isExisting,
+  title = 'مراجعة مسودة الفرصة',
+  subtitle = 'راجع البيانات المقترحة وعدّلها. تُحفظ كمسودة ولا تُنشر للعامة إلا بإجراء نشر صريح.',
+  departments,
+  onSubmit,
   onClose,
   onSaved,
 }: {
   open: boolean
-  requestId: number
   initial: OpportunityDraft
-  isExisting: boolean
+  title?: string
+  subtitle?: string
+  departments?: { id: number; name: string }[]
+  onSubmit: (input: OpportunityDraftInput) => Promise<OpportunityDraft>
   onClose: () => void
   onSaved: (draft: OpportunityDraft) => void
 }) {
@@ -92,21 +103,24 @@ export function OpportunityDraftModal({
       preferredSkills: linesToList(form.preferredSkills, true),
       volunteersNeeded: form.volunteersNeeded.trim() === '' ? null : Number(form.volunteersNeeded),
       availability: form.availability,
+      duration: form.duration,
       locationMode: form.locationMode,
       startDate: form.startDate,
+      closesAt: form.closesAt,
       applicationInstructions: form.applicationInstructions,
-      departmentId: initial.departmentId,
+      departmentId: departments ? (form.departmentId ? Number(form.departmentId) : null) : initial.departmentId,
     }
 
     try {
-      const saved = isExisting ? await updateOpportunityDraft(requestId, input) : await createOpportunityDraft(requestId, input)
-      onSaved(saved)
+      onSaved(await onSubmit(input))
     } catch (e) {
       const kind = classifyIncomingError(e)
-      if (kind === 'validation') setErrors(getLaravelFieldErrors(e))
-      else if (kind === 'forbidden') setFormError('لا تملك صلاحية حفظ مسودة الفرصة.')
+      if (kind === 'validation') {
+        setErrors(getLaravelFieldErrors(e))
+        setFormError(incomingErrorMessage(e, 'راجع الحقول المحدَّدة.'))
+      } else if (kind === 'forbidden') setFormError('لا تملك صلاحية حفظ الفرصة.')
       else if (kind === 'conflict') setFormError(incomingErrorMessage(e, 'توجد مسودة لهذا الطلب بالفعل.'))
-      else setFormError(incomingErrorMessage(e, 'تعذّر حفظ المسودة. حاول مرة أخرى.'))
+      else setFormError(incomingErrorMessage(e, 'تعذّر الحفظ. حاول مرة أخرى.'))
     } finally {
       setSaving(false)
     }
@@ -115,8 +129,8 @@ export function OpportunityDraftModal({
   return (
     <CrudModal
       open={open}
-      title="مراجعة مسودة الفرصة"
-      subtitle="راجع البيانات المقترحة وعدّلها. تُحفظ كمسودة ولا تُنشر للعامة."
+      title={title}
+      subtitle={subtitle}
       onClose={onClose}
       widthClassName="max-w-2xl"
       footerSlot={
@@ -126,7 +140,6 @@ export function OpportunityDraftModal({
             حفظ كمسودة
           </button>
           <button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-deepBlue/10 bg-white px-5 py-2.5 text-sm font-black text-deepBlue">إلغاء</button>
-          <button type="button" disabled title="يتوفر في مرحلة قادمة" className="cursor-not-allowed rounded-xl border border-dashed border-deepBlue/15 px-5 py-2.5 text-sm font-bold text-deepBlue/35">نشر لاحقًا</button>
         </div>
       }
     >
@@ -171,12 +184,25 @@ export function OpportunityDraftModal({
           </Field>
         </div>
 
-        <Field label="التوفر / الساعات" error={errors.availability}>
-          <input value={form.availability} onChange={(e) => set('availability', e.target.value)} placeholder="مثال: 8 ساعات أسبوعيًا" className={FIELD} aria-label="التوفر والساعات" />
-        </Field>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="التوفر / الساعات" error={errors.availability}>
+            <input value={form.availability} onChange={(e) => set('availability', e.target.value)} placeholder="مثال: 8 ساعات أسبوعيًا" className={FIELD} aria-label="التوفر والساعات" />
+          </Field>
+          <Field label="المدة" error={errors.duration}>
+            <input value={form.duration} onChange={(e) => set('duration', e.target.value)} placeholder="مثال: 3 أشهر" className={FIELD} aria-label="المدة" />
+          </Field>
+          <Field label="آخر موعد للتقديم" error={errors.closes_at} hint="اختياري. بعده يتوقف التقديم تلقائيًا.">
+            <input type="date" value={form.closesAt} onChange={(e) => set('closesAt', e.target.value)} className={FIELD} aria-label="آخر موعد للتقديم" />
+          </Field>
+        </div>
 
-        <Field label="القسم">
-          <input value={initial.departmentName ?? 'غير محدد'} readOnly className={`${FIELD} bg-slate-50 text-deepBlue/60`} aria-label="القسم" />
+        <Field label="القسم" error={errors.department_id}>
+          {departments ?
+            <select value={form.departmentId} onChange={(e) => set('departmentId', e.target.value)} className={FIELD} aria-label="القسم">
+              <option value="">غير محدد</option>
+              {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          : <input value={initial.departmentName ?? 'غير محدد'} readOnly className={`${FIELD} bg-slate-50 text-deepBlue/60`} aria-label="القسم" />}
         </Field>
 
         <Field label="تعليمات التقديم" error={errors.application_instructions}>

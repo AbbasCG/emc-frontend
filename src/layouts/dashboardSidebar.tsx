@@ -660,6 +660,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'طلبات الاحتياج الكادر',
         items: [
           { label: 'طلبات الإدارات الواردة (HR)', href: '/dashboard/hr/incoming-requests', icon: Inbox },
+          { label: 'فرص التطوع', href: '/dashboard/hr/opportunities', icon: Megaphone },
           { label: 'تقديم طلب احتیاج قسم HR (للإدارة العليا)', href: '/dashboard/hr/my-requests', icon: UserPlus },
         ],
       },

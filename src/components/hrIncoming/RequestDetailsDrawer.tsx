@@ -1,7 +1,11 @@
-import { Check, FileText, Loader2, Play, X } from 'lucide-react'
+import { useCallback } from 'react'
+import { Link } from 'react-router'
+import { Check, ExternalLink, FileText, Loader2, Play, X } from 'lucide-react'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import type { HrRequestStatus, IncomingCapabilities, IncomingRequest } from '@/api/hrIncomingRequestsApi'
 import { cn } from '@/lib/utils'
+import { fetchRequestApplicants } from '@/api/volunteerOpportunitiesAdminApi'
+import { ApplicantsPanel } from './ApplicantsPanel'
 import { VolunteerMatchPanel } from './VolunteerMatchPanel'
 import { STATUS_META, formatDate, formatDateTime } from './hrIncomingUi'
 
@@ -40,6 +44,8 @@ export function RequestDetailsDrawer({
   onOpenDraft: () => void
   draftBusy: boolean
 }) {
+  const loadApplicants = useCallback(() => fetchRequestApplicants(request?.id ?? 0), [request?.id])
+
   return (
     <CrudDrawer
       open={request !== null}
@@ -55,7 +61,11 @@ export function RequestDetailsDrawer({
         <div className="space-y-5" data-testid="request-details">
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn('rounded-full px-3 py-1 text-xs font-black ring-1', STATUS_META[request.status].badge)}>{request.statusLabel}</span>
-            {request.draft ? <span className="rounded-full bg-customBlue/10 px-3 py-1 text-xs font-black text-customBlue">تم إنشاء مسودة فرصة</span> : null}
+            {request.draft ?
+              <span className="rounded-full bg-customBlue/10 px-3 py-1 text-xs font-black text-customBlue">
+                {request.draft.status === 'draft' ? 'تم إنشاء مسودة فرصة' : `الفرصة ${request.draft.statusLabel}`}
+              </span>
+            : null}
           </div>
 
           <dl className="space-y-2.5 rounded-2xl border border-deepBlue/[0.07] bg-white p-4">
@@ -112,13 +122,24 @@ export function RequestDetailsDrawer({
             onResult={onMatchResult}
           />
 
+          {request.draft && capabilities.canMatchVolunteers ?
+            <ApplicantsPanel key={request.id} load={loadApplicants} canReview={capabilities.canManage} emptyText="لم يتقدم أحد على الفرصة المنشورة من هذا الطلب بعد." />
+          : null}
+
           <section aria-label="مسودة الفرصة" className="space-y-2 rounded-3xl border border-deepBlue/[0.07] bg-white p-4">
             <h3 className="flex items-center gap-2 text-sm font-black text-deepBlue"><FileText size={15} className="text-customBlue" aria-hidden="true" /> مسودة الفرصة</h3>
             {request.draft ?
               <>
-                <p className="text-xs font-bold text-deepBlue/70">تم إنشاء مسودة: <span className="font-black text-deepBlue">{request.draft.title}</span></p>
-                <p className="text-[11px] font-semibold text-deepBlue/45">المسودة غير منشورة ولا تظهر للعامة.</p>
-                {capabilities.canCreateDraft ?
+                <p className="text-xs font-bold text-deepBlue/70">الفرصة: <span className="font-black text-deepBlue">{request.draft.title}</span> · {request.draft.statusLabel}</p>
+                <p className="text-[11px] font-semibold text-deepBlue/45">
+                  {request.draft.status === 'draft' ? 'المسودة غير منشورة ولا تظهر للعامة.' : request.draft.status === 'published' ? `منشورة للعامة · ${request.draft.applicantsCount} متقدم.` : `${request.draft.statusLabel} · ${request.draft.applicantsCount} متقدم.`}
+                </p>
+                {capabilities.canViewAll ?
+                  <Link to="/dashboard/hr/opportunities" className="inline-flex items-center gap-1.5 text-xs font-black text-customBlue hover:underline">
+                    <ExternalLink size={12} aria-hidden="true" /> إدارة الفرص والنشر
+                  </Link>
+                : null}
+                {capabilities.canCreateDraft && request.draft.status === 'draft' ?
                   <button type="button" onClick={onOpenDraft} disabled={draftBusy} className="inline-flex items-center gap-1.5 rounded-xl border border-customBlue/30 px-3.5 py-2 text-xs font-black text-customBlue transition hover:bg-customBlue/[0.06] disabled:opacity-60">
                     {draftBusy ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : null}
                     مراجعة المسودة وتعديلها
@@ -126,7 +147,7 @@ export function RequestDetailsDrawer({
                 : null}
               </>
             : <>
-                <p className="text-xs font-semibold leading-relaxed text-deepBlue/60">لا توجد مسودة بعد. يمكن توليد مسودة فرصة تطوعية من بيانات هذا الطلب ومراجعتها قبل أي نشر مستقبلي.</p>
+                <p className="text-xs font-semibold leading-relaxed text-deepBlue/60">لا توجد مسودة بعد. يمكن توليد مسودة فرصة تطوعية من بيانات هذا الطلب ومراجعتها قبل نشرها للعامة.</p>
                 {capabilities.canCreateDraft ?
                   <button type="button" onClick={onOpenDraft} disabled={draftBusy} className="inline-flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-60">
                     {draftBusy ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : null}

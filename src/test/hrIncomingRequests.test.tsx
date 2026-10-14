@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import HrIncomingRequestsPage from '@/pages/hr/HrIncomingRequestsPage'
+import { fetchRequestApplicants } from '@/api/volunteerOpportunitiesAdminApi'
 import {
   createOpportunityDraft,
   fetchDraftSuggestion,
@@ -30,6 +31,10 @@ vi.mock('@/api/hrIncomingRequestsApi', async (importOriginal) => {
     updateOpportunityDraft: vi.fn(),
     updateIncomingRequestStatus: vi.fn(),
   }
+})
+vi.mock('@/api/volunteerOpportunitiesAdminApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/api/volunteerOpportunitiesAdminApi')>()
+  return { ...actual, fetchRequestApplicants: vi.fn(), setApplicantStatus: vi.fn() }
 })
 vi.mock('@/lib/toast', () => ({ default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() } }))
 
@@ -68,7 +73,7 @@ function matchResult(count: number): MatchResult {
     id: 55 + i, name: i === 0 ? 'أحمد محمد' : `مرشح ${i}`, status: 'pending', statusLabel: 'جديد', score: 87 - i * 20, label: i === 0 ? 'مناسب جدًا' : 'يحتاج مراجعة',
     matchedSkills: ['تصميم جرافيك', 'صناعة المحتوى'], missingSkills: ['مونتاج الفيديو'], reasons: ['يمتلك مهارات مطابقة: تصميم جرافيك، صناعة المحتوى.', 'اختار نفس مجال القسم المطلوب.'],
     warnings: ['طلبه مقبول مسبقًا ولم يُسنَد بعد.'], breakdown: [{ key: 'skills', label: 'المهارات', earned: 26.7, max: 40 }], desiredDepartment: 'التسويق', experienceLevel: 'متوسط',
-    availability: '10 ساعات', url: `/dashboard/hr/volunteer-requests/${55 + i}`, actionLabel: 'مراجعة المرشح',
+    availability: '10 ساعات', source: 'smart_match' as const, sourceLabel: 'اقتراح من المطابقة الذكية', url: `/dashboard/hr/volunteer-requests/${55 + i}`, actionLabel: 'مراجعة المرشح',
   }))
   return { candidates, meta: { minScore: 45, evaluated: 12, returned: count, generatedAt: null, persisted: false, limitations: ['لا يحتوي الطلب على حقل للتوفر، لذلك لم يُحتسب التوفر في الدرجة.'] } }
 }
@@ -77,7 +82,7 @@ function draft(over: Partial<OpportunityDraft> = {}): OpportunityDraft {
   return {
     id: null, incomingRequestId: 1, departmentId: 3, departmentName: 'التسويق والإعلام', title: 'فرصة تطوعية: مصمم محتوى لإدارة التسويق والإعلام',
     summary: 'تبحث إدارة التسويق والإعلام في EMC عن متطوعين للمساهمة.', responsibilities: ['دعم الحملات'], requiredSkills: ['تصميم جرافيك', 'صناعة المحتوى'], preferredSkills: [],
-    volunteersNeeded: 2, availability: '', locationMode: '', startDate: '', applicationInstructions: 'قدّم طلب التطوع عبر المنصة.', status: 'draft', isPublished: false, ...over,
+    volunteersNeeded: 2, availability: '', duration: '', locationMode: '', startDate: '', closesAt: '', applicationInstructions: 'قدّم طلب التطوع عبر المنصة.', status: 'draft', statusLabel: 'مسودة', isPublished: false, publishedAt: null, ...over,
   }
 }
 
@@ -96,9 +101,10 @@ async function openDrawer() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  list.mockResolvedValue(listOf([req(), req({ id: 2, title: 'محاسب — المالية', department: { id: 4, name: 'المالية' }, status: 'in_progress', statusLabel: 'قيد المراجعة', skills: [], skillsAndSpecs: '', draft: { id: 7, title: 'مسودة', status: 'draft' } })]))
+  list.mockResolvedValue(listOf([req(), req({ id: 2, title: 'محاسب — المالية', department: { id: 4, name: 'المالية' }, status: 'in_progress', statusLabel: 'قيد المراجعة', skills: [], skillsAndSpecs: '', draft: { id: 7, title: 'مسودة', status: 'draft', statusLabel: 'مسودة', applicantsCount: 0 } })]))
   matches.mockResolvedValue(matchResult(2))
   suggestion.mockResolvedValue({ suggestion: draft(), existing: null })
+  vi.mocked(fetchRequestApplicants).mockResolvedValue({ items: [], counts: {}, total: 0, opportunity: null })
 })
 
 describe('page layout', () => {
@@ -321,11 +327,10 @@ describe('draft opportunity', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
-  it('offers no publish control: «نشر لاحقًا» is disabled', async () => {
+  it('saving never publishes: the form has no publish control (publishing is a separate action)', async () => {
     await openModal()
 
-    expect((screen.getByRole('button', { name: 'نشر لاحقًا' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.queryByRole('button', { name: /^نشر$/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /نشر/ })).toBeNull()
   })
 
   it('shows the server\'s validation messages next to the fields and keeps the form open', async () => {
@@ -340,7 +345,7 @@ describe('draft opportunity', () => {
   })
 
   it('an existing draft opens for editing (update, not create) and can be cancelled', async () => {
-    list.mockResolvedValue(listOf([req({ draft: { id: 7, title: 'مسودة قائمة', status: 'draft' } })]))
+    list.mockResolvedValue(listOf([req({ draft: { id: 7, title: 'مسودة قائمة', status: 'draft', statusLabel: 'مسودة', applicantsCount: 0 } })]))
     suggestion.mockResolvedValue({ suggestion: draft(), existing: draft({ id: 7, title: 'مسودة قائمة' }) })
     update.mockResolvedValue(draft({ id: 7 }))
     const drawer = await openDrawer()
@@ -434,11 +439,69 @@ describe('api client', () => {
     const r = normalizeIncomingRequest({ id: 3, status: 'weird', required_count: 0, department: null, requester: null, skills: 'x', draft: { id: 9 } })
 
     expect(r).toMatchObject({ id: 3, status: 'pending', requiredCount: 1, department: null, requester: null, skills: [], notes: null })
-    expect(r.draft).toEqual({ id: 9, title: '', status: 'draft' })
+    expect(r.draft).toEqual({ id: 9, title: '', status: 'draft', statusLabel: 'مسودة', applicantsCount: 0 })
   })
 
   it('only an internal dashboard path can be a candidate link', () => {
     expect(safeInternalUrl('https://evil.example')).toBe('/dashboard')
     expect(safeInternalUrl('/dashboard/hr/volunteer-requests/5')).toBe('/dashboard/hr/volunteer-requests/5')
+  })
+})
+
+describe('applicants and sources in the drawer (phase 5)', () => {
+  const withDraft = (status = 'published', statusLabel = 'منشورة', n = 2) => req({ draft: { id: 7, title: 'فرصة المصمم', status, statusLabel, applicantsCount: n } })
+
+  it('shows the applicants of the opportunity made from this request, beside the unchanged details', async () => {
+    list.mockResolvedValue(listOf([withDraft()]))
+    vi.mocked(fetchRequestApplicants).mockResolvedValue({
+      items: [{ id: 11, name: 'سارة الأحمد', status: 'pending', statusLabel: 'جديد', source: 'direct_application', sourceLabel: 'تقدّم مباشرة', appliedAt: '2026-10-12T10:00:00+00:00', reviewedAt: null, experienceLevel: 'متوسط', availability: null, skills: 'تصميم', opportunity: { id: 7, title: 'فرصة المصمم' }, url: '/dashboard/hr/volunteer-requests/11' }],
+      counts: { pending: 1 }, total: 1, opportunity: { id: 7, title: 'فرصة المصمم', status: 'published', statusLabel: 'منشورة', acceptsApplications: true },
+    })
+    const drawer = await openDrawer()
+
+    const panel = await within(drawer).findByTestId('applicants-panel')
+    expect(fetchRequestApplicants).toHaveBeenCalledWith(1)
+    expect(within(panel).getByText('سارة الأحمد')).toBeTruthy()
+    expect(within(panel).getByText(/عبر الفرصة: فرصة المصمم/)).toBeTruthy()
+    expect(within(panel).getByRole('link', { name: /عرض الطلب/ }).getAttribute('href')).toBe('/dashboard/hr/volunteer-requests/11')
+    // phase 1–3 content is still there
+    expect(within(drawer).getByRole('region', { name: 'المرشحون المحتملون' })).toBeTruthy()
+    expect(within(within(drawer).getByRole('region', { name: 'تحديث الحالة' })).getByRole('button', { name: 'قبول' })).toBeTruthy()
+    expect(within(drawer).getByText(/منشورة للعامة · 2 متقدم/)).toBeTruthy()
+    expect(within(drawer).getByRole('link', { name: /إدارة الفرص والنشر/ }).getAttribute('href')).toBe('/dashboard/hr/opportunities')
+  })
+
+  it('shows no applicants section when the request has no opportunity, or the viewer cannot see volunteers', async () => {
+    const a = await openDrawer()
+    expect(within(a).queryByTestId('applicants-panel')).toBeNull()
+    expect(fetchRequestApplicants).not.toHaveBeenCalled()
+  })
+
+  it('does not fetch applicants for a viewer without volunteer access', async () => {
+    list.mockResolvedValue(listOf([withDraft()], { canViewAll: true, canManage: true, canMatchVolunteers: false, canCreateDraft: true }))
+    const drawer = await openDrawer()
+
+    expect(within(drawer).queryByTestId('applicants-panel')).toBeNull()
+    expect(fetchRequestApplicants).not.toHaveBeenCalled()
+  })
+
+  it('a published opportunity can no longer be edited as a draft from the drawer', async () => {
+    list.mockResolvedValue(listOf([withDraft()]))
+    const drawer = await openDrawer()
+
+    expect(within(drawer).queryByRole('button', { name: 'مراجعة المسودة وتعديلها' })).toBeNull()
+  })
+
+  it('a smart-match suggestion and a direct applicant are labelled differently', async () => {
+    const base = matchResult(2)
+    matches.mockResolvedValue({ ...base, candidates: [{ ...base.candidates[0], source: 'direct_application', sourceLabel: 'تقدّم مباشرة على الفرصة' }, base.candidates[1]] })
+    const drawer = await openDrawer()
+
+    await userEvent.click(within(drawer).getByRole('button', { name: 'البحث عن مرشحين' }))
+
+    const tags = await within(drawer).findAllByTestId('candidate-source')
+    expect(tags.map((t) => t.getAttribute('data-source'))).toEqual(['direct_application', 'smart_match'])
+    expect(tags[0].textContent).toBe('تقدّم مباشرة على الفرصة')
+    expect(tags[1].textContent).toBe('اقتراح من المطابقة الذكية')
   })
 })

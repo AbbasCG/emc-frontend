@@ -11,7 +11,7 @@ import apiClient from './axios'
 
 export type HrRequestStatus = 'pending' | 'in_progress' | 'approved' | 'rejected'
 
-export type IncomingDraftRef = { id: number; title: string; status: string }
+export type IncomingDraftRef = { id: number; title: string; status: string; statusLabel: string; applicantsCount: number }
 
 export type IncomingRequest = {
   id: number
@@ -72,6 +72,9 @@ export type VolunteerMatch = {
   desiredDepartment: string | null
   experienceLevel: string | null
   availability: string | null
+  /** `direct_application`: applied to the opportunity made from this request. `smart_match`: suggested by the matcher. */
+  source: 'direct_application' | 'smart_match'
+  sourceLabel: string
   url: string
   actionLabel: string
 }
@@ -93,11 +96,15 @@ export type OpportunityDraft = {
   preferredSkills: string[]
   volunteersNeeded: number | null
   availability: string
+  duration: string
   locationMode: '' | 'remote' | 'onsite' | 'hybrid'
   startDate: string
+  closesAt: string
   applicationInstructions: string
   status: string
+  statusLabel: string
   isPublished: boolean
+  publishedAt: string | null
 }
 
 export type OpportunityDraftInput = {
@@ -108,8 +115,10 @@ export type OpportunityDraftInput = {
   preferredSkills: string[]
   volunteersNeeded: number | null
   availability: string
+  duration: string
   locationMode: string
   startDate: string
+  closesAt: string
   applicationInstructions: string
   departmentId: number | null
 }
@@ -152,7 +161,9 @@ export function normalizeIncomingRequest(raw: unknown): IncomingRequest {
     hrFeedback: strOrNull(r.hr_feedback),
     createdAt: strOrNull(r.created_at),
     updatedAt: strOrNull(r.updated_at),
-    draft: draft.id != null ? { id: num(draft.id), title: str(draft.title), status: str(draft.status, 'draft') } : null,
+    draft: draft.id != null ?
+      { id: num(draft.id), title: str(draft.title), status: str(draft.status, 'draft'), statusLabel: str(draft.status_label, 'مسودة'), applicantsCount: num(draft.applicants_count) }
+    : null,
   }
 }
 
@@ -228,6 +239,8 @@ export async function fetchVolunteerMatches(id: number, minScore: number): Promi
         desiredDepartment: strOrNull(c.desired_department),
         experienceLevel: strOrNull(c.experience_level),
         availability: strOrNull(c.availability),
+        source: c.source === 'direct_application' ? 'direct_application' : 'smart_match',
+        sourceLabel: str(c.source_label, c.source === 'direct_application' ? 'تقدّم مباشرة على الفرصة' : 'اقتراح من المطابقة الذكية'),
         url: safeInternalUrl(c.url),
         actionLabel: str(c.action_label, 'مراجعة المرشح'),
       }
@@ -249,7 +262,7 @@ export function safeInternalUrl(url: unknown): string {
   return /^\/dashboard\/[A-Za-z0-9/_-]*$/.test(u) && !u.includes('//') ? u : '/dashboard'
 }
 
-function normalizeDraft(raw: unknown, requestId: number): OpportunityDraft {
+export function normalizeDraft(raw: unknown, requestId: number): OpportunityDraft {
   const d = rec(raw)
   const mode = str(d.location_mode)
   return {
@@ -264,11 +277,15 @@ function normalizeDraft(raw: unknown, requestId: number): OpportunityDraft {
     preferredSkills: strList(d.preferred_skills),
     volunteersNeeded: d.volunteers_needed == null ? null : num(d.volunteers_needed),
     availability: str(d.availability),
+    duration: str(d.duration),
     locationMode: mode === 'remote' || mode === 'onsite' || mode === 'hybrid' ? mode : '',
     startDate: str(d.start_date),
+    closesAt: str(d.closes_at),
     applicationInstructions: str(d.application_instructions),
     status: str(d.status, 'draft'),
+    statusLabel: str(d.status_label, 'مسودة'),
     isPublished: d.is_published === true,
+    publishedAt: strOrNull(d.published_at),
   }
 }
 
@@ -282,7 +299,7 @@ export async function fetchDraftSuggestion(requestId: number): Promise<{ suggest
   }
 }
 
-function draftPayload(input: OpportunityDraftInput): Record<string, unknown> {
+export function draftPayload(input: OpportunityDraftInput): Record<string, unknown> {
   return {
     title: input.title.trim(),
     summary: input.summary.trim(),
@@ -291,8 +308,10 @@ function draftPayload(input: OpportunityDraftInput): Record<string, unknown> {
     preferred_skills: input.preferredSkills,
     volunteers_needed: input.volunteersNeeded,
     availability: input.availability.trim() || null,
+    duration: input.duration.trim() || null,
     location_mode: input.locationMode || null,
     start_date: input.startDate || null,
+    closes_at: input.closesAt || null,
     application_instructions: input.applicationInstructions.trim() || null,
     department_id: input.departmentId,
   }

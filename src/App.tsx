@@ -50,6 +50,9 @@ const Signup             = lazy(() => import('./pages/Signup'))
 const SubmitWorkshop     = lazy(() => import('./pages/SubmitWorkshop'))
 const Team               = lazy(() => import('./pages/Team'))
 const VolunteerApply     = lazy(() => import('./pages/VolunteerApply'))
+const HrOpportunitiesPage = lazy(() => import('./pages/hr/HrOpportunitiesPage'))
+const VolunteerOpportunities = lazy(() => import('./pages/VolunteerOpportunities'))
+const VolunteerOpportunityDetails = lazy(() => import('./pages/VolunteerOpportunityDetails'))
 const ThankYou           = lazy(() => import('./pages/ThankYou'))
 const Tracks             = lazy(() => import('./pages/Tracks'))
 const Volunteer          = lazy(() => import('./pages/Volunteer'))
@@ -444,6 +447,8 @@ function App() {
               <Route path="/partnerships" element={<Suspense fallback={<RouteFallback />}><Partnerships /></Suspense>} />
               <Route path="/volunteer"          element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
               <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
+              <Route path="/volunteer-opportunities" element={<Suspense fallback={<RouteFallback />}><VolunteerOpportunities /></Suspense>} />
+              <Route path="/volunteer-opportunities/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerOpportunityDetails /></Suspense>} />
               <Route path="/consultants"       element={<Suspense fallback={<RouteFallback />}><ConsultantApply /></Suspense>} />
               <Route path="/ai-level"          element={<Suspense fallback={<RouteFallback />}><AiLevelAssessment /></Suspense>} />
               <Route path="/tracks/:trackSlug" element={<Suspense fallback={<RouteFallback />}><TrackLandingPage /></Suspense>} />
@@ -657,6 +662,7 @@ function App() {
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
                   <Route path="/dashboard/hr/my-requests" element={<HrMyRequestsPage />} />
                   <Route path="/dashboard/hr/incoming-requests" element={<HrIncomingRequestsPage />} />
+                  <Route path="/dashboard/hr/opportunities" element={<Suspense fallback={<RouteFallback />}><HrOpportunitiesPage /></Suspense>} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
                   <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />

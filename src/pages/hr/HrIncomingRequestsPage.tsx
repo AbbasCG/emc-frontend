@@ -5,10 +5,12 @@ import toast from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import {
   classifyIncomingError,
+  createOpportunityDraft,
   fetchDraftSuggestion,
   fetchIncomingRequests,
   incomingErrorMessage,
   updateIncomingRequestStatus,
+  updateOpportunityDraft,
   type HrRequestStatus,
   type IncomingList,
   type IncomingRequest,
@@ -231,9 +233,8 @@ export default function HrIncomingRequestsPage() {
         <OpportunityDraftModal
           key={`${draftForm.requestId}-${draftForm.existing}`}
           open
-          requestId={draftForm.requestId}
           initial={draftForm.initial}
-          isExisting={draftForm.existing}
+          onSubmit={(input) => (draftForm.existing ? updateOpportunityDraft(draftForm.requestId, input) : createOpportunityDraft(draftForm.requestId, input))}
           onClose={() => setDraftForm(null)}
           onSaved={draftSaved}
         />
