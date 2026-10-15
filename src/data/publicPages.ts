@@ -438,5 +438,6 @@ export const siteContact = {
     tiktok: 'https://www.tiktok.com/@edumastarcentral?_r=1&_t=ZG-97ZAYywXre4',
     telegram: 'https://t.me/edumastarcentral',
     whatsapp: 'https://whatsapp.com/channel/0029VbAtDXCL2AU0PWYSSW40',
+    whatsappPhone: 'https://wa.me/31624690630',
   },
 }

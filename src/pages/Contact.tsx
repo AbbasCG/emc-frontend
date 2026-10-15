@@ -30,6 +30,67 @@ import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 import { loadingToast, successToast, errorToast } from '@/lib/toast'
 import { ContactFaqSection } from '@/components/contact/ContactFaqSection'
 
+
+
+
+function TikTokIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden="true">
+      <path d="M19.6 7.2a6.7 6.7 0 0 1-4.1-1.4v8.1a6.1 6.1 0 1 1-5.3-6.1v3.4a2.8 2.8 0 1 0 1.9 2.7V2h3.4a6.6 6.6 0 0 0 4.1 5.2v0Z" />
+    </svg>
+  )
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden="true">
+      <path d="M12 2a9.8 9.8 0 0 0-8.4 14.9L2.3 22l5.2-1.4A10 10 0 1 0 12 2Zm0 17.9a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.5-.8-1.7-.9-.2-.1-.4-.1-.6.1l-.8 1c-.2.2-.3.2-.6.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.3.2-.4.6-1.1.1-.2 0-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.7 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.3-.5-.4Z" />
+    </svg>
+  )
+}
+
+function TelegramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden="true">
+      <path d="M21.8 3.2 18.5 20c-.2 1.2-.9 1.5-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.5l-4.9-1.6c-1.1-.3-1.1-1.1.2-1.6L20 2.8c.9-.3 1.9.2 1.8.4Z" />
+    </svg>
+  )
+}
+function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden="true">
+      <path d="M13.5 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.1H7.3V13h2.8v8h3.4Z" />
+    </svg>
+  )
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function LinkedInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden="true">
+      <path d="M5.2 3a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4ZM3.3 9h3.8v12H3.3V9Zm6.2 0h3.6v1.6h.1A4 4 0 0 1 16.8 8c3.9 0 4.6 2.5 4.6 5.7V21h-3.8v-6.5c0-1.6 0-3.6-2.2-3.6s-2.5 1.7-2.5 3.5V21H9.5V9Z" />
+    </svg>
+  )
+}
+
+function XIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+      <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.9 5.8 22H2.6l7.3-8.4L2 2h6.5l4.5 6.7L18.9 2Zm-1.1 18h1.7L7.5 3.9H5.7L17.8 20Z" />
+    </svg>
+  )
+}
+
+
 /** M3 i18n: copy lives in the catalogs under contact.options.cards.<key>. */
 function buildOptionCards(t: TFunction) {
   return [
@@ -448,7 +509,7 @@ export default function Contact() {
 
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader title={t('contact.social.title')} description={t('contact.social.description')} />
+          <SectionHeader title={t('contact.social.title')}  />
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -457,13 +518,80 @@ export default function Contact() {
             transition={{ duration: 0.5 }}
             className="rounded-3xl bg-white p-8 text-right ring-1 ring-line"
           >
-            <p className="text-foreground/70 leading-8">
+
+            
+<div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+  <a
+    href={siteContact.social.facebook}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Facebook"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md"  >
+    <FacebookIcon />
+  </a>
+
+  <a
+    href={siteContact.social.instagram}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Instagram"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md"  >
+    <InstagramIcon />
+  </a>
+
+  <a
+    href={siteContact.social.linkedin}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="LinkedIn"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md"  >
+    <LinkedInIcon />
+  </a>
+
+  <a
+    href={siteContact.social.x}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="X"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md"  >
+    <XIcon />
+  </a>
+  
+<a
+  href={siteContact.social.tiktok}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="TikTok"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md">
+  <TikTokIcon />
+</a>
+
+<a
+  href={siteContact.social.whatsapp}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="WhatsApp"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md">
+  <WhatsAppIcon />
+</a>
+
+<a
+  href={siteContact.social.telegram}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Telegram"
+className="group inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#DED9C9] bg-[#F1F1EC] text-[#19476A] transition duration-300 hover:-translate-y-1 hover:bg-[#E5E9E8] hover:shadow-md">
+  <TelegramIcon />
+</a>
+
+</div>
+<div className="mt-6 flex flex-wrap items-center justify-center gap-4"><p className="text-foreground/70 leading-8">
               {t('contact.social.notePrefix')}{' '}
               <a href={`mailto:${siteContact.email}`} className="font-bold text-customBlue hover:underline">
                 {siteContact.email}
               </a>
               .
-            </p>
+            </p></div>
           </motion.div>
         </div>
       </section>
