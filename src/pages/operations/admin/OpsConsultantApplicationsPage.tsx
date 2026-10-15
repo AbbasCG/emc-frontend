@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FileText, RefreshCw, UserCheck, Search } from 'lucide-react'
+import { Eye, FileText, RefreshCw, UserCheck, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
+  fetchConsultantApplication,
   fetchConsultantApplications,
   updateConsultantApplicationStatus,
   type ConsultantApplication,
 } from '@/api/consultantApi'
+import ConsultantApplicationDetailModal from '@/components/operations/ConsultantApplicationDetailModal'
+import { DetailStateModal } from '@/components/detailModal/DetailModalParts'
+import { useDetailParam } from '@/hooks/useDetailParam'
+import { useDetailRecord } from '@/hooks/useDetailRecord'
 
 /** طلبات المستشارين: مراجعة واعتماد المتقدمين إلى إدارة المستشارين. */
 
@@ -34,6 +39,11 @@ export default function OpsConsultantApplicationsPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<number | null>(null)
+  const detail = useDetailParam('view')
+  // In the loaded list when it is there; otherwise that one record is requested (and authorized) by itself.
+  const fromList = detail.id !== null ? (rows.find((r) => r.id === detail.id) ?? null) : null
+  const record = useDetailRecord(detail.id, fromList, fetchConsultantApplication)
+  const opened = record.record
 
   const load = useCallback(async (filters: { status?: string; search?: string }) => {
     setLoading(true)
@@ -86,7 +96,7 @@ export default function OpsConsultantApplicationsPage() {
     <div dir="rtl" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-customOrange">إدارة المستشارين</p>
+          <p className="text-[11px] font-black tracking-normal text-customOrange">إدارة المستشارين</p>
           <h1 className="mt-1 text-2xl font-black text-deepBlue">طلبات المستشارين</h1>
           <p className="mt-1 text-sm text-deepBlue/50">مراجعة المتقدمين واعتماد انضمامهم إلى إدارة المستشارين</p>
         </div>
@@ -144,7 +154,7 @@ export default function OpsConsultantApplicationsPage() {
         <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
           <table className="w-full min-w-[52rem] text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-start text-[11px] font-black uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-slate-100 text-start text-[11px] font-black text-slate-400">
                 <th className="px-5 py-3 text-start">المتقدم</th>
                 <th className="px-5 py-3 text-start">التخصص</th>
                 <th className="px-5 py-3 text-start">الإدارة المرغوبة</th>
@@ -157,7 +167,7 @@ export default function OpsConsultantApplicationsPage() {
               {rows.map((row) => (
                 <tr key={row.id} className="border-b border-slate-50 align-top last:border-0">
                   <td className="px-5 py-4">
-                    <p className="font-black text-deepBlue">{row.full_name}</p>
+                    <button type="button" onClick={() => detail.open(row.id)} className="text-start font-black text-deepBlue hover:text-customBlue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40" aria-label={`عرض تفاصيل ${row.full_name}`}>{row.full_name}</button>
                     <p dir="ltr" className="mt-0.5 text-xs text-slate-400">{row.email}</p>
                     {row.cv_view_url && (
                       <a
@@ -186,6 +196,9 @@ export default function OpsConsultantApplicationsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-1.5">
+                      <button type="button" onClick={() => detail.open(row.id)} className="inline-flex items-center gap-1 rounded-lg bg-customBlue px-2.5 py-1 text-[11px] font-black text-white transition hover:brightness-110">
+                        <Eye size={12} aria-hidden /> عرض التفاصيل
+                      </button>
                       {(['under_review', 'interview', 'accepted', 'rejected'] as const)
                         .filter((s) => s !== row.status)
                         .map((s) => (
@@ -206,6 +219,17 @@ export default function OpsConsultantApplicationsPage() {
           </table>
         </div>
       )}
+
+      {detail.id === null ? null : opened ?
+        <ConsultantApplicationDetailModal
+          app={opened}
+          onClose={detail.close}
+          onUpdated={(next) => {
+            setRows((r) => r.map((x) => (x.id === next.id ? { ...x, ...next } : x)))
+            record.replace({ ...opened, ...next })
+          }}
+        />
+      : <DetailStateModal state={record.state} onClose={detail.close} onRetry={record.retry} />}
     </div>
   )
 }

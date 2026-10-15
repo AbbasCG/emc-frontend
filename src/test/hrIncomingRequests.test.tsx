@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import HrIncomingRequestsPage from '@/pages/hr/HrIncomingRequestsPage'
@@ -136,8 +136,8 @@ describe('page layout', () => {
     expect(screen.getByLabelText('الحالة')).toBeTruthy()
     expect(screen.getByLabelText('القسم')).toBeTruthy()
     expect(screen.getByLabelText('المسودة')).toBeTruthy()
-    expect(screen.getByLabelText('من تاريخ')).toBeTruthy()
-    expect(screen.getByLabelText('إلى تاريخ')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^من تاريخ/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^إلى تاريخ/ })).toBeTruthy()
     expect(within(screen.getByLabelText('القسم')).getAllByRole('option').map((o) => o.textContent)).toEqual(['كل الأقسام', 'التسويق والإعلام', 'المالية'])
   })
 
@@ -181,17 +181,53 @@ describe('page layout', () => {
 })
 
 describe('hover preview and details drawer', () => {
-  it('hovering shows a quick preview of the details; leaving hides it', async () => {
+  it('hovering changes nothing: no tooltip, no extra content, no repeated title or skills', async () => {
     renderPage()
     const card = (await screen.findAllByTestId('incoming-request'))[0]
+    const before = card.innerHTML
 
     await userEvent.hover(card)
-    const preview = await within(card).findByTestId('hover-preview')
-    expect(preview.textContent).toContain('تصميم جرافيك، صناعة المحتوى، مونتاج الفيديو')
-    expect(preview.textContent).toContain('دعم الحملات')
+    await userEvent.hover(within(card).getByRole('button', { name: /عرض التفاصيل/ }))
 
-    await userEvent.unhover(card)
+    expect(card.innerHTML).toBe(before)
     expect(within(card).queryByTestId('hover-preview')).toBeNull()
+    expect(screen.queryByRole('tooltip')).toBeNull()
+    expect(within(card).getAllByText('مصمم محتوى — التسويق والإعلام')).toHaveLength(1)
+    expect(screen.queryByTestId('request-modal')).toBeNull()
+  })
+
+  it('opens as a centered modal (not a side drawer), closes with Escape and returns focus to the card', async () => {
+    renderPage()
+    const card = (await screen.findAllByTestId('incoming-request'))[0]
+    const trigger = within(card).getByRole('button', { name: /عرض التفاصيل/ })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+
+    const dlg = await screen.findByTestId('request-modal')
+    expect(dlg).toHaveAttribute('aria-modal', 'true')
+    expect(dlg.parentElement).toHaveClass('items-center', 'justify-center')
+    expect(document.body.style.overflow).toBe('hidden')
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByTestId('request-modal')).toBeNull())
+    expect(trigger).toHaveFocus()
+    // The list, its filters and page are untouched.
+    expect(screen.getAllByTestId('incoming-request')).toHaveLength(2)
+  })
+
+  it('cannot be closed while a status change is being sent', async () => {
+    let release!: (v: unknown) => void
+    vi.mocked(updateIncomingRequestStatus).mockReturnValue(new Promise<IncomingRequest>((r) => { release = r as (v: unknown) => void }))
+    const modal = await openDrawer()
+    await userEvent.click(within(modal).getByRole('button', { name: 'قبول' }))
+
+    await userEvent.keyboard('{Escape}')
+    expect(screen.getByTestId('request-modal')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'إغلاق النافذة' })).toBeDisabled()
+
+    await act(async () => release({}))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByTestId('request-modal')).toBeNull())
   })
 
   it('does not rely on hover: clicking opens the full details drawer', async () => {

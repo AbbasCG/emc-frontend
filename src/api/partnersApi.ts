@@ -55,6 +55,13 @@ export async function fetchPartnershipRequests(): Promise<PartnershipRequest[]> 
   return asList<PartnershipRequest>(res.data)
 }
 
+/** One request by id, authorized by the server like the list (a refusal is a 403, a deleted record a 404). */
+export async function fetchPartnershipRequest(id: number): Promise<PartnershipRequest> {
+  const res = await apiClient.get<unknown>(`/operations/partnership-requests/${id}`, { skipErrorToast: true })
+  const payload = res.data as { data?: PartnershipRequest }
+  return payload.data ?? (res.data as PartnershipRequest)
+}
+
 export async function updatePartnershipRequest(id: number, status: string, reviewNotes?: string): Promise<PartnershipRequest> {
   const res = await apiClient.patch<unknown>(`/operations/partnership-requests/${id}`, {
     status,

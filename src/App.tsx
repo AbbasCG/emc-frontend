@@ -296,7 +296,6 @@ const VolunteerRequestsPage            = lazy(() => import('./pages/super-admin/
 const VolunteerHrProfilePage           = lazy(() => import('./pages/dashboard/VolunteerHrProfilePage'))
 const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/HrVolunteerProfilesPage'))
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
-const AmbassadorApplicationDetailPage  = lazy(() => import('./pages/super-admin/AmbassadorApplicationDetailPage'))
 const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/ResourceCenterCoursesPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
@@ -349,6 +348,12 @@ function RoleRedirect() {
 function RedirectAdminWebhookDetail() {
   const { id } = useParams()
   return <Navigate to={`/dashboard/admin/webhooks/${id ?? ''}`} replace />
+}
+
+/** The apply form lives on the opportunity page itself; this keeps the /:id/apply link working. */
+function OpportunityApplyRedirect() {
+  const { id } = useParams()
+  return <Navigate to={{ pathname: `/volunteer-opportunities/${id ?? ''}`, hash: '#apply' }} replace />
 }
 
 function RedirectPathsToLearningPaths() {
@@ -449,6 +454,7 @@ function App() {
               <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
               <Route path="/volunteer-opportunities" element={<Suspense fallback={<RouteFallback />}><VolunteerOpportunities /></Suspense>} />
               <Route path="/volunteer-opportunities/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerOpportunityDetails /></Suspense>} />
+              <Route path="/volunteer-opportunities/:id/apply" element={<OpportunityApplyRedirect />} />
               <Route path="/consultants"       element={<Suspense fallback={<RouteFallback />}><ConsultantApply /></Suspense>} />
               <Route path="/ai-level"          element={<Suspense fallback={<RouteFallback />}><AiLevelAssessment /></Suspense>} />
               <Route path="/tracks/:trackSlug" element={<Suspense fallback={<RouteFallback />}><TrackLandingPage /></Suspense>} />
@@ -516,11 +522,9 @@ function App() {
                   <Route path="/dashboard/volunteer/hr-profile" element={<Suspense fallback={<RouteFallback />}><VolunteerHrProfilePage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteers" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteers/:id" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
-                  <Route path="/dashboard/super-admin/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
-                  <Route path="/dashboard/super-admin/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
-                  <Route path="/dashboard/hr/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/ambassador-applications/:id?" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/hr/ambassador-applications/:id?" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/resources/courses" element={<Suspense fallback={<RouteFallback />}><ResourceCenterCoursesPage /></Suspense>} />
-                  <Route path="/dashboard/hr/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   <Route path="/dashboard/super-admin/product-updates" element={<Suspense fallback={<RouteFallback />}><ProductUpdatesPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/financial-requests" element={<Suspense fallback={<RouteFallback />}><SuperAdminFinancialRequestsPage /></Suspense>} />

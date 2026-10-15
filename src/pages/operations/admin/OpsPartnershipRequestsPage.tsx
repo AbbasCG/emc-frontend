@@ -2,10 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
-import { CheckCircle2, Handshake, Loader2, UserPlus } from 'lucide-react'
-import { fetchPartnershipRequests, updatePartnershipRequest } from '@/api/partnersApi'
+import { CheckCircle2, Eye, Handshake, Loader2, UserPlus } from 'lucide-react'
+import { fetchPartnershipRequest, fetchPartnershipRequests, updatePartnershipRequest } from '@/api/partnersApi'
 import type { PartnershipRequest } from '@/types/operations'
 import toast from '@/lib/toast'
+import PartnershipRequestDetailModal from '@/components/operations/PartnershipRequestDetailModal'
+import { DetailStateModal } from '@/components/detailModal/DetailModalParts'
+import { useDetailRecord } from '@/hooks/useDetailRecord'
+import { useDetailParam } from '@/hooks/useDetailParam'
 
 const STATUS_OPTIONS = [
   { value: 'new', label: 'جديد' },
@@ -30,6 +34,11 @@ export default function OpsPartnershipRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const detail = useDetailParam('view')
+  // In the loaded list when it is there; otherwise that one record is requested (and authorized) by itself.
+  const fromList = detail.id !== null ? (items.find((item) => item.id === detail.id) ?? null) : null
+  const record = useDetailRecord(detail.id, fromList, fetchPartnershipRequest)
+  const opened = record.record
 
   useEffect(() => {
     let cancelled = false
@@ -122,6 +131,11 @@ export default function OpsPartnershipRequestsPage() {
                   <p className="mt-2 text-[10px] font-bold text-slate-400">{p.created_at}</p>
                 </div>
               </div>
+              <div className="mt-4">
+                <button type="button" onClick={() => detail.open(p.id)} className="inline-flex items-center gap-1.5 rounded-xl bg-customBlue px-4 py-2 text-xs font-black text-white transition hover:brightness-110">
+                  <Eye className="h-4 w-4" aria-hidden /> عرض التفاصيل
+                </button>
+              </div>
               <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-slate-100 pt-4">
                 <label className="grid gap-2 text-xs font-black text-deepBlue">
                   تحديث الحالة
@@ -162,6 +176,16 @@ export default function OpsPartnershipRequestsPage() {
           ))}
         </motion.ul>
       )}
+
+      {detail.id === null ? null : opened ?
+        <PartnershipRequestDetailModal
+          item={opened}
+          updating={updatingId === opened.id}
+          onClose={detail.close}
+          onChangeStatus={(status) => void changeStatus(opened.id, status)}
+          onApprove={() => approveRequest(opened)}
+        />
+      : <DetailStateModal state={record.state} onClose={detail.close} onRetry={record.retry} />}
     </div>
   )
 }

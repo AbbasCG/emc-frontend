@@ -426,3 +426,13 @@ describe('convertVolunteerToMember', () => {
     await expect(convertVolunteerToMember(7)).rejects.toThrow('409')
   })
 })
+
+describe('normalizeRequest keeps the application context the admin window shows', () => {
+  it('keeps the opportunity it was made for and the last update, and leaves general applications without one', async () => {
+    const { normalizeRequest } = await import('@/api/volunteerApplicationApi')
+    const base = { id: 1, full_name: 'س', email: 'a@b.co', status: 'pending' }
+
+    expect(normalizeRequest({ ...base, opportunity_id: 3, opportunity_title: 'فرصة تصميم', updated_at: '2026-10-02T09:00:00Z' })).toMatchObject({ opportunity_id: 3, opportunity_title: 'فرصة تصميم', updated_at: '2026-10-02T09:00:00Z' })
+    expect(normalizeRequest(base)).toMatchObject({ opportunity_id: null, opportunity_title: null })
+  })
+})

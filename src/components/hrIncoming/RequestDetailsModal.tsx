@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { Link } from 'react-router'
 import { Check, ExternalLink, FileText, Loader2, Play, X } from 'lucide-react'
-import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
+import { CenteredModal } from '@/components/ui/CenteredModal'
 import type { HrRequestStatus, IncomingCapabilities, IncomingRequest } from '@/api/hrIncomingRequestsApi'
 import { cn } from '@/lib/utils'
 import { fetchRequestApplicants } from '@/api/volunteerOpportunitiesAdminApi'
@@ -25,7 +25,12 @@ const ACTIONS: { status: HrRequestStatus; label: string; icon: typeof Check; ton
   { status: 'rejected', label: 'رفض', icon: X, tone: 'border-red-300 text-red-700 hover:bg-red-50' },
 ]
 
-export function RequestDetailsDrawer({
+/**
+ * The request's details window: a large centered modal over the list (the list, its filters and its page stay
+ * exactly as they were). It opens only from a click or Enter on a card, never from hover; Escape and the close
+ * button close it unless a status change is being sent; focus is trapped inside and returns to the card.
+ */
+export function RequestDetailsModal({
   request,
   capabilities,
   onClose,
@@ -47,14 +52,18 @@ export function RequestDetailsDrawer({
   const loadApplicants = useCallback(() => fetchRequestApplicants(request?.id ?? 0), [request?.id])
 
   return (
-    <CrudDrawer
+    <CenteredModal
       open={request !== null}
       onClose={onClose}
+      size="xl"
+      testId="request-modal"
+      busy={statusBusy || draftBusy}
       title={request?.title ?? 'طلب احتياج'}
       subtitle={request ? `${request.department?.name ?? 'بدون قسم'} · ${formatDate(request.createdAt)}` : undefined}
-      widthClassName="max-w-full sm:max-w-xl lg:max-w-2xl"
-      footerSlot={
-        <button type="button" onClick={onClose} className="rounded-xl border border-deepBlue/10 bg-white px-5 py-2.5 text-sm font-black text-deepBlue">إغلاق</button>
+      footer={
+        <div className="flex justify-end">
+          <button type="button" onClick={onClose} disabled={statusBusy || draftBusy} className="rounded-xl border border-deepBlue/10 bg-white px-5 py-2.5 text-sm font-black text-deepBlue disabled:opacity-60">إغلاق</button>
+        </div>
       }
     >
       {request ?
@@ -68,6 +77,8 @@ export function RequestDetailsDrawer({
             : null}
           </div>
 
+          <div className="grid items-start gap-5 lg:grid-cols-2">
+          <div className="min-w-0 space-y-5">
           <dl className="space-y-2.5 rounded-2xl border border-deepBlue/[0.07] bg-white p-4">
             <Row label="القسم الطالب">{request.department?.name ?? '—'}</Row>
             <Row label="مقدّم الطلب">{request.requester?.name ?? '—'}</Row>
@@ -112,6 +123,9 @@ export function RequestDetailsDrawer({
             </section>
           : null}
 
+          </div>
+
+          <div className="min-w-0 space-y-5">
           <VolunteerMatchPanel
             key={request.id}
             requestId={request.id}
@@ -156,8 +170,10 @@ export function RequestDetailsDrawer({
                 : null}
               </>}
           </section>
+          </div>
+          </div>
         </div>
       : null}
-    </CrudDrawer>
+    </CenteredModal>
   )
 }

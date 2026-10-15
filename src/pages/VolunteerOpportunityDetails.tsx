@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { Building2, CalendarClock, CheckCircle2, Clock, Hourglass, Lock, MapPin, ShieldAlert, Users } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
@@ -41,6 +41,11 @@ export default function VolunteerOpportunityDetails() {
   const { user } = useAuth()
   const [data, setData] = useState<PublicOpportunityDetail | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'not_found' | 'error'>('loading')
+  const { hash } = useLocation()
+  // A link to #apply (including /:id/apply) lands on the form once the page has loaded it.
+  useEffect(() => {
+    if (state === 'ready' && hash === '#apply') document.getElementById('apply')?.scrollIntoView({ block: 'start' })
+  }, [state, hash])
 
   const load = useCallback(async () => {
     if (!Number.isFinite(opportunityId) || opportunityId <= 0) {
@@ -108,7 +113,7 @@ export default function VolunteerOpportunityDetails() {
 
               <div id="apply">
                 {data.acceptingApplications ?
-                  <OpportunityApplyForm opportunityId={data.id} initial={{ fullName: user?.name ?? '', email: user?.email ?? '' }} />
+                  <OpportunityApplyForm opportunityId={data.id} department={data.field} initial={{ fullName: user?.name ?? '', email: user?.email ?? '' }} />
                 : (
                   <div role="status" data-testid="applications-closed" className="rounded-3xl bg-slate-50 p-8 text-center ring-1 ring-line">
                     <Lock size={32} className="mx-auto text-deepBlue/40" aria-hidden="true" />

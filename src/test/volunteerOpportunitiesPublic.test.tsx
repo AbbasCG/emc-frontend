@@ -15,6 +15,11 @@ import {
   type PublicOpportunityDetail,
 } from '@/api/volunteerOpportunitiesApi'
 
+vi.mock('@/components/ui/CountrySelector', async (orig) => ({
+  ...(await orig<typeof import('@/components/ui/CountrySelector')>()),
+  default: ({ onChange }: { onChange: (c: { name: string }) => void }) => <input aria-label="الدولة" onChange={(e) => onChange({ name: e.target.value })} />,
+}))
+
 vi.mock('@/api/volunteerOpportunitiesApi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/volunteerOpportunitiesApi')>()
   return { ...actual, fetchOpportunities: vi.fn(), fetchOpportunity: vi.fn(), applyToOpportunity: vi.fn() }
@@ -219,16 +224,18 @@ describe('public details', () => {
 })
 
 describe('applying', () => {
+  // Pasting fills a field in one step (typing every character is slow enough to time out on a busy machine).
+  const paste = async (el: HTMLElement, v: string) => { await userEvent.click(el); await userEvent.paste(v) }
   async function fillValid() {
-    await userEvent.type(screen.getByLabelText('الاسم الكامل'), 'سارة الأحمد')
-    await userEvent.type(screen.getByLabelText('البريد الإلكتروني'), 'sara@example.com')
-    await userEvent.type(screen.getByLabelText('رقم الجوال'), '+31600000000')
-    await userEvent.type(screen.getByLabelText('الدولة'), 'هولندا')
-    await userEvent.type(screen.getByLabelText('المدينة'), 'أمستردام')
+    await paste(screen.getByLabelText('الاسم الكامل'), 'سارة الأحمد')
+    await paste(screen.getByLabelText('البريد الإلكتروني'), 'sara@example.com')
+    await paste(screen.getByLabelText('رقم الجوال'), '+31600000000')
+    await paste(screen.getByLabelText('الدولة'), 'هولندا')
+    await paste(screen.getByLabelText('المدينة'), 'أمستردام')
     await userEvent.selectOptions(screen.getByLabelText('الجنس'), 'female')
     await userEvent.selectOptions(screen.getByLabelText('مستوى الخبرة'), 'متوسط')
-    await userEvent.selectOptions(screen.getByLabelText('التوفر'), '5-10 ساعات أسبوعيًا')
-    await userEvent.type(screen.getByLabelText('لماذا ترغب في التطوع'), 'أرغب في المساهمة بخبرتي في تصميم المحتوى.')
+    await userEvent.selectOptions(screen.getByLabelText('التوفر الأسبوعي'), '5-10 ساعات أسبوعيًا')
+    await paste(screen.getByLabelText('لماذا ترغب بالتطوع مع EMC؟'), 'أرغب في المساهمة بخبرتي في تصميم المحتوى.')
     await userEvent.click(screen.getByLabelText('أوافق على الشروط'))
   }
 
@@ -241,7 +248,7 @@ describe('applying', () => {
     expect(apply).not.toHaveBeenCalled()
     expect(screen.getByText('الاسم الكامل مطلوب.')).toBeTruthy()
     expect(screen.getByText('أدخل بريدًا إلكترونيًا صالحًا.')).toBeTruthy()
-    expect(screen.getByText('اكتب 20 حرفًا على الأقل في سبب التطوع.')).toBeTruthy()
+    expect(screen.getByText('سبب التطوع مطلوب')).toBeTruthy()
     expect(screen.getByText('يجب الموافقة على الشروط للمتابعة.')).toBeTruthy()
   })
 
@@ -257,7 +264,7 @@ describe('applying', () => {
     expect(document.getElementById(name.getAttribute('aria-describedby') ?? '')?.textContent).toBe('الاسم الكامل مطلوب.')
     expect(screen.getByLabelText('أوافق على الشروط').getAttribute('aria-invalid')).toBe('true')
     // The optional skills field never failed, so it is not marked.
-    expect(screen.getByLabelText('مهاراتك').getAttribute('aria-invalid')).toBeNull()
+    expect(screen.getByLabelText('المهارات').getAttribute('aria-invalid')).toBeNull()
     await waitFor(() => expect(document.activeElement).toBe(name))
 
     // Fixing a field clears its mark.
@@ -358,5 +365,65 @@ describe('api client', () => {
     const o = normalizeOpportunity({ id: 5, status: 'weird', location_mode: 'moon', volunteers_needed: 'x' })
 
     expect(o).toMatchObject({ id: 5, status: 'open', locationMode: null, volunteersNeeded: null, field: null })
+  })
+})
+
+describe('the two volunteer forms ask the same questions', () => {
+  it('the opportunity form shows every general-form field, in the same words, plus the read-only department', async () => {
+    one.mockResolvedValue(detail())
+    renderDetails()
+    const form = await screen.findByRole('form', { name: 'نموذج التقديم على الفرصة' })
+
+    for (const label of ['الاسم الكامل', 'البريد الإلكتروني', 'رقم الجوال', 'الجنس', 'الدولة', 'المدينة', 'مستوى الخبرة', 'التوفر الأسبوعي', 'المهارات', 'لماذا ترغب بالتطوع مع EMC؟', 'هل لديك خبرة سابقة في التطوع؟', 'السيرة الذاتية', 'ملاحظات إضافية']) {
+      expect(within(form).getAllByText(label, { exact: false }).length, label).toBeGreaterThan(0)
+    }
+    expect(within(form).getByText('أوافق على استخدام بياناتي لغرض مراجعة طلب التطوع والتواصل معي.')).toBeTruthy()
+    expect(screen.queryByLabelText('القسم الذي ترغب بالتطوع فيه')).toBeNull()
+  })
+
+  it('both forms use the same option lists and wording (one shared spec)', async () => {
+    const spec = await import('@/components/volunteerOpportunities/volunteerFormSpec')
+    const source = (await import('node:fs')).readFileSync('src/pages/VolunteerApply.tsx', 'utf8')
+
+    expect(source).toContain("from '@/components/volunteerOpportunities/volunteerFormSpec'")
+    for (const label of [spec.FORM_LABELS.motivation, spec.FORM_LABELS.availability, spec.FORM_LABELS.previousExperience, spec.FORM_LABELS.notes, spec.FORM_LABELS.cv]) expect(source).toContain(label)
+    expect(spec.CONSENT_TEXT).toBe('أوافق على استخدام بياناتي لغرض مراجعة طلب التطوع والتواصل معي.')
+    expect(source).toContain(spec.CONSENT_TEXT)
+  })
+
+  it('refuses a Word CV in the opportunity form too (PDF only), and sends no file', async () => {
+    renderDetails()
+    await screen.findByRole('form', { name: 'نموذج التقديم على الفرصة' })
+    const word = new File(['PK-word'], 'cv.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+
+    await userEvent.setup({ applyAccept: false }).upload(screen.getByLabelText('السيرة الذاتية', { selector: 'input' }), word)
+
+    expect(await screen.findByText('يُسمح برفع السيرة الذاتية بصيغة PDF فقط.')).toBeTruthy()
+    expect(screen.queryByText('cv.docx')).toBeNull()
+  })
+
+  it('sends the optional CV and notes with the application', async () => {
+    apply.mockResolvedValue('تم استلام طلبك.')
+    renderDetails()
+    await screen.findByRole('form', { name: 'نموذج التقديم على الفرصة' })
+    const file = new File(['%PDF-1.4 minimal'], 'cv.pdf', { type: 'application/pdf' })
+    await userEvent.upload(screen.getByLabelText('السيرة الذاتية', { selector: 'input' }), file)
+    await userEvent.click(screen.getByLabelText('ملاحظات إضافية'))
+    await userEvent.paste('متاحة مساءً')
+    const type = async (l: string, v: string) => { await userEvent.click(screen.getByLabelText(l)); await userEvent.paste(v) }
+    await type('الاسم الكامل', 'سارة الأحمد')
+    await type('البريد الإلكتروني', 'sara@example.com')
+    await type('رقم الجوال', '+31600000000')
+    await type('الدولة', 'هولندا')
+    await type('المدينة', 'أمستردام')
+    await userEvent.selectOptions(screen.getByLabelText('الجنس'), 'female')
+    await userEvent.selectOptions(screen.getByLabelText('مستوى الخبرة'), 'متوسط')
+    await userEvent.selectOptions(screen.getByLabelText('التوفر الأسبوعي'), '5-10 ساعات أسبوعيًا')
+    await type('لماذا ترغب بالتطوع مع EMC؟', 'أرغب في المساهمة بخبرتي في تصميم المحتوى.')
+    await userEvent.click(screen.getByLabelText('أوافق على الشروط'))
+    await userEvent.click(screen.getByRole('button', { name: 'إرسال الطلب' }))
+
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(1))
+    expect(apply.mock.calls[0][1]).toMatchObject({ cvFile: file, notes: 'متاحة مساءً' })
   })
 })

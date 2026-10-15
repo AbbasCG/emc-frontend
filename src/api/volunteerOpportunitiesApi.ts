@@ -67,6 +67,8 @@ export type ApplicationInput = {
   skills: string
   previousExperience: string
   motivation: string
+  notes: string
+  cvFile: File | null
   agreeTerms: boolean
 }
 
@@ -151,20 +153,25 @@ export async function fetchOpportunity(id: number): Promise<PublicOpportunityDet
 }
 
 export async function applyToOpportunity(id: number, input: ApplicationInput): Promise<string> {
-  const res = await apiClient.post<unknown>(`/volunteer-opportunities/${id}/applications`, {
-    full_name: input.fullName.trim(),
-    email: input.email.trim(),
-    phone: input.phone.trim(),
-    country: input.country.trim(),
-    city: input.city.trim(),
-    gender: input.gender,
-    experience_level: input.experienceLevel,
-    availability: input.availability,
-    skills: input.skills.trim() || null,
-    previous_experience: input.previousExperience.trim() || null,
-    motivation: input.motivation.trim(),
-    agree_terms: input.agreeTerms,
-  }, silent)
+  // Same multipart shape as the general form (it can carry the optional CV). The department is not sent: the
+  // server applies to the opportunity's own department.
+  const fd = new FormData()
+  fd.append('full_name', input.fullName.trim())
+  fd.append('email', input.email.trim())
+  fd.append('phone', input.phone.trim())
+  fd.append('country', input.country.trim())
+  fd.append('city', input.city.trim())
+  fd.append('gender', input.gender)
+  fd.append('experience_level', input.experienceLevel)
+  fd.append('availability', input.availability)
+  if (input.skills.trim()) fd.append('skills', input.skills.trim())
+  if (input.previousExperience.trim()) fd.append('previous_experience', input.previousExperience.trim())
+  fd.append('motivation', input.motivation.trim())
+  if (input.notes.trim()) fd.append('notes', input.notes.trim())
+  if (input.cvFile) fd.append('cv_file', input.cvFile)
+  fd.append('agree_terms', input.agreeTerms ? '1' : '0')
+
+  const res = await apiClient.post<unknown>(`/volunteer-opportunities/${id}/applications`, fd, silent)
   return str(rec(res.data).message, 'تم استلام طلبك.')
 }
 

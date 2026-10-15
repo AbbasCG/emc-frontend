@@ -20,13 +20,14 @@ import { IncomingFilters } from '@/components/hrIncoming/IncomingFilters'
 import { IncomingKpis } from '@/components/hrIncoming/IncomingKpis'
 import { IncomingRequestCard } from '@/components/hrIncoming/IncomingRequestCard'
 import { OpportunityDraftModal } from '@/components/hrIncoming/OpportunityDraftModal'
-import { RequestDetailsDrawer } from '@/components/hrIncoming/RequestDetailsDrawer'
+import { RequestDetailsModal } from '@/components/hrIncoming/RequestDetailsModal'
+import { NestedLayer } from '@/components/ui/NestedLayer'
 import { EMPTY_FILTERS, type IncomingFilterState, type MatchState } from '@/components/hrIncoming/hrIncomingUi'
 
 /**
  * /dashboard/hr/incoming-requests — الطلبات الواردة.
  *
- * HR's workspace for department staffing needs: a filterable list, a details drawer, smart
+ * HR's workspace for department staffing needs: a filterable list, a centered details window, smart
  * volunteer matching and draft vacancy opportunities. It is decision support only. It never
  * assigns or contacts a volunteer, sends anything, or publishes anything.
  *
@@ -218,7 +219,7 @@ export default function HrIncomingRequestsPage() {
         )}
       </DashboardPageShell>
 
-      <RequestDetailsDrawer
+      <RequestDetailsModal
         request={selected}
         capabilities={caps}
         onClose={() => setSelectedId(null)}
@@ -230,6 +231,7 @@ export default function HrIncomingRequestsPage() {
       />
 
       {draftForm ?
+        <NestedLayer>
         <OpportunityDraftModal
           key={`${draftForm.requestId}-${draftForm.existing}`}
           open
@@ -238,6 +240,7 @@ export default function HrIncomingRequestsPage() {
           onClose={() => setDraftForm(null)}
           onSaved={draftSaved}
         />
+        </NestedLayer>
       : null}
     </div>
   )

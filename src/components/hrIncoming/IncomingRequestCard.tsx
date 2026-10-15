@@ -1,33 +1,23 @@
-import { useState } from 'react'
 import { Building2, CalendarDays, ChevronLeft, UserRound, Users } from 'lucide-react'
 import type { IncomingRequest } from '@/api/hrIncomingRequestsApi'
 import { cn } from '@/lib/utils'
 import { MATCH_STATE_META, STATUS_META, formatDate, type MatchState } from './hrIncomingUi'
 
 /**
- * One request in the workspace list. The whole summary is a button that opens the details
- * drawer, so nothing depends on hover. On a pointer device, hovering (or focusing) also shows a
- * quick preview of the details; touch and keyboard users get the same details in the drawer.
+ * One request in the workspace list. The whole summary is a button that opens the details window.
+ * Nothing depends on hover: hovering only tints the border, so the card never changes height, moves
+ * its neighbours or shows content that is not already on it. Keyboard focus shows a ring, and a
+ * tap opens the details exactly like a click.
  */
 export function IncomingRequestCard({ request, matchState, onOpen }: { request: IncomingRequest; matchState: MatchState; onOpen: () => void }) {
-  const [preview, setPreview] = useState(false)
   const status = STATUS_META[request.status]
   const match = MATCH_STATE_META[matchState]
-  const previewId = `preview-${request.id}`
 
   return (
-    <li
-      className="relative"
-      data-testid="incoming-request"
-      onMouseEnter={() => setPreview(true)}
-      onMouseLeave={() => setPreview(false)}
-      onFocus={() => setPreview(true)}
-      onBlur={() => setPreview(false)}
-    >
+    <li data-testid="incoming-request">
       <button
         type="button"
         onClick={onOpen}
-        aria-describedby={preview ? previewId : undefined}
         className="group flex w-full flex-col gap-3 rounded-2xl border border-deepBlue/[0.07] bg-white p-4 text-start shadow-sm transition hover:border-customBlue/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40 sm:flex-row sm:items-center"
       >
         <span className="min-w-0 flex-1 space-y-2">
@@ -59,19 +49,6 @@ export function IncomingRequestCard({ request, matchState, onOpen }: { request: 
         </span>
       </button>
 
-      {preview ?
-        <div
-          id={previewId}
-          role="tooltip"
-          data-testid="hover-preview"
-          className="pointer-events-none absolute inset-x-4 top-full z-20 mt-1 hidden rounded-2xl border border-deepBlue/10 bg-white p-4 text-xs shadow-xl md:block"
-        >
-          <p className="font-black text-deepBlue">{request.title}</p>
-          <p className="mt-1 font-semibold leading-relaxed text-deepBlue/70">{request.skillsAndSpecs || 'لا توجد مواصفات.'}</p>
-          {request.notes ? <p className="mt-1.5 font-semibold text-deepBlue/55">ملاحظات: {request.notes}</p> : null}
-          <p className="mt-1.5 font-bold text-deepBlue/50">{request.requester?.name ?? '—'} · {request.department?.name ?? '—'} · العدد {request.requiredCount}</p>
-        </div>
-      : null}
     </li>
   )
 }

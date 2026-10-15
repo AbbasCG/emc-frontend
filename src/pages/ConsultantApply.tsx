@@ -1,7 +1,8 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { BadgeCheck, Briefcase, CalendarClock, Compass, FileUp, MessageSquareQuote, Send, X } from 'lucide-react'
+import { BadgeCheck, Briefcase, CalendarClock, Compass, MessageSquareQuote, Send } from 'lucide-react'
+import { CvFileField } from '@/components/ui/CvFileField'
 import axios from 'axios'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
@@ -29,8 +30,6 @@ const SPECIALTIES = [
 ]
 
 const DEPARTMENT_CHOICES = [...ADVISABLE_DEPARTMENTS, MULTI_DEPARTMENT_OPTION]
-
-const MAX_CV_MB = 5
 
 const inputClass =
   'w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-deepBlue outline-none transition-colors placeholder:text-ink-300 focus:border-customBlue focus:ring-2 focus:ring-customBlue/20'
@@ -70,7 +69,6 @@ export default function ConsultantApply() {
     agree_terms: false,
   })
   const [cvFile, setCvFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -81,10 +79,6 @@ export default function ConsultantApply() {
   }
 
   function pickCv(file: File | null) {
-    if (file && file.size > MAX_CV_MB * 1024 * 1024) {
-      setError(`حجم السيرة الذاتية يتجاوز ${MAX_CV_MB}MB — صغّر الملف ثم أعد المحاولة.`)
-      return
-    }
     setError(null)
     setCvFile(file)
   }
@@ -309,44 +303,7 @@ export default function ConsultantApply() {
                 </select>
               </label>
 
-              {/* السيرة الذاتية */}
-              <div className="grid gap-1.5 text-xs font-black text-ink-500">
-                السيرة الذاتية (PDF أو Word، حتى {MAX_CV_MB}MB)
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  className="sr-only"
-                  onChange={(e) => pickCv(e.target.files?.[0] ?? null)}
-                />
-                {cvFile ? (
-                  <div className="flex items-center justify-between gap-3 rounded-xl border border-customBlue/40 bg-sky/30 px-4 py-3">
-                    <span className="min-w-0 truncate text-sm font-bold text-deepBlue" dir="ltr">
-                      {cvFile.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        pickCv(null)
-                        if (fileInputRef.current) fileInputRef.current.value = ''
-                      }}
-                      aria-label="إزالة الملف"
-                      className="shrink-0 rounded-lg p-1 text-ink-400 transition hover:text-danger"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-line px-4 py-4 text-sm font-bold text-ink-400 transition hover:border-customBlue hover:text-customBlue"
-                  >
-                    <FileUp size={16} aria-hidden />
-                    ارفع سيرتك الذاتية
-                  </button>
-                )}
-              </div>
+              <CvFileField file={cvFile} onChange={pickCv} />
 
               <label className="grid gap-1.5 text-xs font-black text-ink-500">
                 رابط LinkedIn أو ملف أعمال

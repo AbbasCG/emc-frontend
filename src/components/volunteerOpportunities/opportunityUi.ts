@@ -12,9 +12,8 @@ export const SORT_OPTIONS: { value: 'newest' | 'deadline' | 'title'; label: stri
   { value: 'title', label: 'الاسم' },
 ]
 
-export const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
+export { EXPERIENCE_LEVELS, AVAILABILITY_OPTIONS } from './volunteerFormSpec'
 
-export const AVAILABILITY_OPTIONS = ['أقل من 3 ساعات أسبوعيًا', '3-5 ساعات أسبوعيًا', '5-10 ساعات أسبوعيًا', 'أكثر من 10 ساعات أسبوعيًا']
 
 const LOCALE = 'ar-SA-u-ca-gregory-nu-latn'
 

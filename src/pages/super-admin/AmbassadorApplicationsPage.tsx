@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import Select, { type SingleValue, type StylesConfig } from 'react-select'
 import {
   ChevronDown,
@@ -29,6 +29,8 @@ import {
   type AmbassadorFilterOptions,
 } from '@/api/ambassadorApplicationApi'
 import AmbassadorApplicationDetailModal from '@/components/admin/AmbassadorApplicationDetailModal'
+import { DetailStateModal } from '@/components/detailModal/DetailModalParts'
+import { classifyDetailError } from '@/hooks/useDetailRecord'
 import AmbassadorExportModal from '@/components/admin/AmbassadorExportModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate } from '@/utils/dateTime'
@@ -204,6 +206,7 @@ const EMPTY_OPTIONS: AmbassadorFilterOptions = {
 export default function AmbassadorApplicationsPage() {
   const { id: routeId } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [applications, setApplications] = useState<AmbassadorApplication[]>([])
@@ -215,6 +218,8 @@ export default function AmbassadorApplicationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<AmbassadorApplication | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState<{ id: number; kind: 'forbidden' | 'not_found' | 'error' } | null>(null)
+  const [detailAttempt, setDetailAttempt] = useState(0)
   const [filterOptions, setFilterOptions] = useState<AmbassadorFilterOptions>(EMPTY_OPTIONS)
   const [exportSelectedIds, setExportSelectedIds] = useState<number[]>([])
   const [exportModalOpen, setExportModalOpen] = useState(false)
@@ -452,6 +457,8 @@ export default function AmbassadorApplicationsPage() {
   // Adopting a row that is already in the list, and arming the detail spinner when it
   // is not, both happen during render — so the effect below only sets state after an
   // await. `seenRoute` starts as `null` so the very first pass still runs.
+  // Only a record that is the one named by the URL is shown (a previous record never lingers under a new link).
+  const shown = selected && (!routeId || selected.id === numericRouteId) ? selected : null
   const [seenRoute, setSeenRoute] = useState<
     { routeId: string | undefined; match: AmbassadorApplication | null } | null
   >(null)
@@ -459,18 +466,22 @@ export default function AmbassadorApplicationsPage() {
     setSeenRoute({ routeId, match: routeMatch })
     if (routeMatch) setSelected(routeMatch)
     else if (Number.isFinite(numericRouteId)) setDetailLoading(true)
+    // Browser Back / Forward changes the URL: no id in it means no window.
+    else if (routeId === undefined) setSelected(null)
   }
 
   useEffect(() => {
     if (!Number.isFinite(numericRouteId) || routeMatch) return
 
+    // This one record is requested by its own id (the server authorizes it), so a link works even when the list
+    // behind it is filtered or on another page. A refusal, a missing record and a failure are told apart.
     let cancelled = false
     void (async () => {
       try {
         const app = await fetchAmbassadorApplication(numericRouteId)
         if (!cancelled) setSelected(app)
-      } catch {
-        if (!cancelled) toast.error('تعذّر تحميل تفاصيل الطلب')
+      } catch (e) {
+        if (!cancelled) setDetailError({ id: numericRouteId, kind: classifyDetailError(e) })
       } finally {
         if (!cancelled) setDetailLoading(false)
       }
@@ -479,16 +490,38 @@ export default function AmbassadorApplicationsPage() {
     return () => {
       cancelled = true
     }
-  }, [numericRouteId, routeMatch])
+  }, [numericRouteId, routeMatch, detailAttempt])
 
   const openDetail = (id: number) => {
-    // Keep current list URL (with filters) in history so detail Back restores it.
-    navigate(`${listBase}/${id}`)
+    // Focus the row's name button first (a mouse click on the row, or on a button in Safari/Firefox, does not move
+    // focus there by itself), so the window's focus trap remembers a real control to return to.
+    document.querySelector<HTMLElement>(`[data-ambassador-trigger="${id}"]`)?.focus()
+    setDetailError(null)
+    // The detail URL keeps the list's filters, sort and page in its query string, and the list stays mounted behind the
+    // window, so closing it (or Back) returns to exactly the same list.
+    const qs = searchParams.toString()
+    navigate(`${listBase}/${id}${qs ? `?${qs}` : ''}`)
+  }
+
+  /** The control that opened a record: its name button in the list. Looked up by id, so it is found even if the rows were redrawn meanwhile. */
+  const focusTrigger = (id: number) => {
+    const find = () => document.querySelector<HTMLElement>(`[data-ambassador-trigger="${id}"]`)
+    find()?.focus()
+    // The list may re-render once the window is gone (a refresh after a status change): try again after it settles.
+    window.setTimeout(() => find()?.focus(), 150)
   }
 
   function handleCloseModal() {
+    const closing = selected?.id ?? (Number.isFinite(numericRouteId) ? numericRouteId : null)
     setSelected(null)
-    if (routeId) {
+    setDetailError(null)
+    if (closing !== null) window.setTimeout(() => focusTrigger(closing), 0)
+    if (!routeId) return
+    // Opened from the list inside the app: closing is a step Back, so the history stays clean and the list is exactly
+    // as it was. Opened from a direct link (no earlier entry of ours): go to the list URL with its filters.
+    if (location.key !== 'default') {
+      navigate(-1)
+    } else {
       const qs = searchParams.toString()
       navigate(`${listBase}${qs ? `?${qs}` : ''}`, { replace: true })
     }
@@ -889,7 +922,15 @@ export default function AmbassadorApplicationsPage() {
                       {(pagination.current_page - 1) * (pagination.per_page || 20) + idx + 1}
                     </td>
                     <td className="px-4 py-3.5">
-                      <div className="font-black text-deepBlue">{app.full_name}</div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openDetail(app.id) }}
+                        data-ambassador-trigger={app.id}
+                        aria-label={`عرض تفاصيل ${app.full_name}`}
+                        className="text-start font-black text-deepBlue hover:text-customBlue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40"
+                      >
+                        {app.full_name}
+                      </button>
                       <div className="text-xs text-slate-500">{app.email}</div>
                     </td>
                     <td className="px-4 py-3.5 font-semibold text-slate-700">{app.university_name ?? '—'}</td>
@@ -920,18 +961,18 @@ export default function AmbassadorApplicationsPage() {
         />
       </div>
 
-      {(detailLoading && routeId && !selected) && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#0F172A]/30 backdrop-blur-[2px]">
-          <div className="rounded-2xl bg-white px-6 py-4 shadow-xl">
-            <p className="text-sm font-bold text-[#0C2A4B]">جاري تحميل تفاصيل الطلب...</p>
-          </div>
-        </div>
-      )}
+      {routeId && !shown && (detailLoading || detailError || !Number.isFinite(numericRouteId)) ?
+        <DetailStateModal
+          state={!Number.isFinite(numericRouteId) ? 'not_found' : detailError && detailError.id === numericRouteId ? detailError.kind : 'loading'}
+          onClose={handleCloseModal}
+          onRetry={() => { setDetailError(null); setDetailLoading(true); setDetailAttempt((n) => n + 1) }}
+        />
+      : null}
 
       <AnimatePresence>
-        {selected && (
+        {shown && (
           <AmbassadorApplicationDetailModal
-            app={selected}
+            app={shown}
             onClose={handleCloseModal}
             onUpdated={handleUpdated}
           />

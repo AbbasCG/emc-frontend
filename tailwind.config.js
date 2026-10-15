@@ -22,6 +22,11 @@ export default {
         paper2: "#F3F1EA",
         foreground: "#27384B", // body text
         line:   "#E7E3DA",
+        "detail-line": "#DCE6F0", // hairline of the volunteer detail windows (HR profile + application)
+        "detail-rule": "#E8EEF4", // header hairline
+        "detail-canvas": "#F4F7FB", // body background
+        "detail-soft": "#F7FAFC", // document card fill
+        "detail-ink": "#0F172A", // backdrop tint
 
         /* ── Legacy aliases → V2.2 (kept; consumed across components) ── */
         customBlue:   "#0077B6", // sea · blue (primary, AA on light)

@@ -286,7 +286,7 @@ function KpiCard({ label, value, icon: Icon, iconBg, iconColor, accentGradient, 
           <Icon size={20} className={iconColor} />
         </motion.div>
 
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-500">{label}</p>
+        <p className="text-[11px] font-bold tracking-normal text-muted-500">{label}</p>
 
         <p className={`font-black leading-none text-ink-500 ${isLong ? 'text-base leading-snug' : 'text-3xl'}`}>
           {isString ? value : count}
@@ -696,7 +696,7 @@ export default function AcceptedVolunteersPage() {
                 <div className="mt-4 border-t border-slate-100 pt-4">
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-muted-400">المدينة</label>
+                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">المدينة</label>
                       <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}
                         className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
                         <option value="">الكل</option>
@@ -704,7 +704,7 @@ export default function AcceptedVolunteersPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-muted-400">التفرغ</label>
+                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">التفرغ</label>
                       <select value={filterAvailability} onChange={(e) => setFilterAvailability(e.target.value)}
                         className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
                         <option value="">الكل</option>
@@ -715,7 +715,7 @@ export default function AcceptedVolunteersPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-muted-400">السيرة الذاتية</label>
+                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">السيرة الذاتية</label>
                       <select value={filterHasCv} onChange={(e) => setFilterHasCv(e.target.value)}
                         className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
                         <option value="">الكل</option>
@@ -724,12 +724,12 @@ export default function AcceptedVolunteersPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-muted-400">القبول من</label>
+                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">القبول من</label>
                       <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)}
                         className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none" />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-muted-400">القبول إلى</label>
+                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">القبول إلى</label>
                       <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)}
                         className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none" />
                     </div>
@@ -775,7 +775,7 @@ export default function AcceptedVolunteersPage() {
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/60">
                     {['#','المتطوع','القسم','المدينة','التفرغ','تاريخ القبول','قُبل بواسطة','CV','الإجراءات'].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-wider text-muted-400">{h}</th>
+                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black tracking-normal text-muted-400">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -821,7 +821,7 @@ export default function AcceptedVolunteersPage() {
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/60">
                     {['#','المتطوع','القسم','المدينة','التفرغ','تاريخ القبول','قُبل بواسطة','CV','الإجراءات'].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-wider text-muted-400">{h}</th>
+                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black tracking-normal text-muted-400">{h}</th>
                     ))}
                   </tr>
                 </thead>
