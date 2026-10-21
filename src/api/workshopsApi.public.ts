@@ -124,7 +124,8 @@ function normalizeWorkshopRow(raw: unknown): PublicWorkshop | null {
       instructor?.full_name,
     ),
     instructor_avatar: pickStr(instructor?.avatar_url, instructor?.photo, instructor?.image),
-    course_id: toNum(o.course_id ?? course?.id),
+    // A course-based workshop IS the course row: its own id is the course id when the payload names no separate course.
+    course_id: toNum(o.course_id ?? course?.id) ?? (o.course_slug != null && String(o.course_slug) === slug ? id : null),
     course_slug: pickStr(course?.slug, o.course_slug),
     course_title: pickStr(course?.title, o.course_title),
     price,

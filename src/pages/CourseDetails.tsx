@@ -23,7 +23,7 @@ import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnroll
 import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
 import AppAlert from '@/components/ui/AppAlert'
 import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
-import { buildPublicLoginHref, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { buildPublicLoginHref } from '@/utils/publicEnrollAuth'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
 import { resolvePriceZone, trackFunnelEvent } from '@/lib/funnelEvents'
 import { resolveItemType } from '@/utils/publicCourseDisplay'
@@ -274,7 +274,7 @@ export default function CourseDetails() {
   }
 
   useEffect(() => {
-    if (!isAuthenticated || !course || user?.role !== 'student') return
+    if (!isAuthenticated || !course) return
     let cancelled = false
     void (async () => {
       try {
@@ -294,7 +294,7 @@ export default function CourseDetails() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, course?.id, user?.role]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, course?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const displayRelatedCourses = useMemo(
     () => relatedCourses.map((c) => sanitizeCourseForDisplay(c)),
@@ -446,7 +446,6 @@ export default function CourseDetails() {
     seatsFull,
     alreadyEnrolled,
     isAuthenticated,
-    userRole: user?.role,
     courseSlug: course.slug,
     courseId: course.id,
     isEnded: derived.isEnded,
@@ -720,9 +719,7 @@ export default function CourseDetails() {
         priceHint={isFree ? 'مجانية' : priceLabel}
         actionLabel={enrollCta.label}
         disabled={enrollCta.disabled}
-        onAction={() => {
-          if (enrollCta.denyNonStudent) toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-        }}
+        onAction={() => {}}
         extra={
           enrollCta.href ? (
             <Link
@@ -731,14 +728,6 @@ export default function CourseDetails() {
             >
               {enrollCta.label}
             </Link>
-          ) : enrollCta.denyNonStudent ? (
-            <button
-              type="button"
-              onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
-              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#F28C00] px-4 text-sm font-black text-white"
-            >
-              {enrollCta.label}
-            </button>
           ) : undefined
         }
       />

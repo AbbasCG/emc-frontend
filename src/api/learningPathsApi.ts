@@ -168,6 +168,8 @@ export interface InstructorPathSession {
 export interface StudentEnrollment {
   enrollment_id: number
   enrollment_status: 'pending_payment' | 'active' | 'completed' | 'dropped'
+  /** The payment arrived but the enrollment is withheld for a financial review: nothing to pay, nothing to start. */
+  payment_under_review?: boolean
   enrolled_at: string | null
   completed_at: string | null
   learning_path: LearningPath
@@ -175,6 +177,8 @@ export interface StudentEnrollment {
 
 export interface EnrollmentStatus {
   enrolled: boolean
+  /** Payment received, enrollment awaiting a finance decision (server-authoritative). */
+  payment_under_review?: boolean
   requires_checkout?: boolean
   checkout_url?: string | null
   enrollment: {
@@ -318,6 +322,7 @@ export async function fetchEnrollmentStatus(slug: string): Promise<EnrollmentSta
     const body = res.data as { success: boolean } & EnrollmentStatus
     return {
       enrolled: body.enrolled,
+      payment_under_review: body.payment_under_review === true ? true : undefined,
       requires_checkout: body.requires_checkout,
       checkout_url: body.checkout_url,
       enrollment: body.enrollment,

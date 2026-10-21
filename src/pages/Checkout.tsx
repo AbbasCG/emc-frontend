@@ -87,7 +87,12 @@ function resolveDisplayPrice(course: Course, _countryCode: string): DisplayPrice
 function resolveSeatsRemaining(course: Course | null): number | null {
   if (!course) return null
   const capacityRaw = course.capacity ?? course.seats_count
-  const takenRaw = course.effective_enrollment_count ?? course.registrations_count
+  // `seats_remaining` is the backend's canonical figure (same rule enrollment enforces); the counts below are the fallback.
+  if (course.seats_remaining != null && capacityRaw != null) {
+    const direct = Math.trunc(Number(course.seats_remaining))
+    return Number.isFinite(direct) && direct > 0 ? direct : null
+  }
+  const takenRaw = course.seats_taken ?? course.effective_enrollment_count ?? course.registrations_count
   // Both numbers must be genuinely present — a missing enrollment count would
   // turn capacity into a fabricated «seats left», which §1 forbids.
   if (capacityRaw == null || takenRaw == null) return null

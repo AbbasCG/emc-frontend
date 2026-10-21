@@ -929,19 +929,9 @@
       "complete": "Complete enrollment",
       "later": "Later"
     },
-    "nonStudent": {
-      "title": "This account{{role}} is not a student account",
-      "body": "Program enrollment is available to student accounts only. You can create a student account with a different email and continue where you left off.",
-      "createStudent": "Create a student account with another email",
-      "stay": "Stay on my current account"
-    },
-    "roles": {
-      "teacher": "Trainer",
-      "instructor": "Trainer",
-      "admin": "Admin",
-      "super_admin": "Super admin",
-      "partner": "Partner",
-      "volunteer": "Volunteer"
+    "conflict": {
+      "title": "Enrollment can't be completed",
+      "close": "OK"
     }
   },
   "seo": {

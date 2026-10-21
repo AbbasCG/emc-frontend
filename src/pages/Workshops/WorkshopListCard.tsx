@@ -61,9 +61,9 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
   /**
    * §17 `workshop_register`.
    *
-   * `gatePublicEnrollClick` returns true ONLY for a signed-in student — the one
-   * case where the registration actually goes through for this browser; guests and
-   * non-student accounts are diverted and nothing is counted. Restricted to a FREE
+   * `gatePublicEnrollClick` returns true ONLY for a signed-in account — the one
+   * case where the registration actually goes through for this browser; guests are
+   * diverted and nothing is counted. Restricted to a FREE
    * workshop: a paid one is a purchase, and `purchase` is what measures that.
    *
    * The contact is remembered (as a non-reversible hash) at the same moment, so
@@ -78,10 +78,9 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
   function handleRegisterClick() {
     const proceeded = gatePublicEnrollClick({
       isAuthenticated,
-      role: user?.role,
       redirectPath: buildWorkshopDetailEnrollHref(workshop.slug),
       navigate,
-      onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
+      onLearner: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
     })
     if (!proceeded || !workshop.is_free) return
     rememberFunnelContact(user?.email)

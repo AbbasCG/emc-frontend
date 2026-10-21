@@ -528,8 +528,34 @@ export interface SidebarContext {
   hasEnglishCourses?: boolean
 }
 
-/** Role-specific sidebar navigation (Arabic RTL labels). */
+/** The learner's own courses and workshops: the same page for every account, whatever its role. */
+export const LEARNER_COURSES_HREF = '/dashboard/student/courses'
+
+/**
+ * Sidebar navigation for a role (Arabic RTL labels), plus «دوراتي» for EVERY role.
+ *
+ * Learning is not a role: any account may be enrolled in a course or workshop, so the learner entry is added here, once, instead of
+ * being copied into every role's menu. A role added tomorrow gets it for free; a role whose menu already has it (the student's)
+ * is left exactly as it is. The role's own menu is never replaced or reordered, and the entry only reuses the existing learner
+ * route; whether the page opens is still decided by the access manifest, which grants it to every authenticated account.
+ */
 export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
+  const groups = roleSidebar(roleRaw, ctx)
+  if (groups.some((g) => g.items.some((item) => item.href === LEARNER_COURSES_HREF))) return groups
+
+  // An instructor already has a «دوراتي» that means the courses they TEACH; the learner entry is named so the two are never mixed up.
+  const label = normalizeRole(roleRaw ?? null) === 'instructor' ? 'دوراتي كمتعلّم' : 'دوراتي'
+
+  const learner: SidebarNavGroup = { title: 'التعلّم', items: [{ label, href: LEARNER_COURSES_HREF, icon: BookOpen }] }
+  // A trailing «الحساب» group stays last, as it does for every other heading added to a menu.
+  const last = groups[groups.length - 1]
+  if (last?.title === 'الحساب') return [...groups.slice(0, -1), learner, last]
+
+  return [...groups, learner]
+}
+
+/** Role-specific sidebar navigation (Arabic RTL labels). */
+function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
   const n = normalizeRole(roleRaw ?? null)
 
   if (n === 'super_admin') return superMasterSidebar()
