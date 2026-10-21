@@ -1,0 +1,3523 @@
+{
+ "createRequest": {
+  "title": "نموذج شامل للمنشئ",
+  "description": "يحوي كل أنواع العناصر",
+  "form_type": "suggestion",
+  "slug": "builder-89146f",
+  "questions": [
+   {
+    "type": "section",
+    "label": "البيانات الأساسية",
+    "description": "يرجى تعبئة البيانات"
+   },
+   {
+    "type": "text",
+    "label": "الاسم",
+    "required": true,
+    "placeholder": "الاسم الكامل",
+    "help_text": "كما في الهوية",
+    "config": {
+     "validation": {
+      "min_length": 2,
+      "max_length": 40
+     }
+    }
+   },
+   {
+    "type": "textarea",
+    "label": "ملاحظات"
+   },
+   {
+    "type": "email",
+    "label": "البريد"
+   },
+   {
+    "type": "phone",
+    "label": "الجوال"
+   },
+   {
+    "type": "number",
+    "label": "العمر",
+    "config": {
+     "validation": {
+      "min": 16,
+      "max": 70,
+      "integer_only": true
+     }
+    }
+   },
+   {
+    "type": "url",
+    "label": "الموقع"
+   },
+   {
+    "type": "description",
+    "label": "",
+    "description": "اقرأ الأسئلة التالية بعناية"
+   },
+   {
+    "type": "page_break",
+    "label": ""
+   },
+   {
+    "type": "section",
+    "label": "التفضيلات"
+   },
+   {
+    "type": "date",
+    "label": "تاريخ الميلاد",
+    "config": {
+     "validation": {
+      "max_date": "2020-01-01"
+     }
+    }
+   },
+   {
+    "type": "time",
+    "label": "وقت التواصل"
+   },
+   {
+    "type": "radio",
+    "label": "المدينة",
+    "options": [
+     "جدة",
+     "الرياض"
+    ]
+   },
+   {
+    "type": "checkbox",
+    "label": "الاهتمامات",
+    "options": [
+     "برمجة",
+     "تصميم",
+     "تسويق"
+    ],
+    "config": {
+     "validation": {
+      "min_choices": 1,
+      "max_choices": 2
+     }
+    }
+   },
+   {
+    "type": "select",
+    "label": "المستوى",
+    "options": [
+     "مبتدئ",
+     "متقدم"
+    ],
+    "placeholder": "اختر"
+   },
+   {
+    "type": "yes_no",
+    "label": "هل لديك خبرة؟"
+   },
+   {
+    "type": "star_rating",
+    "label": "التقييم",
+    "config": {
+     "scale": {
+      "max": 5
+     }
+    }
+   },
+   {
+    "type": "linear_scale",
+    "label": "احتمال التوصية",
+    "config": {
+     "scale": {
+      "min": 1,
+      "max": 10,
+      "min_label": "لا أوصي",
+      "max_label": "أوصي بشدة"
+     }
+    }
+   },
+   {
+    "type": "file",
+    "label": "السيرة الذاتية"
+   },
+   {
+    "type": "image",
+    "label": "صورة شخصية"
+   },
+   {
+    "type": "consent",
+    "label": "أوافق على الشروط",
+    "required": true
+   }
+  ]
+ },
+ "createResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "draft",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": null,
+   "published_at": null,
+   "current_version": null,
+   "published_version_id": null,
+   "draft_revision": 0,
+   "has_unpublished_changes": true,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 43,
+     "label": "الاسم",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:22.000000Z"
+  }
+ },
+ "saveUnchangedResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "draft",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": null,
+   "published_at": null,
+   "current_version": null,
+   "published_version_id": null,
+   "draft_revision": 0,
+   "has_unpublished_changes": true,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 43,
+     "label": "الاسم",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:22.000000Z"
+  }
+ },
+ "saveEditedRequest": {
+  "base_revision": 0,
+  "questions": [
+   {
+    "id": 42,
+    "label": "البيانات الأساسية",
+    "type": "section",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 1,
+    "description": "يرجى تعبئة البيانات",
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 43,
+    "label": "الاسم الثلاثي",
+    "type": "text",
+    "options": null,
+    "is_required": true,
+    "required": true,
+    "sort_order": 2,
+    "description": null,
+    "placeholder": "الاسم الكامل",
+    "help_text": "كما في الهوية",
+    "config": {
+     "validation": {
+      "min_length": 2,
+      "max_length": 40
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 44,
+    "label": "ملاحظات",
+    "type": "textarea",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 3,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 45,
+    "label": "البريد",
+    "type": "email",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 4,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 46,
+    "label": "الجوال",
+    "type": "phone",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 5,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 47,
+    "label": "العمر",
+    "type": "number",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 6,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": {
+     "validation": {
+      "min": 16,
+      "max": 70,
+      "integer_only": true
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 48,
+    "label": "الموقع",
+    "type": "url",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 7,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 49,
+    "label": "",
+    "type": "description",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 8,
+    "description": "اقرأ الأسئلة التالية بعناية",
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 50,
+    "label": "",
+    "type": "page_break",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 9,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 51,
+    "label": "التفضيلات",
+    "type": "section",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 10,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 52,
+    "label": "تاريخ الميلاد",
+    "type": "date",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 11,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": {
+     "validation": {
+      "max_date": "2020-01-01"
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 53,
+    "label": "وقت التواصل",
+    "type": "time",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 12,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 54,
+    "label": "المدينة",
+    "type": "radio",
+    "options": [
+     "جدة",
+     "الرياض"
+    ],
+    "is_required": false,
+    "required": false,
+    "sort_order": 13,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 55,
+    "label": "الاهتمامات",
+    "type": "checkbox",
+    "options": [
+     "برمجة",
+     "تصميم",
+     "تسويق"
+    ],
+    "is_required": false,
+    "required": false,
+    "sort_order": 14,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": {
+     "validation": {
+      "min_choices": 1,
+      "max_choices": 2
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 56,
+    "label": "المستوى",
+    "type": "select",
+    "options": [
+     "مبتدئ",
+     "متقدم"
+    ],
+    "is_required": false,
+    "required": false,
+    "sort_order": 15,
+    "description": null,
+    "placeholder": "اختر",
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 57,
+    "label": "هل لديك خبرة؟",
+    "type": "yes_no",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 16,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 58,
+    "label": "التقييم",
+    "type": "star_rating",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 17,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": {
+     "scale": {
+      "max": 5
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 59,
+    "label": "احتمال التوصية",
+    "type": "linear_scale",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 18,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": {
+     "scale": {
+      "min": 1,
+      "max": 10,
+      "min_label": "لا أوصي",
+      "max_label": "أوصي بشدة"
+     }
+    },
+    "has_answers": false
+   },
+   {
+    "id": 60,
+    "label": "السيرة الذاتية",
+    "type": "file",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 19,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 61,
+    "label": "صورة شخصية",
+    "type": "image",
+    "options": null,
+    "is_required": false,
+    "required": false,
+    "sort_order": 20,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   },
+   {
+    "id": 62,
+    "label": "أوافق على الشروط",
+    "type": "consent",
+    "options": null,
+    "is_required": true,
+    "required": true,
+    "sort_order": 21,
+    "description": null,
+    "placeholder": null,
+    "help_text": null,
+    "config": null,
+    "has_answers": false
+   }
+  ]
+ },
+ "saveEditedResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "draft",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": null,
+   "published_at": null,
+   "current_version": null,
+   "published_version_id": null,
+   "draft_revision": 1,
+   "has_unpublished_changes": true,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 43,
+     "label": "الاسم الثلاثي",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:24.000000Z"
+  }
+ },
+ "conflictStatus": 409,
+ "conflictResponse": {
+  "success": false,
+  "code": "draft_conflict",
+  "message": "تم تعديل مسودة النموذج من قبل شخص آخر بعد أن فتحتها. حمّل آخر نسخة أو احفظ نسختك فوقها عن قصد.",
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "draft",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": null,
+   "published_at": null,
+   "current_version": null,
+   "published_version_id": null,
+   "draft_revision": 1,
+   "has_unpublished_changes": true,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 43,
+     "label": "الاسم الثلاثي",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:24.000000Z"
+  }
+ },
+ "forceResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "draft",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": null,
+   "published_at": null,
+   "current_version": null,
+   "published_version_id": null,
+   "draft_revision": 2,
+   "has_unpublished_changes": true,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 43,
+     "label": "الاسم",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     },
+     "has_answers": false
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null,
+     "has_answers": false
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:25.000000Z"
+  }
+ },
+ "invalidConfigResponse": {
+  "success": false,
+  "message": "Validation failed.",
+  "errors": {
+   "questions.0.config.validation.max": [
+    "الحد الأعلى يجب ألا يقل عن الحد الأدنى."
+   ],
+   "questions.1.label": [
+    "نص السؤال مطلوب."
+   ]
+  }
+ },
+ "publishResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "active",
+   "visibility": "private",
+   "responses_visibility": "restricted",
+   "department_id": null,
+   "department": null,
+   "created_by": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "owner": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "last_editor": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "publisher": {
+    "id": 41,
+    "name": "عمليات أ"
+   },
+   "published_at": "2026-10-18T15:16:26.000000Z",
+   "current_version": 1,
+   "published_version_id": 21,
+   "draft_revision": 2,
+   "has_unpublished_changes": false,
+   "settings": {
+    "opens_at": null,
+    "closes_at": null,
+    "max_submissions": null,
+    "per_respondent_limit": null,
+    "allow_anonymous": true,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 43,
+     "label": "الاسم",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     }
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     }
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     }
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     }
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     }
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     }
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    }
+   ],
+   "submissions_count": 0,
+   "last_submission_at": null,
+   "abilities": {
+    "view": true,
+    "edit": true,
+    "publish": true,
+    "manage_access": true,
+    "view_responses": true,
+    "manage_responses": true,
+    "delete": true
+   },
+   "created_at": "2026-10-18T15:16:22.000000Z",
+   "updated_at": "2026-10-18T15:16:26.000000Z"
+  }
+ },
+ "publicShowResponse": {
+  "success": true,
+  "data": {
+   "id": 20,
+   "title": "نموذج شامل للمنشئ",
+   "slug": "builder-89146f",
+   "description": "يحوي كل أنواع العناصر",
+   "type": "suggestion",
+   "form_type": "suggestion",
+   "status": "active",
+   "version": 1,
+   "preview": false,
+   "availability": {
+    "state": "open",
+    "message": null,
+    "opens_at": null,
+    "closes_at": null,
+    "requires_login": false
+   },
+   "questions": [
+    {
+     "id": 42,
+     "label": "البيانات الأساسية",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 1,
+     "description": "يرجى تعبئة البيانات",
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 43,
+     "label": "الاسم",
+     "type": "text",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 2,
+     "description": null,
+     "placeholder": "الاسم الكامل",
+     "help_text": "كما في الهوية",
+     "config": {
+      "validation": {
+       "min_length": 2,
+       "max_length": 40
+      }
+     }
+    },
+    {
+     "id": 44,
+     "label": "ملاحظات",
+     "type": "textarea",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 3,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 45,
+     "label": "البريد",
+     "type": "email",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 4,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 46,
+     "label": "الجوال",
+     "type": "phone",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 5,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 47,
+     "label": "العمر",
+     "type": "number",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 6,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min": 16,
+       "max": 70,
+       "integer_only": true
+      }
+     }
+    },
+    {
+     "id": 48,
+     "label": "الموقع",
+     "type": "url",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 7,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 49,
+     "label": "",
+     "type": "description",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 8,
+     "description": "اقرأ الأسئلة التالية بعناية",
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 50,
+     "label": "",
+     "type": "page_break",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 9,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 51,
+     "label": "التفضيلات",
+     "type": "section",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 10,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 52,
+     "label": "تاريخ الميلاد",
+     "type": "date",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 11,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "max_date": "2020-01-01"
+      }
+     }
+    },
+    {
+     "id": 53,
+     "label": "وقت التواصل",
+     "type": "time",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 12,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 54,
+     "label": "المدينة",
+     "type": "radio",
+     "options": [
+      "جدة",
+      "الرياض"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 13,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 55,
+     "label": "الاهتمامات",
+     "type": "checkbox",
+     "options": [
+      "برمجة",
+      "تصميم",
+      "تسويق"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 14,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "validation": {
+       "min_choices": 1,
+       "max_choices": 2
+      }
+     }
+    },
+    {
+     "id": 56,
+     "label": "المستوى",
+     "type": "select",
+     "options": [
+      "مبتدئ",
+      "متقدم"
+     ],
+     "is_required": false,
+     "required": false,
+     "sort_order": 15,
+     "description": null,
+     "placeholder": "اختر",
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 57,
+     "label": "هل لديك خبرة؟",
+     "type": "yes_no",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 16,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 58,
+     "label": "التقييم",
+     "type": "star_rating",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 17,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "max": 5
+      }
+     }
+    },
+    {
+     "id": 59,
+     "label": "احتمال التوصية",
+     "type": "linear_scale",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 18,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": {
+      "scale": {
+       "min": 1,
+       "max": 10,
+       "min_label": "لا أوصي",
+       "max_label": "أوصي بشدة"
+      }
+     }
+    },
+    {
+     "id": 60,
+     "label": "السيرة الذاتية",
+     "type": "file",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 19,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 61,
+     "label": "صورة شخصية",
+     "type": "image",
+     "options": null,
+     "is_required": false,
+     "required": false,
+     "sort_order": 20,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    },
+    {
+     "id": 62,
+     "label": "أوافق على الشروط",
+     "type": "consent",
+     "options": null,
+     "is_required": true,
+     "required": true,
+     "sort_order": 21,
+     "description": null,
+     "placeholder": null,
+     "help_text": null,
+     "config": null
+    }
+   ]
+  }
+ },
+ "submitInvalidResponse": {
+  "success": false,
+  "message": "Validation failed.",
+  "errors": {
+   "answers.43": [
+    "الإجابة في «الاسم» أقصر من المسموح (الحد الأدنى 2 حرفاً)."
+   ],
+   "answers.47": [
+    "الرقم في «العمر» يجب أن يكون بين 16 و70."
+   ],
+   "answers.48": [
+    "أدخل رابطاً صالحاً يبدأ بـ http:// أو https:// في «الموقع»."
+   ],
+   "answers.62": [
+    "يجب الموافقة على «أوافق على الشروط» للمتابعة."
+   ]
+  }
+ },
+ "submitOkFields": [
+  [
+   "answers[43]",
+   "سارة العتيبي"
+  ],
+  [
+   "answers[44]",
+   "سطر"
+  ],
+  [
+   "answers[45]",
+   "sara@example.com"
+  ],
+  [
+   "answers[46]",
+   "+966501234567"
+  ],
+  [
+   "answers[47]",
+   "29"
+  ],
+  [
+   "answers[48]",
+   "https://example.com/me"
+  ],
+  [
+   "answers[52]",
+   "1996-04-12"
+  ],
+  [
+   "answers[53]",
+   "14:30"
+  ],
+  [
+   "answers[54]",
+   "جدة"
+  ],
+  [
+   "answers[55][]",
+   "برمجة"
+  ],
+  [
+   "answers[55][]",
+   "تصميم"
+  ],
+  [
+   "answers[56]",
+   "متقدم"
+  ],
+  [
+   "answers[57]",
+   "yes"
+  ],
+  [
+   "answers[58]",
+   "4"
+  ],
+  [
+   "answers[59]",
+   "9"
+  ],
+  [
+   "answers[62]",
+   "yes"
+  ],
+  [
+   "answers[60]",
+   "cv.pdf"
+  ],
+  [
+   "answers[61]",
+   "me.png"
+  ]
+ ],
+ "submitOkResponse": {
+  "success": true,
+  "message": "Form submitted successfully.",
+  "data": {
+   "submission_id": 79
+  }
+ },
+ "submissionsResponse": {
+  "success": true,
+  "data": {
+   "data": [
+    {
+     "id": 79,
+     "form_id": 20,
+     "form_version_id": 21,
+     "form_version": 1,
+     "status": "new",
+     "submitted_at": "2026-10-18T15:16:28.000000Z",
+     "metadata": null,
+     "submitter_label": "زائر",
+     "user": null,
+     "answers_preview": "الاسم: سارة العتيبي · ملاحظات: سطر · البريد: sara@example.com",
+     "answers": [
+      {
+       "id": 185,
+       "question_id": 43,
+       "question_label": "الاسم",
+       "question_type": "text",
+       "question_deleted": false,
+       "value": "سارة العتيبي",
+       "display_value": "سارة العتيبي",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 186,
+       "question_id": 44,
+       "question_label": "ملاحظات",
+       "question_type": "textarea",
+       "question_deleted": false,
+       "value": "سطر",
+       "display_value": "سطر",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 187,
+       "question_id": 45,
+       "question_label": "البريد",
+       "question_type": "email",
+       "question_deleted": false,
+       "value": "sara@example.com",
+       "display_value": "sara@example.com",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 188,
+       "question_id": 46,
+       "question_label": "الجوال",
+       "question_type": "phone",
+       "question_deleted": false,
+       "value": "+966501234567",
+       "display_value": "+966501234567",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 189,
+       "question_id": 47,
+       "question_label": "العمر",
+       "question_type": "number",
+       "question_deleted": false,
+       "value": "29",
+       "display_value": "29",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 190,
+       "question_id": 48,
+       "question_label": "الموقع",
+       "question_type": "url",
+       "question_deleted": false,
+       "value": "https://example.com/me",
+       "display_value": "https://example.com/me",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 191,
+       "question_id": 52,
+       "question_label": "تاريخ الميلاد",
+       "question_type": "date",
+       "question_deleted": false,
+       "value": "1996-04-12",
+       "display_value": "1996-04-12",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 192,
+       "question_id": 53,
+       "question_label": "وقت التواصل",
+       "question_type": "time",
+       "question_deleted": false,
+       "value": "14:30",
+       "display_value": "14:30",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 193,
+       "question_id": 54,
+       "question_label": "المدينة",
+       "question_type": "radio",
+       "question_deleted": false,
+       "value": "جدة",
+       "display_value": "جدة",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 194,
+       "question_id": 55,
+       "question_label": "الاهتمامات",
+       "question_type": "checkbox",
+       "question_deleted": false,
+       "value": [
+        "برمجة",
+        "تصميم"
+       ],
+       "display_value": "برمجة، تصميم",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 195,
+       "question_id": 56,
+       "question_label": "المستوى",
+       "question_type": "select",
+       "question_deleted": false,
+       "value": "متقدم",
+       "display_value": "متقدم",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 196,
+       "question_id": 57,
+       "question_label": "هل لديك خبرة؟",
+       "question_type": "yes_no",
+       "question_deleted": false,
+       "value": "yes",
+       "display_value": "نعم",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 197,
+       "question_id": 58,
+       "question_label": "التقييم",
+       "question_type": "star_rating",
+       "question_deleted": false,
+       "value": "4",
+       "display_value": "4 / 5",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 198,
+       "question_id": 59,
+       "question_label": "احتمال التوصية",
+       "question_type": "linear_scale",
+       "question_deleted": false,
+       "value": "9",
+       "display_value": "9 (من 1 إلى 10)",
+       "has_file": false,
+       "file_name": null
+      },
+      {
+       "id": 199,
+       "question_id": 60,
+       "question_label": "السيرة الذاتية",
+       "question_type": "file",
+       "question_deleted": false,
+       "value": "cv.pdf",
+       "display_value": "cv.pdf",
+       "has_file": true,
+       "file_name": "cv.pdf"
+      },
+      {
+       "id": 200,
+       "question_id": 61,
+       "question_label": "صورة شخصية",
+       "question_type": "image",
+       "question_deleted": false,
+       "value": "me.png",
+       "display_value": "me.png",
+       "has_file": true,
+       "file_name": "me.png"
+      },
+      {
+       "id": 201,
+       "question_id": 62,
+       "question_label": "أوافق على الشروط",
+       "question_type": "consent",
+       "question_deleted": false,
+       "value": "yes",
+       "display_value": "موافق",
+       "has_file": false,
+       "file_name": null
+      }
+     ],
+     "created_at": "2026-10-18T15:16:28.000000Z"
+    }
+   ],
+   "links": {
+    "first": "http://127.0.0.1:8000/api/operations/forms/20/submissions?page=1",
+    "last": "http://127.0.0.1:8000/api/operations/forms/20/submissions?page=1",
+    "prev": null,
+    "next": null
+   },
+   "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 1,
+    "links": [
+     {
+      "url": null,
+      "label": "&laquo; Previous",
+      "page": null,
+      "active": false
+     },
+     {
+      "url": "http://127.0.0.1:8000/api/operations/forms/20/submissions?page=1",
+      "label": "1",
+      "page": 1,
+      "active": true
+     },
+     {
+      "url": null,
+      "label": "Next &raquo;",
+      "page": null,
+      "active": false
+     }
+    ],
+    "path": "http://127.0.0.1:8000/api/operations/forms/20/submissions",
+    "per_page": 20,
+    "to": 1,
+    "total": 1
+   }
+  }
+ }
+}

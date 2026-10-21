@@ -1,24 +1,66 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import axios from 'axios'
+import { Link, useNavigate, useParams } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
-import FormBuilder from '@/components/operations/FormBuilder'
+import FormBuilderEditor from '@/components/operations/formBuilder/FormBuilderEditor'
+import type { SaveStatus } from '@/components/operations/formBuilder/useDraftAutosave'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
-import { DashboardSection } from '@/components/dashboard'
-import {
-  fetchFormDefinition,
-  fetchFormSubmissions,
-  updateFormDefinition,
-} from '@/api/formsApi'
-import type { FormSubmissionRow, OpsFormDefinition } from '@/types/operations'
+import FormResponsesPanel from '@/components/operations/formResponses/FormResponsesPanel'
+import FormActivityPanel from '@/components/operations/formAdmin/FormActivityPanel'
+import FormCollaboratorsPanel from '@/components/operations/formAdmin/FormCollaboratorsPanel'
+import FormPreviewModal from '@/components/operations/formAdmin/FormPreviewModal'
+import FormPublishingPanel from '@/components/operations/formAdmin/FormPublishingPanel'
+import FormSharePanel from '@/components/operations/formAdmin/FormSharePanel'
+import FormStatusHeader from '@/components/operations/formAdmin/FormStatusHeader'
+import FormVersionsPanel from '@/components/operations/formAdmin/FormVersionsPanel'
+import { fetchFormDefinition } from '@/api/formsApi'
+import type { OpsFormDefinition } from '@/types/operations'
 
 const LOAD_ERROR = 'تعذّر تحميل النموذج. تحقق من الاتصال وأعد المحاولة.'
 
+/** Says what actually went wrong: a form that is not yours or is gone is not a connection problem. */
+function loadMessage(error: unknown): string {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined
+  if (status === 403) return 'لا تملك صلاحية عرض هذا النموذج.'
+  if (status === 404) return 'النموذج غير موجود أو حُذف.'
+  return LOAD_ERROR
+}
+
+type TabKey = 'builder' | 'responses' | 'publishing' | 'sharing' | 'collaborators' | 'activity' | 'versions'
+
+const TAB_LABELS: Record<TabKey, string> = {
+  builder: 'المحرر',
+  responses: 'الإرسالات',
+  publishing: 'إعدادات النشر',
+  sharing: 'المشاركة',
+  collaborators: 'المتعاونون',
+  activity: 'سجل النشاط',
+  versions: 'الإصدارات',
+}
+
+/** Which tabs this person may open: the same facts the server enforces, used here only to hide what would be refused. */
+function visibleTabs(form: OpsFormDefinition): TabKey[] {
+  const a = form.abilities
+  const tabs: TabKey[] = ['builder']
+  if (a?.view_responses) tabs.push('responses')
+  if (a?.edit || a?.manage_access) tabs.push('publishing')
+  if (a?.view_sharing) tabs.push('sharing')
+  if (a?.edit) tabs.push('collaborators')
+  tabs.push('activity', 'versions')
+
+  return tabs
+}
+
 export default function OpsFormDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const fid = id ? Number(id) : NaN
   const [form, setForm] = useState<OpsFormDefinition | null>(null)
-  const [rows, setRows] = useState<FormSubmissionRow[]>([])
-  const [tab, setTab] = useState<'edit' | 'subs'>('edit')
+  const [tab, setTab] = useState<TabKey>('builder')
+  const [builderKey, setBuilderKey] = useState(0)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
+  const [previewing, setPreviewing] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -37,12 +79,11 @@ export default function OpsFormDetailPage() {
     let cancelled = false
     void (async () => {
       try {
-        const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
+        const f = await fetchFormDefinition(fid)
         if (cancelled) return
         setForm(f)
-        setRows(s)
-      } catch {
-        if (!cancelled) setLoadError(LOAD_ERROR)
+      } catch (e) {
+        if (!cancelled) setLoadError(loadMessage(e))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -56,11 +97,9 @@ export default function OpsFormDetailPage() {
     setLoadError(null)
     setLoading(true)
     try {
-      const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
-      setForm(f)
-      setRows(s)
-    } catch {
-      setLoadError(LOAD_ERROR)
+      setForm(await fetchFormDefinition(fid))
+    } catch (e) {
+      setLoadError(loadMessage(e))
     } finally {
       setLoading(false)
     }
@@ -76,8 +115,12 @@ export default function OpsFormDetailPage() {
   )
   if (!form) return <OpsPageSkeleton />
 
+  const tabs = visibleTabs(form)
+  const active: TabKey = tabs.includes(tab) ? tab : 'builder'
+  const canEdit = form.abilities?.edit ?? false
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Link
         to="/dashboard/admin/forms"
         className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
@@ -86,64 +129,65 @@ export default function OpsFormDetailPage() {
         كل النماذج
       </Link>
 
-      <div className="flex flex-wrap justify-end gap-2 rounded-2xl bg-deepBlue/[0.03] p-2 ring-1 ring-deepBlue/[0.06]">
-        <button
-          type="button"
-          onClick={() => setTab('edit')}
-          className={`rounded-xl px-4 py-2 text-xs font-black ${tab === 'edit' ? 'bg-deepBlue text-white' : 'bg-white text-deepBlue ring-1 ring-deepBlue/[0.08]'}`}
-        >
-          المحرر
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('subs')}
-          className={`rounded-xl px-4 py-2 text-xs font-black ${tab === 'subs' ? 'bg-deepBlue text-white' : 'bg-white text-deepBlue ring-1 ring-deepBlue/[0.08]'}`}
-        >
-          الإرسالات
-        </button>
+      <FormStatusHeader form={form} onChanged={setForm} onPreview={() => setPreviewing(true)} unsaved={canEdit && saveStatus !== 'saved'} />
+
+      {notice && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{notice}</p>}
+
+      <div role="tablist" aria-label="أقسام النموذج" className="flex flex-wrap justify-end gap-2 rounded-2xl bg-deepBlue/[0.03] p-2 ring-1 ring-deepBlue/[0.06]">
+        {tabs.map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            id={`form-tab-${key}`}
+            aria-selected={active === key}
+            aria-controls={`form-panel-${key}`}
+            onClick={() => { setTab(key); setNotice(null) }}
+            className={`rounded-xl px-4 py-2 text-xs font-black ${active === key ? 'bg-deepBlue text-white' : 'bg-white text-deepBlue ring-1 ring-deepBlue/[0.08]'}`}
+          >
+            {TAB_LABELS[key]}
+          </button>
+        ))}
       </div>
 
-      {tab === 'edit' ? (
-        <FormBuilder
-          initial={form}
-          onSave={async (draft) => {
-            try {
-              const u = await updateFormDefinition(fid, draft)
-              setForm(u)
-            } catch {
-              setForm({ ...form, ...draft, questions: draft.questions })
-            }
-          }}
+      {/* The editor stays mounted while other tabs are open, so its undo history and unsaved edits survive a visit to them. */}
+      <div role="tabpanel" id="form-panel-builder" aria-labelledby="form-tab-builder" hidden={active !== 'builder'}>
+        {!canEdit && (
+          <p role="note" className="mb-3 rounded-xl bg-slate-50 px-4 py-3 text-right text-xs font-bold text-slate-600">لا تملك صلاحية تعديل هذا النموذج. يمكنك الاطلاع عليه ومعاينته فقط.</p>
+        )}
+        <FormBuilderEditor
+          key={builderKey}
+          form={form}
+          readOnly={!canEdit}
+          // The page only ever holds what the server returned, never an optimistic copy of what it refused. Saving
+          // changes the DRAFT; respondents see it only after it is published.
+          onFormSaved={setForm}
+          onStatusChange={setSaveStatus}
         />
-      ) : (
-        <DashboardSection title="إرسالات النموذج">
-          <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-deepBlue/[0.06]">
-            <table className="w-full min-w-[480px] text-right text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-black uppercase text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">التاريخ</th>
-                  <th className="px-4 py-3">المُرسِل</th>
-                  <th className="px-4 py-3">لمحة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-50 font-semibold text-deepBlue">
-                    <td className="px-4 py-3">{r.id}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{r.submitted_at}</td>
-                    <td className="px-4 py-3 text-xs">{r.submitter_label ?? '—'}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{r.answers_preview ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-4 text-center text-[11px] font-bold text-slate-400">
-            تصدير CSV / Excel placeholder عبر مسار الخادم لاحقاً.
-          </p>
-        </DashboardSection>
-      )}
+      </div>
+
+      <div role="tabpanel" id={`form-panel-${active}`} aria-labelledby={`form-tab-${active}`} hidden={active === 'builder'}>
+        {active === 'responses' && <FormResponsesPanel formId={fid} />}
+        {active === 'publishing' && (
+          <FormPublishingPanel form={form} onChanged={setForm} onAccessRemoved={() => navigate('/dashboard/admin/forms')} />
+        )}
+        {active === 'sharing' && <FormSharePanel form={form} />}
+        {active === 'collaborators' && <FormCollaboratorsPanel form={form} />}
+        {active === 'activity' && <FormActivityPanel formId={fid} />}
+        {active === 'versions' && (
+          <FormVersionsPanel
+            form={form}
+            onRestored={(next) => {
+              setForm(next)
+              setBuilderKey((k) => k + 1)
+              setTab('builder')
+              setNotice('استُعيد الإصدار إلى المسودة. راجع الأسئلة ثم انشرها كإصدار جديد عند الاستعداد.')
+            }}
+          />
+        )}
+      </div>
+
+      <FormPreviewModal formId={fid} open={previewing} onClose={() => setPreviewing(false)} />
     </div>
   )
 }

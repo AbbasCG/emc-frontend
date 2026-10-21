@@ -5,7 +5,8 @@ import { ChevronLeft, FilePlus2 } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { fetchFormDefinitions } from '@/api/formsApi'
-import { FORM_TYPE_AR } from '@/data/operationsLabels'
+import { FORM_STATUS_AR, FORM_TYPE_AR } from '@/data/operationsLabels'
+import { VISIBILITY_AR } from '@/components/operations/formAdmin/formAdminUi'
 import type { OpsFormDefinition } from '@/types/operations'
 
 const LOAD_ERROR = 'تعذّر تحميل النماذج. تحقق من الاتصال وأعد المحاولة.'
@@ -84,9 +85,17 @@ export default function OpsFormsPage() {
               >
                 <p className="text-[10px] font-black uppercase tracking-wide text-accent-700">
                   {FORM_TYPE_AR[f.form_type] ?? f.form_type}
+                  {f.status && <span className="mr-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{FORM_STATUS_AR[f.status] ?? f.status}</span>}
                 </p>
                 <h2 className="mt-2 text-lg font-black text-deepBlue">{f.title}</h2>
                 <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-500">{f.description}</p>
+                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-black text-slate-500">
+                  {f.owner && <span>المالك: {f.owner.name}</span>}
+                  {f.visibility && <span>{VISIBILITY_AR[f.visibility].label}</span>}
+                  {f.current_version != null && <span>الإصدار {f.current_version}</span>}
+                  {f.has_unpublished_changes === true && f.status === 'active' && <span className="text-amber-700">تعديلات غير منشورة</span>}
+                  {f.submissions_count !== undefined && <span>عدد الإرسالات: {f.submissions_count}</span>}
+                </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-customBlue">
                   فتح المحرر
                   <ChevronLeft size={14} />

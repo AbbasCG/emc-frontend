@@ -465,6 +465,7 @@ function App() {
               <Route path="/join-expert/success" element={<Suspense fallback={<RouteFallback />}><ExpertApplicationSuccess /></Suspense>} />
               <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
               <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
+              <Route path="/forms/:slug/s/:token" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
               <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
               <Route path="/certificates/verify/:code" element={<Suspense fallback={<RouteFallback />}><CertificateVerifyPage /></Suspense>} />
               <Route path="/checkout/:slug" element={<Suspense fallback={<RouteFallback />}><Checkout /></Suspense>} />
