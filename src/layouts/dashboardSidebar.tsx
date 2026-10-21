@@ -12,6 +12,7 @@ import {
   Calendar,
   CalendarDays,
   ClipboardCheck,
+  Scale,
   ClipboardList,
   Code2,
   Cpu,
@@ -236,6 +237,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'الفواتير',        href: '/dashboard/admin/finance/invoices',                 icon: FileText      },
         { label: 'المعاملات',       href: '/dashboard/admin/finance/transactions',             icon: BarChart3     },
         { label: 'المدفوعات اليدوية', href: '/dashboard/admin/finance/manual-payments',        icon: ClipboardCheck },
+        { label: 'تسوية المدفوعات',  href: '/dashboard/admin/finance/payment-reconciliations',  icon: Scale          },
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'سندات المصروفات',    href: '/dashboard/finance/expenses',                   icon: Receipt       },
         { label: 'سندات القبض (الإيرادات)', href: '/dashboard/finance/revenues',                   icon: TrendingUp    },
@@ -381,6 +383,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
+        { label: 'تسوية المدفوعات', href: '/dashboard/finance/payment-reconciliations', icon: Scale },
         { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },

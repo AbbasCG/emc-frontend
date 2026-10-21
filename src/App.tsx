@@ -130,6 +130,7 @@ const FinanceInvoicesPage           = lazy(() => import('./pages/intelligence/ad
 const FinanceFinancialRequestsPage  = lazy(() => import('./pages/finance/FinanceFinancialRequestsPage'))
 const FinanceAccountsPage           = lazy(() => import('./pages/finance/FinanceAccountsPage'))
 const FinanceManualPaymentsPage     = lazy(() => import('./pages/finance/FinanceManualPaymentsPage'))
+const FinancePaymentReconciliationsPage = lazy(() => import('./pages/finance/FinancePaymentReconciliationsPage'))
 const ProgramApprovalsPage          = lazy(() => import('./pages/finance/ProgramApprovalsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
 const DepartmentPermissionTreePage = lazy(() => import('./pages/department/DepartmentPermissionTree'))
@@ -643,6 +644,7 @@ function App() {
                   <Route path="/dashboard/finance/expenses" element={<Suspense fallback={<RouteFallback />}><ExpenseManagementPage /></Suspense>} />
                   <Route path="/dashboard/finance/revenues" element={<Suspense fallback={<RouteFallback />}><RevenueManagementPage /></Suspense>} />
                   <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/payment-reconciliations" element={<Suspense fallback={<RouteFallback />}><FinancePaymentReconciliationsPage /></Suspense>} />
                   <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
                   </Route>
 
@@ -813,6 +815,7 @@ function App() {
                   <Route path="/dashboard/admin/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/payment-reconciliations" element={<Suspense fallback={<RouteFallback />}><FinancePaymentReconciliationsPage /></Suspense>} />
                   <Route path="/dashboard/admin/coupons" element={<CouponsAdminPage />} />
                   <Route path="/dashboard/admin/scholarships" element={<ScholarshipsAdminPage />} />
                   <Route path="/dashboard/admin/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
