@@ -39,11 +39,10 @@ import CountryDisplay from '@/components/ui/CountryDisplay'
 import { getEducationLabel } from '@/data/educationLevels'
 import { getNationalityLabel, resolveNationalityCode } from '@/data/nationalities'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
+import { BORDER, initials } from '@/components/detailModal/detailModalTokens'
+import { CardShell, Chips, InfoRow } from '@/components/detailModal/detailModalUi'
 
 /* ── Tokens ─────────────────────────────────────────────────────────── */
-
-const BORDER = 'border-[#DCE6F0]'
-const CARD = `rounded-[18px] border ${BORDER} bg-white shadow-[0_1px_2px_rgba(12,42,75,0.04)]`
 
 const STATUS_CFG: Record<VolunteerHrProfileStatus, { label: string; badge: string }> = {
   draft:        { label: 'مسودة',       badge: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200' },
@@ -110,13 +109,6 @@ function displayOrNull(value: string | number | null | undefined): string | null
   return s || null
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 1)
-  return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`
-}
-
 /* ── Primitives ─────────────────────────────────────────────────────── */
 
 function StatusBadge({ status }: { status: VolunteerHrProfileStatus }) {
@@ -125,92 +117,6 @@ function StatusBadge({ status }: { status: VolunteerHrProfileStatus }) {
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-black ${cfg.badge}`}>
       {cfg.label}
     </span>
-  )
-}
-
-/**
- * Compact label/value row — controlled columns, never justify-between.
- * Desktop: fixed label column + nearby value. Mobile: stacked.
- * `wide` = volunteer-info spacing (wider label + larger gap).
- */
-function InfoRow({
-  label,
-  value,
-  trailing,
-  last,
-  wide,
-  preserveLineBreaks,
-}: {
-  label: string
-  value: React.ReactNode
-  trailing?: React.ReactNode
-  last?: boolean
-  wide?: boolean
-  preserveLineBreaks?: boolean
-}) {
-  const empty = value == null || value === ''
-  const cols = wide
-    ? 'sm:grid-cols-[minmax(150px,190px)_minmax(0,1fr)] sm:gap-x-8'
-    : 'sm:grid-cols-[165px_minmax(0,1fr)] sm:gap-x-7'
-  return (
-    <div
-      data-testid="detail-info-row"
-      data-wide={wide ? 'true' : undefined}
-      className={`detail-row grid min-h-0 grid-cols-1 items-start gap-1 py-2.5 sm:min-h-[38px] sm:items-center ${cols} ${
-        last ? '' : `border-b ${BORDER}`
-      }`}
-    >
-      <span className="detail-row__label text-[12px] font-semibold text-slate-400">{label}</span>
-      <div className="detail-row__value flex min-w-0 items-start gap-1.5">
-        <div
-          className={`min-w-0 text-[13px] font-bold text-deepBlue [overflow-wrap:anywhere] ${preserveLineBreaks ? 'whitespace-pre-line' : ''}`}
-          dir="auto"
-        >
-          {empty ? <span className="font-semibold text-slate-300">غير متوفر</span> : value}
-        </div>
-        {trailing}
-      </div>
-    </div>
-  )
-}
-
-function CardShell({
-  title,
-  icon: Icon,
-  children,
-  className = '',
-}: {
-  title: string
-  icon: typeof Users
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <section className={`${CARD} p-5 sm:p-6 ${className}`}>
-      <h3 className="mb-3.5 flex items-center gap-2 text-[13px] font-black text-customBlue">
-        <Icon size={16} className="shrink-0" aria-hidden />
-        {title}
-      </h3>
-      {children}
-    </section>
-  )
-}
-
-function Chips({ items, tone = 'blue' }: { items: string[]; tone?: 'blue' | 'sky' }) {
-  if (items.length === 0) {
-    return <p className="text-[12px] font-semibold text-slate-300">غير متوفر</p>
-  }
-  const cls = tone === 'sky'
-    ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-100'
-    : 'bg-customBlue/10 text-customBlue ring-1 ring-customBlue/15'
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((item) => (
-        <span key={item} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${cls}`} dir="auto">
-          {item}
-        </span>
-      ))}
-    </div>
   )
 }
 

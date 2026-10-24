@@ -1,403 +1,455 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, CheckCircle, ChevronRight, ChevronLeft, Plus, Trash2 } from 'lucide-react'
-import { submitMeetingReport } from '@/api/meetingsApi'
-import toast from 'react-hot-toast'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
+import {
+  AlertCircle, CheckCircle2, ClipboardCheck, FileText, Gavel, ListChecks, Loader2, Plus, Trash2, UsersRound, X,
+} from 'lucide-react'
+import toast from '@/lib/toast'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
+import {
+  describeMeetingError, fetchMeetingParticipantPool, submitMeetingReport, type AttendanceCandidate,
+} from '@/api/meetingsApi'
+import type { OpsMeetingDetail } from '@/types/operations'
+import { ParticipantPicker } from '@/components/operations/meetings/ParticipantPicker'
 
-const TOTAL_STEPS = 4
-
-const inputCls =
-  'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue'
-
-type AttendeeRow = { name: string; role: string }
-type ActionRow = { title: string; due_date: string }
-
-function AddRowButton({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-customBlue/40 px-3 py-1.5 text-xs font-bold text-customBlue hover:bg-customBlue/5"
-    >
-      <Plus size={14} />
-      {label}
-    </button>
-  )
-}
-
-function RemoveRowButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="حذف"
-      className="shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-500"
-    >
-      <Trash2 size={15} />
-    </button>
-  )
-}
-
-interface MeetingReportModalProps {
-  isOpen: boolean
-  onClose: () => void
+type Props = {
   meetingId: number
-  onSuccess: () => void
+  meetingTitle?: string
+  /** The agenda, shown as a reference while writing the summary. */
+  agenda?: string[]
+  onClose: () => void
+  /** The updated meeting (has_report: true) once the server confirms the report. */
+  onSuccess: (meeting: OpsMeetingDetail) => void
+  /** The server said this meeting already has its report: refresh the list behind. */
+  onDuplicate?: () => void
 }
 
-export default function MeetingReportModal({ isOpen, onClose, meetingId, onSuccess }: MeetingReportModalProps) {
-  const [step, setStep] = useState(1)
-  const [submitting, setSubmitting] = useState(false)
+const input =
+  'w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-navy outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15'
 
-  const [formData, setFormData] = useState({
-    absentees: '', // Will convert to array on submit
+type TabKey = 'attendance' | 'summary' | 'actions' | 'review'
+
+const TABS: Array<{ key: TabKey; label: string; icon: typeof UsersRound }> = [
+  { key: 'attendance', label: 'الحضور والانضباط', icon: UsersRound },
+  { key: 'summary', label: 'الملخص وجدول الأعمال', icon: FileText },
+  { key: 'actions', label: 'القرارات وبنود العمل', icon: Gavel },
+  { key: 'review', label: 'المراجعة والإرسال', icon: ClipboardCheck },
+]
+
+const FIELD_TAB: Record<string, TabKey> = { attendance: 'attendance', report: 'summary', action_items: 'actions', decisions: 'actions', meeting: 'review' }
+
+type ActionRow = { key: number; title: string; assigned_to: string; due_date: string }
+type DecisionRow = { key: number; title: string }
+
+let rowKey = 0
+const nextKey = () => ++rowKey
+
+type PoolState = { nonce: number; rows?: AttendanceCandidate[]; error?: string }
+
+/**
+ * The meeting's ONE official report, as four visible sections (tabs) instead of a
+ * step-by-step wizard: every question is reachable at any time, each tab shows
+ * whether it is complete, and nothing is hidden behind a "next" button.
+ *
+ *  1. attendance - the people the SERVER allows at this meeting, pre-checked
+ *     with whoever already joined; commitment score and notes
+ *  2. summary - what was done and discussed, challenges, general notes
+ *  3. decisions and action items (responsible people come from the same pool)
+ *  4. review and submit
+ *
+ * It cannot be filed twice: the server refuses a second report with a clear Arabic
+ * message, which this form shows (and the list refreshes). The report cannot be
+ * replaced once filed, so an empty one is blocked here and on the server.
+ */
+export default function MeetingReportModal({ meetingId, meetingTitle, agenda = [], onClose, onSuccess, onDuplicate }: Props) {
+  const [tab, setTab] = useState<TabKey>('attendance')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [duplicate, setDuplicate] = useState(false)
+  const [poolNonce, setPoolNonce] = useState(0)
+  const [poolState, setPoolState] = useState<PoolState | null>(null)
+  const [presentOverride, setPresentOverride] = useState<number[] | null>(null)
+  const [decisions, setDecisions] = useState<DecisionRow[]>([])
+  const [actions, setActions] = useState<ActionRow[]>([])
+  const [form, setForm] = useState({
     team_commitment_score: 5,
     team_commitment_notes: '',
+    top_interactive_member: '',
     completed_tasks_summary: '',
     kpi_percentage: 100,
-    top_interactive_member: '',
     challenges: '',
+    notes: '',
     executive_requests: '',
     next_month_goals: '',
     improvement_suggestions: '',
   })
 
-  // Step 4 — meeting minutes & follow-ups (stored on the meeting itself)
-  const [agenda, setAgenda] = useState<string[]>([''])
-  const [attendees, setAttendees] = useState<AttendeeRow[]>([{ name: '', role: '' }])
-  const [decisions, setDecisions] = useState<string[]>([''])
-  const [actionItems, setActionItems] = useState<ActionRow[]>([{ title: '', due_date: '' }])
-  const [minutes, setMinutes] = useState('')
+  // The attendance roster comes from the server; state is only set from the request's callbacks.
+  useEffect(() => {
+    let alive = true
+    void fetchMeetingParticipantPool(meetingId)
+      .then((res) => {
+        if (alive) setPoolState({ nonce: poolNonce, rows: res.rows })
+      })
+      .catch(() => {
+        if (alive) setPoolState({ nonce: poolNonce, error: 'تعذّر تحميل المشاركين في الاجتماع.' })
+      })
+    return () => {
+      alive = false
+    }
+  }, [meetingId, poolNonce])
 
-  if (!isOpen) return null
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape' && !submitting) onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, submitting])
 
-  const handleNext = () => setStep(s => Math.min(s + 1, TOTAL_STEPS))
-  const handlePrev = () => setStep(s => Math.max(s - 1, 1))
+  const poolReady = poolState?.nonce === poolNonce
+  const candidates = useMemo(() => (poolReady ? (poolState?.rows ?? []) : []), [poolReady, poolState])
+  const poolError = poolReady ? (poolState?.error ?? null) : null
 
-  // Form-level submit (e.g. Enter key) must NEVER upload — it only advances the wizard.
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (step < TOTAL_STEPS) handleNext()
+  // Whoever already joined starts checked; the person filing can change it freely.
+  const present = useMemo(
+    () => presentOverride ?? candidates.filter((c) => c.status === 'joined' || c.status === 'attended').map((c) => c.id),
+    [presentOverride, candidates],
+  )
+  const presentPeople = candidates.filter((c) => present.includes(c.id))
+
+  const hasContent = [form.completed_tasks_summary, form.challenges, form.executive_requests, form.next_month_goals, form.improvement_suggestions, form.team_commitment_notes, form.notes]
+    .some((v) => v.trim() !== '')
+
+  const attendanceDone = poolReady && !poolError && (candidates.length === 0 || present.length > 0)
+  const summaryDone = form.completed_tasks_summary.trim() !== ''
+  const actionsDone = decisions.some((d) => d.title.trim()) || actions.some((a) => a.title.trim()) || form.next_month_goals.trim() !== '' || form.executive_requests.trim() !== ''
+
+  const done: Record<TabKey, boolean> = { attendance: attendanceDone, summary: summaryDone, actions: actionsDone, review: false }
+  const required: Record<TabKey, boolean> = { attendance: true, summary: true, actions: false, review: false }
+
+  function updateAction(key: number, patch: Partial<ActionRow>) {
+    setActions((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)))
   }
 
-  // Final upload: triggered only by the explicit button on the last step.
-  const handleFinalSubmit = async () => {
-    if (step !== TOTAL_STEPS || submitting) return
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (submitting) return
 
+    if (!attendanceDone) {
+      setTab('attendance')
+      setError(poolError ?? 'سجّل حضور المشاركين (حدّد من حضر) قبل رفع التقرير.')
+      return
+    }
+    if (!summaryDone || !hasContent) {
+      setTab('summary')
+      setError('اكتب ملخصًا لما تم إنجازه ومناقشته في الاجتماع قبل رفع التقرير.')
+      return
+    }
+
+    setError(null)
     setSubmitting(true)
     try {
-      await submitMeetingReport(meetingId, {
-        ...formData,
-        absentees: formData.absentees.split(',').map(s => s.trim()).filter(Boolean),
-        agenda: agenda.map(s => s.trim()).filter(Boolean),
-        attendees: attendees
-          .map(a => ({ name: a.name.trim(), role: a.role.trim() }))
-          .filter(a => a.name),
-        decisions: decisions.map(s => s.trim()).filter(Boolean).map(title => ({ title })),
-        action_items: actionItems
-          .map(a => ({ title: a.title.trim(), due_date: a.due_date || undefined }))
-          .filter(a => a.title),
-        minutes: minutes.trim() || undefined,
+      const meeting = await submitMeetingReport(meetingId, {
+        absentees: [],
+        attendance: candidates.map((c) => ({ user_id: c.id, attended: present.includes(c.id) })),
+        team_commitment_score: form.team_commitment_score,
+        team_commitment_notes: form.team_commitment_notes,
+        completed_tasks_summary: form.completed_tasks_summary,
+        kpi_percentage: form.kpi_percentage,
+        top_interactive_member: form.top_interactive_member,
+        challenges: form.challenges,
+        executive_requests: form.executive_requests,
+        next_month_goals: form.next_month_goals,
+        improvement_suggestions: form.improvement_suggestions,
+        notes: form.notes,
+        decisions: decisions.filter((d) => d.title.trim()).map((d) => ({ title: d.title.trim() })),
+        action_items: actions.filter((a) => a.title.trim()).map((a) => ({
+          title: a.title.trim(),
+          ...(a.assigned_to ? { assigned_to: Number(a.assigned_to) } : {}),
+          ...(a.due_date ? { due_date: a.due_date } : {}),
+        })),
       })
-      toast.success('تم رفع تقرير الاجتماع بنجاح وتوثيق المخرجات')
-      setStep(1)
-      onSuccess()
-      onClose()
+      toast.success('تم رفع تقرير الاجتماع')
+      onSuccess(meeting)
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || 'تعذر رفع التقرير')
+      const d = describeMeetingError(err, 'الاجتماع')
+      if (d.kind === 'duplicate_report') {
+        setDuplicate(true)
+        onDuplicate?.()
+      }
+      const firstKey = Object.keys(d.fields)[0]
+      if (firstKey && FIELD_TAB[firstKey.split('.')[0]]) setTab(FIELD_TAB[firstKey.split('.')[0]])
+      setError(d.kind === 'validation' && firstKey ? d.fields[firstKey] : d.message)
     } finally {
       setSubmitting(false)
     }
   }
 
+  const label = (text: string, control: ReactNode) => (
+    <label className="grid gap-2 text-xs font-black text-ink-500">
+      {text}
+      {control}
+    </label>
+  )
+
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deepBlue/40 backdrop-blur-sm" dir="rtl">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl ring-1 ring-black/5"
-        >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/80 p-6 backdrop-blur-md">
-            <div>
-              <h2 className="text-xl font-black text-deepBlue">تقرير الاجتماع والمخرجات</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-500">
-                الخطوة {step} من {TOTAL_STEPS} توثيق الأداء والمقررات
-              </p>
-            </div>
-            <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition">
-              <X size={18} />
-            </button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/50 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => !submitting && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="رفع تقرير الاجتماع"
+        dir="rtl"
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-paper shadow-2xl sm:rounded-3xl"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-line bg-white px-6 py-4">
+          <div className="min-w-0">
+            <h2 className="text-lg font-black text-navy">رفع تقرير الاجتماع</h2>
+            {meetingTitle && <p className="mt-0.5 truncate text-xs font-bold text-muted-500">{meetingTitle}</p>}
+          </div>
+          <button type="button" onClick={onClose} disabled={submitting} aria-label="إغلاق" className="rounded-xl p-2 text-muted-500 transition hover:bg-slate-100 disabled:opacity-40">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </header>
+
+        <div role="tablist" aria-label="أقسام التقرير" className="flex gap-1 overflow-x-auto border-b border-line bg-white px-4 pt-2">
+          {TABS.map(({ key, label: text, icon: Icon }) => {
+            const active = tab === key
+            return (
+              <button
+                key={key}
+                id={`report-tab-${key}`}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={`report-panel-${key}`}
+                onClick={() => setTab(key)}
+                className={`relative inline-flex shrink-0 items-center gap-2 rounded-t-xl px-4 py-2.5 text-xs font-black transition ${active ? 'bg-paper text-brand-700' : 'text-muted-500 hover:text-navy'}`}
+              >
+                <Icon size={14} aria-hidden="true" />
+                {text}
+                {key !== 'review' && (
+                  done[key] ? (
+                    <CheckCircle2 size={13} className="text-emerald-600" aria-label="مكتمل" />
+                  ) : required[key] ? (
+                    <AlertCircle size={13} className="text-accent-600" aria-label="مطلوب" />
+                  ) : (
+                    <span className="text-[10px] font-bold text-muted-400">اختياري</span>
+                  )
+                )}
+                {active && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-brand-500" aria-hidden="true" />}
+              </button>
+            )
+          })}
+        </div>
+
+        <form onSubmit={(e) => void handleSubmit(e)} onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') e.preventDefault() }} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
+            <p className="rounded-2xl bg-brand-50 px-4 py-3 text-xs font-bold leading-6 text-brand-700">
+              لكل اجتماع تقرير رسمي واحد فقط ولا يمكن استبداله بعد رفعه، ويصبح متاحًا لإدارة الجودة فور رفعه.
+            </p>
+
+            {error && <p role="alert" className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</p>}
+
+            {tab === 'attendance' && (
+              <section id="report-panel-attendance" role="tabpanel" aria-labelledby="report-tab-attendance" className="space-y-5">
+                <div>
+                  <h3 className="mb-1 text-sm font-black text-navy">من حضر الاجتماع؟</h3>
+                  <p className="mb-3 text-[11px] font-semibold text-muted-500">
+                    القائمة من الخادم وتضم المشاركين في هذا الاجتماع فقط. من انضم بنفسه محدَّد مسبقًا، وغير المحدَّد يُسجَّل غائبًا.
+                  </p>
+                  <ParticipantPicker
+                    candidates={candidates}
+                    loading={!poolReady}
+                    error={poolError}
+                    onRetry={() => {
+                      setPoolState(null)
+                      setPoolNonce((n) => n + 1)
+                    }}
+                    selected={present}
+                    onChange={setPresentOverride}
+                    emptyText="لا يوجد مشاركون مرتبطون بهذا الاجتماع."
+                    searchLabel="ابحث عن مشارك"
+                  />
+                  {poolReady && candidates.length > 0 && (
+                    <p className="mt-2 text-[11px] font-bold text-muted-500" data-testid="attendance-count">
+                      الحاضرون {present.length} من {candidates.length} · الغائبون {candidates.length - present.length}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {label('مقياس التزام الفريق (من 1 إلى 5)', (
+                    <>
+                      <input type="range" min={1} max={5} className="w-full accent-brand-500" value={form.team_commitment_score} onChange={(e) => setForm({ ...form, team_commitment_score: Number(e.target.value) })} />
+                      <span className="text-center text-sm font-black text-brand-600">{form.team_commitment_score} / 5</span>
+                    </>
+                  ))}
+                  {label('العضو الأكثر تفاعلًا وتميزًا', (
+                    <select className={input} value={form.top_interactive_member} onChange={(e) => setForm({ ...form, top_interactive_member: e.target.value })}>
+                      <option value="">— بدون —</option>
+                      {presentPeople.map((c) => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  ))}
+                </div>
+                {label('ملاحظات حول الانضباط والحضور', <textarea rows={3} className={input} value={form.team_commitment_notes} onChange={(e) => setForm({ ...form, team_commitment_notes: e.target.value })} />)}
+              </section>
+            )}
+
+            {tab === 'summary' && (
+              <section id="report-panel-summary" role="tabpanel" aria-labelledby="report-tab-summary" className="space-y-5">
+                {agenda.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-white p-4">
+                    <h3 className="mb-2 text-xs font-black text-muted-500">جدول الأعمال (للمرجع)</h3>
+                    <ol className="list-decimal space-y-1 ps-5 text-sm font-semibold text-ink-500">
+                      {agenda.map((a, i) => (
+                        <li key={i}>{a}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {label('ملخص ما تم إنجازه ومناقشته *', <textarea rows={5} className={input} value={form.completed_tasks_summary} onChange={(e) => setForm({ ...form, completed_tasks_summary: e.target.value })} placeholder="اكتب أهم ما تمت مناقشته وإنجازه في الاجتماع…" />)}
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {label('نسبة تحقيق الأهداف التشغيلية (%)', <input type="number" min={0} max={100} className={input} value={form.kpi_percentage} onChange={(e) => setForm({ ...form, kpi_percentage: Number(e.target.value) })} />)}
+                </div>
+                {label('المشاكل والتحديات التي واجهت الإدارة', <textarea rows={3} className={input} value={form.challenges} onChange={(e) => setForm({ ...form, challenges: e.target.value })} />)}
+                {label('ملاحظات عامة', <textarea rows={3} className={input} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />)}
+              </section>
+            )}
+
+            {tab === 'actions' && (
+              <section id="report-panel-actions" role="tabpanel" aria-labelledby="report-tab-actions" className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-sm font-black text-navy"><Gavel size={15} aria-hidden="true" />القرارات</h3>
+                    <button type="button" onClick={() => setDecisions((d) => [...d, { key: nextKey(), title: '' }])} className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 text-xs font-black text-navy transition hover:bg-slate-50">
+                      <Plus size={13} aria-hidden="true" />
+                      إضافة قرار
+                    </button>
+                  </div>
+                  {decisions.length === 0 && <p className="rounded-2xl bg-paper px-4 py-3 text-xs font-bold text-muted-500">لم تُضف قرارات بعد (اختياري).</p>}
+                  {decisions.map((d, i) => (
+                    <div key={d.key} className="flex items-center gap-2">
+                      <input
+                        aria-label={`القرار ${i + 1}`}
+                        className={input}
+                        value={d.title}
+                        maxLength={255}
+                        onChange={(e) => setDecisions((rows) => rows.map((r) => (r.key === d.key ? { ...r, title: e.target.value } : r)))}
+                        placeholder="نص القرار"
+                      />
+                      <button type="button" aria-label={`حذف القرار ${i + 1}`} onClick={() => setDecisions((rows) => rows.filter((r) => r.key !== d.key))} className="rounded-xl p-2.5 text-rose-500 transition hover:bg-rose-50">
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-sm font-black text-navy"><ListChecks size={15} aria-hidden="true" />بنود العمل</h3>
+                    <button type="button" onClick={() => setActions((a) => [...a, { key: nextKey(), title: '', assigned_to: '', due_date: '' }])} className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 text-xs font-black text-navy transition hover:bg-slate-50">
+                      <Plus size={13} aria-hidden="true" />
+                      إضافة بند
+                    </button>
+                  </div>
+                  {actions.length === 0 && <p className="rounded-2xl bg-paper px-4 py-3 text-xs font-bold text-muted-500">لم تُضف بنود عمل بعد (اختياري).</p>}
+                  {actions.map((a, i) => (
+                    <div key={a.key} className="space-y-3 rounded-2xl border border-line bg-white p-3">
+                      <div className="flex items-center gap-2">
+                        <input aria-label={`بند العمل ${i + 1}`} className={input} value={a.title} maxLength={255} onChange={(e) => updateAction(a.key, { title: e.target.value })} placeholder="وصف بند العمل" />
+                        <button type="button" aria-label={`حذف بند العمل ${i + 1}`} onClick={() => setActions((rows) => rows.filter((r) => r.key !== a.key))} className="rounded-xl p-2.5 text-rose-500 transition hover:bg-rose-50">
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="grid gap-1.5 text-[11px] font-black text-muted-500">
+                          المسؤول
+                          <select aria-label={`مسؤول بند العمل ${i + 1}`} className={input} value={a.assigned_to} onChange={(e) => updateAction(a.key, { assigned_to: e.target.value })}>
+                            <option value="">— غير محدد —</option>
+                            {candidates.map((c) => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <EmcDatePicker label="موعد التنفيذ" layout="stacked" showPresets={false} value={a.due_date} onChange={(v) => updateAction(a.key, { due_date: v })} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {label('الأعمال المطلوبة من الإدارة العليا', <textarea rows={3} className={input} value={form.executive_requests} onChange={(e) => setForm({ ...form, executive_requests: e.target.value })} />)}
+                {label('الأهداف التشغيلية للشهر القادم', <textarea rows={3} className={input} value={form.next_month_goals} onChange={(e) => setForm({ ...form, next_month_goals: e.target.value })} />)}
+                {label('مقترحات تطوير آلية العمل', <textarea rows={3} className={input} value={form.improvement_suggestions} onChange={(e) => setForm({ ...form, improvement_suggestions: e.target.value })} />)}
+              </section>
+            )}
+
+            {tab === 'review' && (
+              <section id="report-panel-review" role="tabpanel" aria-labelledby="report-tab-review" className="space-y-4" data-testid="report-review">
+                <ul className="space-y-2">
+                  {TABS.filter((t) => t.key !== 'review').map(({ key, label: text }) => (
+                    <li key={key} className="flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3">
+                      <span className="text-sm font-bold text-navy">{text}</span>
+                      {done[key] ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-700"><CheckCircle2 size={14} aria-hidden="true" />مكتمل</span>
+                      ) : required[key] ? (
+                        <button type="button" onClick={() => setTab(key)} className="inline-flex items-center gap-1.5 text-xs font-black text-accent-700 underline"><AlertCircle size={14} aria-hidden="true" />مطلوب — افتح القسم</button>
+                      ) : (
+                        <span className="text-xs font-bold text-muted-400">اختياري</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+
+                <dl className="grid gap-3 rounded-2xl border border-line bg-white p-4 text-sm sm:grid-cols-2">
+                  <div><dt className="text-[11px] font-bold text-muted-400">الحاضرون</dt><dd className="font-black text-navy">{candidates.length === 0 ? '—' : `${present.length} من ${candidates.length}`}</dd></div>
+                  <div><dt className="text-[11px] font-bold text-muted-400">القرارات</dt><dd className="font-black text-navy">{decisions.filter((d) => d.title.trim()).length}</dd></div>
+                  <div><dt className="text-[11px] font-bold text-muted-400">بنود العمل</dt><dd className="font-black text-navy">{actions.filter((a) => a.title.trim()).length}</dd></div>
+                  <div><dt className="text-[11px] font-bold text-muted-400">التزام الفريق</dt><dd className="font-black text-navy">{form.team_commitment_score} / 5</dd></div>
+                </dl>
+                {form.completed_tasks_summary.trim() && (
+                  <div className="rounded-2xl border border-line bg-white p-4">
+                    <h4 className="mb-1 text-[11px] font-black text-muted-500">الملخص</h4>
+                    <p className="whitespace-pre-line text-sm leading-7 text-ink-500">{form.completed_tasks_summary}</p>
+                  </div>
+                )}
+                <p className="rounded-2xl bg-accent-50 px-4 py-3 text-xs font-bold leading-6 text-accent-800">
+                  راجع الأقسام ثم اضغط «رفع التقرير الرسمي». لا يمكن تعديل التقرير أو رفع تقرير آخر لهذا الاجتماع بعد ذلك.
+                </p>
+              </section>
+            )}
           </div>
 
-          <form onSubmit={handleFormSubmit} className="p-6">
-            <div className="min-h-[300px]">
-              {step === 1 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">البيانات التأسيسية والانضباط</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأعضاء الغائبون (مفصولين بفاصلة)</label>
-                    <input
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.absentees}
-                      onChange={e => setFormData({ ...formData, absentees: e.target.value })}
-                      placeholder="أحمد، سارة..."
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">مقياس التزام الفريق (1 - 5)</label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="5"
-                      className="w-full accent-customBlue"
-                      value={formData.team_commitment_score}
-                      onChange={e => setFormData({ ...formData, team_commitment_score: Number(e.target.value) })}
-                    />
-                    <div className="mt-2 text-center font-black text-customBlue">{formData.team_commitment_score} / 5</div>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">ملاحظات حول الانضباط</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.team_commitment_notes}
-                      onChange={e => setFormData({ ...formData, team_commitment_notes: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">تقييم الأداء والإنجازات السابقة</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">المهام التي أُنجزت خلال الفترة السابقة</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.completed_tasks_summary}
-                      onChange={e => setFormData({ ...formData, completed_tasks_summary: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">نسبة تحقيق الأهداف التشغيلية (%)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.kpi_percentage}
-                      onChange={e => setFormData({ ...formData, kpi_percentage: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">اسم العضو الأكثر تفاعلاً وتميزاً</label>
-                    <input
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.top_interactive_member}
-                      onChange={e => setFormData({ ...formData, top_interactive_member: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">المشاكل والتحديات التي واجهت الإدارة</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.challenges}
-                      onChange={e => setFormData({ ...formData, challenges: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-
-
-              {step === 3 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">المتطلبات من الإدارة العليا والتطلعات</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأعمال المطلوبة من مجلس إدارة المركز</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.executive_requests}
-                      onChange={e => setFormData({ ...formData, executive_requests: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأهداف التشغيلية للشهر القادم</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.next_month_goals}
-                      onChange={e => setFormData({ ...formData, next_month_goals: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">مقترحات تطوير آلية عمل المركز</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.improvement_suggestions}
-                      onChange={e => setFormData({ ...formData, improvement_suggestions: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">محضر الاجتماع وبنود المتابعة</h3>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">جدول الأعمال</label>
-                    <div className="space-y-2">
-                      {agenda.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="w-5 shrink-0 text-center text-xs font-black text-customOrange">{i + 1}</span>
-                          <input
-                            type="text"
-                            className={inputCls}
-                            value={item}
-                            placeholder="بند من جدول الأعمال"
-                            onChange={e => setAgenda(list => list.map((v, idx) => (idx === i ? e.target.value : v)))}
-                          />
-                          <RemoveRowButton onClick={() => setAgenda(list => (list.length > 1 ? list.filter((_, idx) => idx !== i) : ['']))} />
-                        </div>
-                      ))}
-                    </div>
-                    <AddRowButton onClick={() => setAgenda(list => [...list, ''])} label="إضافة بند" />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الحضور</label>
-                    <div className="space-y-2">
-                      {attendees.map((row, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            className={inputCls}
-                            value={row.name}
-                            placeholder="الاسم"
-                            onChange={e => setAttendees(list => list.map((v, idx) => (idx === i ? { ...v, name: e.target.value } : v)))}
-                          />
-                          <input
-                            type="text"
-                            className={inputCls}
-                            value={row.role}
-                            placeholder="الصفة / الدور"
-                            onChange={e => setAttendees(list => list.map((v, idx) => (idx === i ? { ...v, role: e.target.value } : v)))}
-                          />
-                          <RemoveRowButton onClick={() => setAttendees(list => (list.length > 1 ? list.filter((_, idx) => idx !== i) : [{ name: '', role: '' }]))} />
-                        </div>
-                      ))}
-                    </div>
-                    <AddRowButton onClick={() => setAttendees(list => [...list, { name: '', role: '' }])} label="إضافة حاضر" />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">القرارات</label>
-                    <div className="space-y-2">
-                      {decisions.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="w-5 shrink-0 text-center text-xs font-black text-customOrange">{i + 1}</span>
-                          <input
-                            type="text"
-                            className={inputCls}
-                            value={item}
-                            placeholder="نص القرار"
-                            onChange={e => setDecisions(list => list.map((v, idx) => (idx === i ? e.target.value : v)))}
-                          />
-                          <RemoveRowButton onClick={() => setDecisions(list => (list.length > 1 ? list.filter((_, idx) => idx !== i) : ['']))} />
-                        </div>
-                      ))}
-                    </div>
-                    <AddRowButton onClick={() => setDecisions(list => [...list, ''])} label="إضافة قرار" />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">بنود العمل</label>
-                    <div className="space-y-2">
-                      {actionItems.map((row, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            className={inputCls}
-                            value={row.title}
-                            placeholder="المهمة المطلوبة"
-                            onChange={e => setActionItems(list => list.map((v, idx) => (idx === i ? { ...v, title: e.target.value } : v)))}
-                          />
-                          <input
-                            type="date"
-                            dir="ltr"
-                            aria-label="تاريخ الاستحقاق"
-                            className={`${inputCls} max-w-[11rem]`}
-                            value={row.due_date}
-                            onChange={e => setActionItems(list => list.map((v, idx) => (idx === i ? { ...v, due_date: e.target.value } : v)))}
-                          />
-                          <RemoveRowButton onClick={() => setActionItems(list => (list.length > 1 ? list.filter((_, idx) => idx !== i) : [{ title: '', due_date: '' }]))} />
-                        </div>
-                      ))}
-                    </div>
-                    <AddRowButton onClick={() => setActionItems(list => [...list, { title: '', due_date: '' }])} label="إضافة بند عمل" />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">محضر الاجتماع</label>
-                    <textarea
-                      className={inputCls}
-                      rows={5}
-                      value={minutes}
-                      placeholder="ملخص ما دار في الاجتماع..."
-                      onChange={e => setMinutes(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={step === 1 || submitting}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50"
-              >
-                <ChevronRight size={16} />
-                السابق
-              </button>
-              
-              {step < TOTAL_STEPS ? (
-                <button
-                  key="wizard-next"
-                  type="button"
-                  onClick={handleNext}
-                  className="flex items-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-sm font-black text-white hover:bg-customBlue/90"
-                >
-                  التالي
-                  <ChevronLeft size={16} />
+          <footer className="flex items-center justify-between gap-2 border-t border-line bg-white px-6 py-4">
+            {duplicate ? (
+              <>
+                <span />
+                <button type="button" onClick={onClose} className="rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-brand-600">
+                  إغلاق
                 </button>
-              ) : (
-                <button
-                  key="wizard-submit"
-                  type="button"
-                  onClick={() => void handleFinalSubmit()}
-                  disabled={submitting}
-                  className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white hover:bg-deepBlue/90 disabled:opacity-70"
-                >
-                  {submitting ? 'يتم الرفع...' : 'رفع التقرير النهائي'}
-                  {!submitting && <CheckCircle size={16} />}
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={onClose} disabled={submitting} className="rounded-xl border border-line px-5 py-2.5 text-sm font-bold text-muted-600 transition hover:bg-slate-50 disabled:opacity-40">
+                  إلغاء
                 </button>
-              )}
-            </div>
-          </form>
-        </motion.div>
+                {tab !== 'review' ? (
+                  <button type="button" onClick={() => setTab(TABS[Math.min(TABS.length - 1, TABS.findIndex((t) => t.key === tab) + 1)].key)} className="rounded-xl border border-brand-200 bg-brand-50 px-5 py-2.5 text-sm font-black text-brand-700 transition hover:bg-brand-100">
+                    القسم التالي
+                  </button>
+                ) : (
+                  <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-brand-600 disabled:opacity-60">
+                    {submitting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={16} aria-hidden="true" />}
+                    {submitting ? 'جارٍ الرفع…' : 'رفع التقرير الرسمي'}
+                  </button>
+                )}
+              </>
+            )}
+          </footer>
+        </form>
       </div>
-    </AnimatePresence>
+    </div>
   )
 }

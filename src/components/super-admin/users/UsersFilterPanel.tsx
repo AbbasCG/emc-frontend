@@ -77,8 +77,8 @@ export function UsersFilterPanel({
             onChange={(v) => onVerifiedFilterChange(v as Props['verifiedFilter'])}
             options={[
               { value: 'all', labelAr: 'الكل' },
-              { value: 'verified', labelAr: 'موثَّق' },
-              { value: 'unverified', labelAr: 'غير موثَّق' },
+              { value: 'verified', labelAr: 'موثّق' },
+              { value: 'unverified', labelAr: 'غير موثّق' },
             ]}
           />
           <MiniSelect

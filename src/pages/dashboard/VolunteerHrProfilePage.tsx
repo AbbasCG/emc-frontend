@@ -5,6 +5,7 @@ import { CheckCircle2, Clock, FileText, Loader2, ShieldCheck, XCircle } from 'lu
 import toast from '@/lib/toast'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import AppFileUpload from '@/components/ui/AppFileUpload'
+import { CV_INSTRUCTION, validateCvFile } from '@/utils/cvFile'
 import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import LanguagesSelect from '@/components/forms/LanguagesSelect'
 import CountrySelector, { type Country } from '@/components/ui/CountrySelector'
@@ -141,6 +142,17 @@ export default function VolunteerHrProfilePage() {
       .catch(() => setJobTitleOptions([]))
       .finally(() => setJobTitlesLoading(false))
   }, [form.department_id])
+
+  /** A CV must be a real PDF: anything else is refused here (and by the server) with the Arabic instruction. */
+  async function pickCv(file: File | null) {
+    const problem = file ? await validateCvFile(file) : null
+    if (problem) {
+      setErrors((e) => ({ ...e, cv_file: problem }))
+
+      return
+    }
+    set('cv_file', file)
+  }
 
   function set<K extends keyof VolunteerHrProfileFormValues>(key: K, value: VolunteerHrProfileFormValues[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -517,11 +529,11 @@ export default function VolunteerHrProfilePage() {
               label="السيرة الذاتية"
               name="cv_file"
               file={form.cv_file ?? null}
-              onChange={(f) => set('cv_file', f)}
+              onChange={(f) => void pickCv(f)}
               error={errors.cv_file}
               required
-              accept=".pdf,.doc,.docx"
-              hint="PDF أو Word، بحد أقصى 5 ميجابايت"
+              accept=".pdf,application/pdf"
+              hint={CV_INSTRUCTION}
               compress
             />
             <AppFileUpload

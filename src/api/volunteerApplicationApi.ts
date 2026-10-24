@@ -23,7 +23,11 @@ export type VolunteerRequest = {
   cv_view_url?: string | null
   cv_download_url?: string | null
   status: VolunteerRequestStatus
+  /** The opportunity this application was made for; null/absent for a general application. */
+  opportunity_id?: number | null
+  opportunity_title?: string | null
   created_at?: string | null
+  updated_at?: string | null
   reviewed_at?: string | null
   accepted_at?: string | null
   accepted_by?: { id: number; name: string } | null
@@ -171,7 +175,10 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     cv_view_url: parseStr(raw.cv_view_url),
     cv_download_url: parseStr(raw.cv_download_url ?? raw.cv_file_url ?? raw.cv_url),
     status,
+    opportunity_id: parseId(raw.opportunity_id),
+    opportunity_title: parseStr(raw.opportunity_title),
     created_at: parseStr(raw.created_at),
+    updated_at: parseStr(raw.updated_at),
     reviewed_at: parseStr(raw.reviewed_at),
     accepted_at: parseStr(raw.accepted_at),
     accepted_by_name: parseStr(raw.accepted_by_name),

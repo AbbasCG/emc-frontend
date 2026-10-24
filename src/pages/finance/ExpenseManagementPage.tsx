@@ -29,6 +29,8 @@ import {
   type ManualExpenseItem,
   type ExpensesSummary,
 } from '@/api/expenseApi'
+import { openVoucherAttachment } from '@/api/voucherAttachmentApi'
+import { formatMoney } from '@/utils/financeFormatters'
 import { fetchAccountsList, type ChartOfAccountItem } from '@/api/chartOfAccountsApi'
 import { FINANCE_CURRENCIES } from '@/utils/financeFormatters'
 import apiClient from '@/api/axios'
@@ -55,8 +57,8 @@ export default function ExpenseManagementPage() {
   // Filters state
   const [search, setSearch] = useState('')
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('')
-  const [dateFrom, setDateFrom] = useState<string>('')
-  const [dateTo, setDateTo] = useState<string>('')
+  const [dateFrom] = useState<string>('')
+  const [dateTo] = useState<string>('')
 
   // Form states
   const [editingExpense, setEditingExpense] = useState<ManualExpenseItem | null>(null)
@@ -202,6 +204,7 @@ export default function ExpenseManagementPage() {
     setAttachmentPreview(expense.attachment_url || null)
     setShowAdvancedPaymentAccount(!!expense.payment_account_id)
     setIsModalOpen(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Handle Form Submit
@@ -243,7 +246,7 @@ export default function ExpenseManagementPage() {
 
       if (editingExpense) {
         await updateExpense(editingExpense.id, formData)
-        toast.success('تم تحديث سند الصرف وإعادة ترحيل القيد المحاسبي بنجاح')
+        toast.success('تم تحديث سند الصرف بنجاح')
       } else {
         await createExpense(formData)
         toast.success('تم تسجيل وسند الصرف بنجاح وتوليد القيد المحاسبي المزدوج')
@@ -260,15 +263,24 @@ export default function ExpenseManagementPage() {
     }
   }
 
+  // Attachments are private: fetched through the authorized endpoint, never a public URL
+  async function handleOpenAttachment(item: ManualExpenseItem) {
+    try {
+      await openVoucherAttachment('expenses', item.id, 'preview', item.attachment_name)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'تعذّر فتح المرفق')
+    }
+  }
+
   // Handle Delete / Cancel
   async function handleDelete(expense: ManualExpenseItem) {
-    if (!window.confirm(`هل أنت تأكد من حذف سند الصرف (${expense.voucher_no}) وإلغاء قيوده المحاسبية؟`)) {
+    if (!window.confirm(`هل أنت متأكد من حذف مسودة سند الصرف (${expense.voucher_no})؟`)) {
       return
     }
 
     try {
       await deleteExpense(expense.id)
-      toast.success('تم حذف سند الصرف وإلغاء القيد المحاسبي')
+      toast.success('تم حذف مسودة سند الصرف')
       await loadExpenses()
     } catch {
       toast.error('تعذّر حذف سند الصرف')
@@ -327,7 +339,13 @@ export default function ExpenseManagementPage() {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-black text-deepBlue font-latin">
-              ${(summary?.total_amount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {summary?.by_currency?.length
+                ? summary.by_currency.map((t) => (
+                    <span key={t.currency} className="block">
+                      {formatMoney(t.total, t.currency)}
+                    </span>
+                  ))
+                : '—'}
             </span>
           </div>
           <div className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
@@ -369,7 +387,7 @@ export default function ExpenseManagementPage() {
                     {c.category_name}
                   </span>
                   <span className="font-latin font-bold text-deepBlue">
-                    ${Number(c.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    {formatMoney(c.total, c.currency)}
                   </span>
                 </div>
               ))
@@ -822,23 +840,22 @@ export default function ExpenseManagementPage() {
                     {/* Amount */}
                     <td className="py-3 px-3">
                       <span className="font-latin font-black text-emerald-700 text-sm">
-                        ${Number(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-                        <span className="text-[10px] font-bold text-slate-400">{item.currency}</span>
+                        {formatMoney(item.amount, item.currency)}
                       </span>
                     </td>
 
                     {/* Attachment */}
                     <td className="py-3 px-3 text-center">
-                      {item.attachment_url ? (
-                        <a
-                          href={item.attachment_url}
-                          target="_blank"
-                          rel="noreferrer"
+                      {item.has_attachment ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleOpenAttachment(item)}
+                          aria-label={`عرض مرفق سند الصرف ${item.voucher_no}`}
                           className="inline-flex items-center gap-1 rounded-lg bg-customBlue/10 px-2.5 py-1 text-[11px] font-bold text-customBlue hover:bg-customBlue hover:text-white transition"
                         >
                           <Eye size={13} />
                           <span>عرض السند</span>
-                        </a>
+                        </button>
                       ) : (
                         <span className="text-slate-300 text-[11px]">—</span>
                       )}
@@ -852,7 +869,7 @@ export default function ExpenseManagementPage() {
                         </span>
                       ) : (
                         <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700 border border-amber-200">
-                          مسودة
+                          {item.status === 'cancelled' ? 'ملغى' : 'مسودة'}
                         </span>
                       )}
                     </td>
@@ -870,25 +887,30 @@ export default function ExpenseManagementPage() {
                           <Printer size={14} />
                         </button>
 
-                        {/* Edit */}
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(item)}
-                          title="تعديل السند"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-customBlue hover:text-customBlue transition"
-                        >
-                          <Pencil size={14} />
-                        </button>
+                        {/* Posted vouchers are immutable — only drafts can be edited or deleted */}
+                        {item.status !== 'posted' && (
+                          <>
+                          {/* Edit */}
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(item)}
+                            title="تعديل السند"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-customBlue hover:text-customBlue transition"
+                          >
+                            <Pencil size={14} />
+                          </button>
 
-                        {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => void handleDelete(item)}
-                          title="حذف وإلغاء القيد"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 transition"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            onClick={() => void handleDelete(item)}
+                            title="حذف المسودة"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -953,8 +975,7 @@ export default function ExpenseManagementPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-600">المبلغ المدفوع:</span>
                     <span className="font-latin font-black text-emerald-800 text-xl">
-                      ${Number(viewingExpense.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-                      <span className="text-xs">{viewingExpense.currency}</span>
+                      {formatMoney(viewingExpense.amount, viewingExpense.currency)}
                     </span>
                   </div>
                 </div>
@@ -973,7 +994,7 @@ export default function ExpenseManagementPage() {
                       </span>
                     </div>
                     <span className="font-latin font-bold text-emerald-700">
-                      +${Number(viewingExpense.amount).toFixed(2)}
+                      +{formatMoney(viewingExpense.amount, viewingExpense.currency)}
                     </span>
                   </div>
 
@@ -985,7 +1006,7 @@ export default function ExpenseManagementPage() {
                       </span>
                     </div>
                     <span className="font-latin font-bold text-rose-600">
-                      -${Number(viewingExpense.amount).toFixed(2)}
+                      -{formatMoney(viewingExpense.amount, viewingExpense.currency)}
                     </span>
                   </div>
                 </div>

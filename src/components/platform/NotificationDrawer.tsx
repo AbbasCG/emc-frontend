@@ -10,6 +10,7 @@ import {
   ClipboardList,
   CreditCard,
   HeartHandshake,
+  Lightbulb,
   Mail,
   Ticket,
   UserCheck,
@@ -47,6 +48,9 @@ const icons: Record<NotificationType, typeof Bell> = {
   assignment_created:        ClipboardList,
   session_scheduled:         Video,
   attendance_marked:         UserCheck,
+  ticket_resolved:           ClipboardCheck,
+  suggestion_approved:       UserCheck,
+  suggestion_implemented:    Lightbulb,
 }
 
 type Props = {

@@ -15,7 +15,7 @@ exports[`BASELINE DIFF REPORT > per-role NEWLY_DENIED counts for the unseeded sc
   "department_manager__none": 11,
   "digital_ambassadors_manager__none": 9,
   "executive_admin__none": 13,
-  "finance_manager__none": 20,
+  "finance_manager__none": 22,
   "hr_manager__none": 21,
   "instructor__none": 9,
   "marketing_manager__none": 10,
@@ -34,7 +34,7 @@ exports[`BASELINE DIFF REPORT > per-role NEWLY_DENIED counts for the unseeded sc
   "strategy_planning_manager__leader": 9,
   "strategy_planning_manager__member": 9,
   "strategy_planning_manager__none": 9,
-  "student__none": 4,
+  "student__none": 3,
   "super_admin__none": 0,
   "support_agent__none": 11,
   "tech_admin__none": 0,
@@ -48,20 +48,20 @@ exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seede
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 2097,
+    "EXPECTED": 2130,
     "HIGH": 0,
-    "LOW": 29,
-    "MEDIUM": 101,
+    "LOW": 28,
+    "MEDIUM": 103,
   },
   "counts": {
-    "MATCH_ALLOWED": 349,
-    "MATCH_DENIED": 1650,
+    "MATCH_ALLOWED": 368,
+    "MATCH_DENIED": 1664,
     "NEWLY_ALLOWED": 16,
-    "NEWLY_DENIED": 212,
+    "NEWLY_DENIED": 213,
     "UNMAPPED": 0,
   },
   "personas": 17,
-  "totalComparisons": 2227,
+  "totalComparisons": 2261,
 }
 `;
 
@@ -69,20 +69,20 @@ exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — determi
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 4533,
+    "EXPECTED": 4606,
     "HIGH": 0,
-    "LOW": 58,
-    "MEDIUM": 256,
+    "LOW": 57,
+    "MEDIUM": 258,
   },
   "counts": {
-    "MATCH_ALLOWED": 438,
-    "MATCH_DENIED": 3910,
+    "MATCH_ALLOWED": 477,
+    "MATCH_DENIED": 3944,
     "NEWLY_ALLOWED": 34,
-    "NEWLY_DENIED": 465,
+    "NEWLY_DENIED": 466,
     "UNMAPPED": 0,
   },
   "personas": 37,
-  "totalComparisons": 4847,
+  "totalComparisons": 4921,
 }
 `;
 
@@ -114,7 +114,7 @@ exports[`cutover readiness gates > evaluates all gates against the seeded scenar
     "pass": true,
   },
   {
-    "actual": 212,
+    "actual": 213,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },
@@ -149,7 +149,7 @@ exports[`cutover readiness gates > evaluates all gates against the unseeded (pro
     "pass": true,
   },
   {
-    "actual": 465,
+    "actual": 466,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },

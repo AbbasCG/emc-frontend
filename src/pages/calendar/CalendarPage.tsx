@@ -60,12 +60,12 @@ function getRoleEmptyMsg(role?: string | null): string {
       return 'لا توجد أحداث مرتبطة بالدورات المسجّل فيها. سجّل في دورة لتظهر جلساتها هنا.'
     case 'teacher':
     case 'instructor':
-      return 'لا توجد جلسات أو ورش مرتبطة بدوراتك المُسندة.'
+      return 'لا توجد جلسات أو ورش مرتبطة بدوراتك المُسندة أو بالدورات المسجّل فيها.'
     case 'admin':
     case 'super_admin':
       return 'لا أحداث في الفترة الزمنية المحددة.'
     default:
-      return 'لا أحداث ضمن الفلتر الحالي. جرّب نوعاً آخر.'
+      return 'لا أحداث ضمن الفلتر الحالي. جرّب نوعاً آخر، وتظهر هنا جلسات الدورات والورش المسجّل فيها.'
   }
 }
 
@@ -199,6 +199,16 @@ function EventDrawer({
           >
             <BookOpen size={16} />
             عرض البرنامج
+            <ExternalLink size={14} />
+          </Link>
+        )}
+
+        {event.details_url && (
+          <Link
+            to={event.details_url}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-[#0C2A4B] transition hover:bg-slate-50"
+          >
+            تفاصيل الاجتماع
             <ExternalLink size={14} />
           </Link>
         )}

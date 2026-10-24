@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NavigateFunction } from 'react-router'
 import {
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
-  isStudentUser,
   buildPublicLoginHref,
   buildCourseDetailEnrollHref,
   buildWorkshopDetailEnrollHref,
@@ -24,35 +22,6 @@ vi.mock('@/lib/toast', () => ({
 beforeEach(() => {
   toastError.mockReset()
   toastSuccess.mockReset()
-})
-
-describe('isStudentUser', () => {
-  it('recognises the canonical student role', () => {
-    expect(isStudentUser('student')).toBe(true)
-  })
-
-  it('normalises casing and surrounding whitespace before comparing', () => {
-    expect(isStudentUser('  STUDENT  ')).toBe(true)
-    expect(isStudentUser('Student')).toBe(true)
-  })
-
-  it('rejects every staff role', () => {
-    for (const role of ['instructor', 'teacher', 'admin', 'super_admin', 'support_agent', 'partner']) {
-      expect(isStudentUser(role)).toBe(false)
-    }
-  })
-
-  it('rejects null, undefined and empty roles', () => {
-    expect(isStudentUser(null)).toBe(false)
-    expect(isStudentUser(undefined)).toBe(false)
-    expect(isStudentUser('')).toBe(false)
-    expect(isStudentUser('   ')).toBe(false)
-  })
-
-  it('does not match a role that merely contains "student"', () => {
-    expect(isStudentUser('student_affairs')).toBe(false)
-    expect(isStudentUser('ex-student')).toBe(false)
-  })
 })
 
 describe('buildPublicLoginHref', () => {
@@ -94,105 +63,54 @@ describe('detail enrol anchors', () => {
 })
 
 describe('resolvePublicEnrollGate', () => {
-  it('reports guest whenever the visitor is not authenticated, whatever role is cached', () => {
-    expect(resolvePublicEnrollGate(false, null)).toBe('guest')
-    expect(resolvePublicEnrollGate(false, 'student')).toBe('guest')
-    expect(resolvePublicEnrollGate(false, 'admin')).toBe('guest')
+  it('reports guest for a visitor who is not signed in', () => {
+    expect(resolvePublicEnrollGate(false)).toBe('guest')
   })
 
-  it('reports student for an authenticated student', () => {
-    expect(resolvePublicEnrollGate(true, 'student')).toBe('student')
-    expect(resolvePublicEnrollGate(true, ' Student ')).toBe('student')
-  })
-
-  it('reports non_student for an authenticated staff member', () => {
-    expect(resolvePublicEnrollGate(true, 'instructor')).toBe('non_student')
-    expect(resolvePublicEnrollGate(true, 'super_admin')).toBe('non_student')
-  })
-
-  it('reports non_student when an authenticated session carries no role', () => {
-    expect(resolvePublicEnrollGate(true, null)).toBe('non_student')
-    expect(resolvePublicEnrollGate(true, undefined)).toBe('non_student')
+  it('reports learner for every signed-in account: learning is not a role, so no role is looked at', () => {
+    expect(resolvePublicEnrollGate(true)).toBe('learner')
   })
 })
 
 describe('gatePublicEnrollClick', () => {
   function setup(overrides: Partial<Parameters<typeof gatePublicEnrollClick>[0]> = {}) {
     const navigate = vi.fn() as unknown as NavigateFunction
-    const onStudent = vi.fn()
+    const onLearner = vi.fn()
     const result = gatePublicEnrollClick({
       isAuthenticated: true,
-      role: 'student',
       redirectPath: '/courses/english-101',
       navigate,
-      onStudent,
+      onLearner,
       ...overrides,
     })
-    return { navigate: navigate as unknown as ReturnType<typeof vi.fn>, onStudent, result }
+    return { navigate: navigate as unknown as ReturnType<typeof vi.fn>, onLearner, result }
   }
 
   it('sends a guest to the login page carrying the course path and blocks the action', () => {
-    const { navigate, onStudent, result } = setup({ isAuthenticated: false, role: null })
+    const { navigate, onLearner, result } = setup({ isAuthenticated: false })
 
     expect(result).toBe(false)
     expect(navigate).toHaveBeenCalledWith('/login?redirect=%2Fcourses%2Fenglish-101')
-    expect(onStudent).not.toHaveBeenCalled()
+    expect(onLearner).not.toHaveBeenCalled()
     expect(toastError).not.toHaveBeenCalled()
   })
 
   it('sanitises an unsafe redirect before navigating a guest', () => {
-    const { navigate } = setup({ isAuthenticated: false, role: null, redirectPath: '//evil.example' })
+    const { navigate } = setup({ isAuthenticated: false, redirectPath: '//evil.example' })
     expect(navigate).toHaveBeenCalledWith('/login?redirect=%2Fdashboard')
   })
 
-  it('shows the Arabic student-only toast for a signed-in non-student and blocks the action', () => {
-    const { navigate, onStudent, result } = setup({ role: 'instructor' })
-
-    expect(result).toBe(false)
-    expect(toastError).toHaveBeenCalledWith(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-    expect(navigate).not.toHaveBeenCalled()
-    expect(onStudent).not.toHaveBeenCalled()
-  })
-
-  it('runs the student callback and allows the action for a signed-in student', () => {
-    const { navigate, onStudent, result } = setup()
+  it('lets any signed-in account through, with no toast and no redirect', () => {
+    const { navigate, onLearner, result } = setup()
 
     expect(result).toBe(true)
-    expect(onStudent).toHaveBeenCalledTimes(1)
+    expect(onLearner).toHaveBeenCalledTimes(1)
     expect(navigate).not.toHaveBeenCalled()
     expect(toastError).not.toHaveBeenCalled()
   })
 
-  it('still allows the action when a student handler is not supplied', () => {
+  it('still allows the action when a handler is not supplied', () => {
     const navigate = vi.fn() as unknown as NavigateFunction
-    expect(() =>
-      gatePublicEnrollClick({
-        isAuthenticated: true,
-        role: 'student',
-        redirectPath: '/courses/x',
-        navigate,
-      }),
-    ).not.toThrow()
-    expect(
-      gatePublicEnrollClick({
-        isAuthenticated: true,
-        role: 'student',
-        redirectPath: '/courses/x',
-        navigate,
-      }),
-    ).toBe(true)
-  })
-
-  it('treats a legacy "teacher" role as staff, not as a student', () => {
-    const { onStudent, result } = setup({ role: 'teacher' })
-    expect(result).toBe(false)
-    expect(onStudent).not.toHaveBeenCalled()
-    expect(toastError).toHaveBeenCalledWith(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-  })
-})
-
-describe('student-only message copy', () => {
-  it('is the Arabic sign-in-as-student instruction', () => {
-    expect(PUBLIC_ENROLL_STUDENT_ONLY_MSG).toBe('يجب تسجيل الدخول كطالب للالتحاق بهذا البرنامج')
+    expect(gatePublicEnrollClick({ isAuthenticated: true, redirectPath: '/courses/x', navigate })).toBe(true)
   })
 })

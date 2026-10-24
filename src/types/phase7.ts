@@ -92,7 +92,10 @@ export type CalendarEventRecord = {
   learning_path?: { id: number; title: string; slug?: string | null } | null
   department?: { id: number; name_ar: string } | null
   owner?: { id: number; name: string } | null
-  visibility: 'private' | 'department' | 'all'
+  visibility: 'private' | 'department' | 'all' | 'participants'
+  /** Meetings only: the meeting type and the lounge page to open it in. */
+  meeting_type?: string | null
+  details_url?: string | null
   can_edit: boolean
   can_join: boolean
 }

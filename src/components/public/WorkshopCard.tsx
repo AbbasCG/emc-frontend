@@ -40,7 +40,7 @@ function formatStartAr(iso: string | null): string | null {
 }
 
 export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }: WorkshopCardProps) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   const imgSrc = workshop.cover_image
@@ -206,10 +206,9 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
                 if (!workshop.registration_open) return
                 gatePublicEnrollClick({
                   isAuthenticated,
-                  role: user?.role,
                   redirectPath: buildWorkshopDetailEnrollHref(workshop.slug),
                   navigate,
-                  onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
+                  onLearner: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
                 })
               }}
               className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black transition ${

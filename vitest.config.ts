@@ -4,6 +4,8 @@ import path from 'path'
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    // The auth client tests describe the cookie (Sanctum SPA) flow; pin it so they never depend on a developer's local .env.
+    env: { VITE_AUTH_MODE: 'cookie' },
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],

@@ -39,14 +39,11 @@ export const TASK_PRIORITY_AR: Record<TaskPriority, string> = {
 }
 
 export const MEETING_TYPE_AR: Record<MeetingType, string> = {
-  exec: 'اجتماع الإدارة العليا',
   executive: 'اجتماع الإدارة العليا',
-  departments: 'اجتماع الإدارات',
-  department: 'اجتماع داخلي للإدارة',
+  department: 'اجتماع الإدارة',
   programs: 'اجتماع البرامج',
   partnerships: 'اجتماع الشراكات',
   quality: 'اجتماع الجودة',
-  external: 'اجتماع مع شريك خارجي',
   external_partner: 'اجتماع مع شريك خارجي',
   general: 'اجتماع عام',
 }
@@ -93,4 +90,37 @@ export const FORM_TYPE_AR: Record<string, string> = {
   complaint: 'شكوى',
   suggestion: 'اقتراح',
   grant_request: 'طلب منحة',
+}
+
+/** Where a form is in its life: only an active form has a working public link. */
+export const FORM_STATUS_AR: Record<string, string> = {
+  draft: 'مسودة',
+  active: 'منشور',
+  closed: 'مغلق',
+  archived: 'مؤرشف',
+}
+
+/** The question types a form can hold, as the editor's type picker names them. */
+export const QUESTION_TYPE_AR: Record<string, string> = {
+  text: 'نص قصير',
+  textarea: 'نص طويل',
+  email: 'بريد إلكتروني',
+  phone: 'رقم هاتف',
+  number: 'رقم',
+  url: 'رابط',
+  date: 'تاريخ',
+  time: 'وقت',
+  select: 'قائمة منسدلة',
+  radio: 'اختيار واحد',
+  checkbox: 'اختيارات متعددة',
+  multiselect: 'قائمة متعددة',
+  yes_no: 'نعم / لا',
+  star_rating: 'تقييم بالنجوم',
+  linear_scale: 'مقياس خطي',
+  consent: 'موافقة',
+  file: 'رفع ملف',
+  image: 'رفع صورة',
+  section: 'عنوان قسم',
+  description: 'نص توضيحي',
+  page_break: 'فاصل صفحة',
 }

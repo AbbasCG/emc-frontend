@@ -36,16 +36,21 @@ export type CourseSeatMetrics = {
   remaining: number | null
 }
 
-/** capacity − enrolled_count; uses API fields only. */
+/**
+ * capacity − seats taken; uses API fields only. The backend's canonical `seats_taken` / `seats_remaining` (the same calculation
+ * enrollment enforces: access-granting registrations + pending-payment reservations, cancelled excluded) win over the raw
+ * registration count, which can disagree with enforcement.
+ */
 export function resolveCourseSeatMetrics(course: Course): CourseSeatMetrics {
   const x = course as Record<string, unknown>
   const capacity = num(course.capacity ?? x.seats_count ?? x.capacity)
   const enrolled = num(
-    course.registrations_count ?? x.registrations_count ?? x.enrolled_count,
+    course.seats_taken ?? x.seats_taken ?? course.registrations_count ?? x.registrations_count ?? x.enrolled_count,
   )
+  const apiRemaining = num(course.seats_remaining ?? x.seats_remaining)
   const remaining =
-    capacity != null && capacity > 0 && enrolled != null ?
-      Math.max(0, capacity - enrolled)
+    capacity != null && capacity > 0 && apiRemaining != null ? Math.max(0, apiRemaining)
+    : capacity != null && capacity > 0 && enrolled != null ? Math.max(0, capacity - enrolled)
     : null
   return { capacity, enrolled, remaining }
 }

@@ -3,8 +3,9 @@ import { Link, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Clock, FileText, GraduationCap, Loader2 } from 'lucide-react'
 import api from '@/api/axios'
+import { UNDER_REVIEW_LABEL, UNDER_REVIEW_NOTICE } from '@/utils/publicCourseDetailCta'
 
-type Status = 'loading' | 'paid' | 'pending' | 'failed'
+type Status = 'loading' | 'paid' | 'review' | 'pending' | 'failed'
 
 export default function PaymentSuccessPage() {
   const [params] = useSearchParams()
@@ -32,7 +33,8 @@ export default function PaymentSuccessPage() {
         const pending = orders.find((o: { status: string }) => o.status === 'pending')
 
         if (paid && !cancelled) {
-          setStatus('paid')
+          // Paid, but the enrollment is withheld for a financial review (the server says so): never "you are enrolled".
+          setStatus(paid.payment_under_review === true ? 'review' : 'paid')
           setInvoiceId(paid.invoice?.id ?? null)
           return
         }
@@ -114,6 +116,32 @@ export default function PaymentSuccessPage() {
           </>
         )}
 
+        {displayStatus === 'review' && (
+          <div role="status" data-testid="payment-return-under-review">
+            <Clock className="mx-auto mb-4 size-14 text-amber-500" />
+            <h1 className="text-xl font-black text-deepBlue">{UNDER_REVIEW_LABEL}</h1>
+            <p className="mt-2 text-sm leading-7 text-deepBlue/60">{UNDER_REVIEW_NOTICE}</p>
+            <div className="mt-8 flex flex-col gap-3">
+              <Link
+                to="/dashboard/student/courses"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-customBlue px-6 py-3.5 font-black text-white shadow-lg shadow-customBlue/25 transition hover:bg-customBlue/90"
+              >
+                <GraduationCap size={18} />
+                الذهاب إلى دوراتي
+              </Link>
+              {invoiceId && (
+                <Link
+                  to="/dashboard/student/orders"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-deepBlue/10 bg-slate-50 px-6 py-3.5 font-black text-deepBlue transition hover:bg-slate-100"
+                >
+                  <FileText size={18} />
+                  عرض الفاتورة
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
         {displayStatus === 'failed' && (
           <>
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-rose-50">
@@ -121,7 +149,7 @@ export default function PaymentSuccessPage() {
             </div>
             <h1 className="text-xl font-black text-deepBlue">تعذّر تأكيد الدفع</h1>
             <p className="mt-2 text-sm text-deepBlue/60">
-              إذا تم خصم المبلغ، سيتم استرداده تلقائيًا. يرجى التواصل مع الدعم إذا استمرت المشكلة.
+              إذا تم خصم المبلغ فهو مسجَّل ولن يضيع، وسيراجعه الفريق المالي. يرجى التواصل مع الدعم إذا استمرت المشكلة.
             </p>
             <Link
               to="/courses"

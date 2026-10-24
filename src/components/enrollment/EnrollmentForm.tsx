@@ -32,8 +32,6 @@ import type { PublicItemType } from '@/utils/publicCourseDisplay'
 import { formatPrice } from '@/utils/course'
 import {
   buildPublicLoginHref,
-  isStudentUser,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
 
 type PaymentProvider = 'stripe' | 'paypal' | 'fake'
@@ -213,10 +211,6 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
     if (!isAuthenticated) {
       navigate(buildPublicLoginHref(`/courses/${course.slug}`))
-      return
-    }
-    if (!isStudentUser(user?.role)) {
-      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       return
     }
 

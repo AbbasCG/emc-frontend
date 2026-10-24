@@ -43,6 +43,10 @@ export type AdminManagedUser = {
   how_did_you_hear_about_us?: string | null
   avatar_url?: string | null
   email_verified_at?: string | null
+  /** Explicit flag from the backend; falls back to `email_verified_at` when absent. */
+  email_verified?: boolean
+  /** True only where a resend would be accepted (unverified, active, not deleted). */
+  can_resend_verification?: boolean
   last_login_at?: string | null
   /** One-line summaries when backend nests learner/teacher payloads. */
   related_student_note?: string | null
@@ -122,9 +126,12 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     if (typeof n === 'string' && n.trim() !== '') department = n.trim()
   }
 
-  const ev = raw.email_verified_at ?? raw.emailVerifiedAt ?? raw.email_verified
+  // Legacy payloads sometimes sent the timestamp under `email_verified`; a boolean there is the flag, never a date.
+  const ev = raw.email_verified_at ?? raw.emailVerifiedAt ?? (typeof raw.email_verified === 'string' ? raw.email_verified : null)
   let email_verified_at: string | null = null
   if (ev !== null && ev !== undefined && String(ev).trim() !== '') email_verified_at = String(ev)
+  const email_verified = typeof raw.email_verified === 'boolean' ? raw.email_verified : email_verified_at !== null
+  const can_resend_verification = raw.can_resend_verification === true
 
   const loginRaw =
     raw.last_login_at ??
@@ -201,6 +208,8 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     how_did_you_hear_about_us: how,
     avatar_url,
     email_verified_at,
+    email_verified,
+    can_resend_verification,
     last_login_at,
     related_student_note: related.student,
     related_instructor_note: related.instructor,
@@ -593,6 +602,32 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
   const innerFallback: Record<string, unknown> = { ...body }
   innerFallback.id = id
   return mergedRecord(res.data, innerFallback)
+}
+
+export type ResendVerificationResult = { message: string }
+
+export const VERIFICATION_RESENT_AR = 'تم إرسال رسالة توثيق البريد الإلكتروني.'
+
+/**
+ * Ask the backend to send a fresh verification email. Only offered for unverified, active
+ * users; the backend re-checks authorization, state and the per-user rate limit.
+ */
+export async function resendUserVerification(id: number): Promise<ResendVerificationResult> {
+  const res = await apiClient.post<{ message?: unknown }>(`${BASE}/${id}/resend-verification`, {}, silent)
+  const msg = res.data && typeof res.data.message === 'string' && res.data.message.trim() ? res.data.message : VERIFICATION_RESENT_AR
+  return { message: msg }
+}
+
+/** 409 already verified / 422 inactive / 429 wait — all carry an Arabic `message`; 403 uses the generic copy. */
+export function getResendVerificationErrorMessage(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status
+    const body = err.response?.data as { message?: unknown } | undefined
+    const msg = body && typeof body.message === 'string' && body.message.trim() ? body.message : null
+    if (msg && (status === 409 || status === 422 || status === 429 || status === 403)) return msg
+    if (status === 404) return 'المستخدم غير موجود.'
+  }
+  return 'تعذّر إرسال رسالة التوثيق. حاول مرة أخرى.'
 }
 
 export async function deleteAdminUser(id: number): Promise<void> {

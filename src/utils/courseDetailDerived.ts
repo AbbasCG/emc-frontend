@@ -169,8 +169,11 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
 
   const regsRaw = course.registrations_count ?? apiExtra.registrations_count
   const regsNum = regsRaw != null ? Number(regsRaw) : NaN
+  // The backend's canonical flag (same rule enrollment enforces) wins; the raw count is only the fallback for older payloads.
+  const apiFull = typeof (course as Record<string, unknown>).is_full === 'boolean' ? ((course as Record<string, unknown>).is_full as boolean) : null
   const seatsFull =
-    Number.isFinite(seatsNum) && seatsNum > 0 && Number.isFinite(regsNum) && regsNum >= seatsNum
+    apiFull != null && Number.isFinite(seatsNum) && seatsNum > 0 ? apiFull
+    : Number.isFinite(seatsNum) && seatsNum > 0 && Number.isFinite(regsNum) && regsNum >= seatsNum
   const regsLabel =
     Number.isFinite(regsNum) && regsNum >= 0 ? formatPublicCount(regsNum, 'مسجّل') : ''
 

@@ -104,8 +104,15 @@ export default function StudentOrdersPage() {
                         {order.order_number}
                       </p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-black ${st.cls}`}>
-                      {st.label}
+                    <span className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className={`rounded-full px-3 py-1 text-[11px] font-black ${st.cls}`}>
+                        {st.label}
+                      </span>
+                      {order.payment_under_review && (
+                        <span data-testid="order-under-review" className="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-black text-amber-800 ring-1 ring-amber-200">
+                          التسجيل قيد المراجعة
+                        </span>
+                      )}
                     </span>
                   </div>
 
@@ -160,6 +167,11 @@ export default function StudentOrdersPage() {
                     {(STATUS_AR[selected.status] ?? STATUS_AR.pending).label}
                   </span>
                 </div>
+                {selected.payment_under_review && (
+                  <p role="status" className="rounded-2xl bg-amber-50 p-4 text-xs font-semibold leading-6 text-amber-900 ring-1 ring-amber-200">
+                    تم استلام الدفعة وهي محفوظة مع الفاتورة. التسجيل قيد المراجعة المالية، ولا حاجة للدفع مرة أخرى.
+                  </p>
+                )}
                 <DrawerSection title="الطلب">
                   <DrawerRow label="رقم الطلب"  value={selected.order_number} mono />
                   <DrawerRow label="الدورة"     value={selected.course?.title ?? '—'} />

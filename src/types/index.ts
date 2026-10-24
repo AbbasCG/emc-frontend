@@ -48,6 +48,12 @@ export type Course = {
   start_date?: string | null
   end_date?: string | null
   capacity?: number | null
+  /** Canonical seat count from the backend: registrations that grant access plus pending-payment reservations (cancelled excluded). */
+  seats_taken?: number | null
+  /** `capacity - seats_taken` (never negative); null when the program has no capacity limit. */
+  seats_remaining?: number | null
+  /** Same rule enrollment enforces. Prefer this over comparing raw registration counts. */
+  is_full?: boolean
   status?: string
 
   duration?: string | null

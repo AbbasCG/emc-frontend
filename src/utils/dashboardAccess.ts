@@ -122,7 +122,6 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
 
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
-  { prefix: '/dashboard/student', roles: ['student'] },
   { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
@@ -155,13 +154,24 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/section-lead', roles: ['section_lead'] },
 ].sort((a, b) => b.prefix.length - a.prefix.length)
 
-const STUDENT_EXTRA_PREFIXES = [
+/**
+ * The learner space: «دوراتي», lessons, progress, attendance, assignments, certificates, orders. Learning is not a role, so every
+ * authenticated account opens these (the backend manifest grants `personal.student_learning` to everyone); each page shows only
+ * that account's own enrollments.
+ */
+const LEARNER_PREFIXES = [
+  '/dashboard/student',
   '/dashboard/certificates',
   '/dashboard/learning',
   '/dashboard/courses/',
   '/dashboard/lessons/',
   '/dashboard/quizzes/',
 ]
+
+/** True for a path in the learner space, whoever is looking at it. */
+export function isLearnerPath(pathname: string): boolean {
+  return matchesAnyPrefix(pathname, LEARNER_PREFIXES)
+}
 
 /**
  * Resource Center (مركز الموارد / مكتبة الدورات) — internal staff read/share access.
@@ -368,8 +378,8 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))
     return ['admin', 'super_admin', 'tech_admin', 'instructor', 'programs_manager']
 
-  /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
-  if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']
+  /* Learner paths (/dashboard/student/…, /dashboard/courses/:id/modules, lessons, quizzes, …) — any signed-in account */
+  if (isLearnerPath(path)) return 'authenticated'
 
   return []
 }

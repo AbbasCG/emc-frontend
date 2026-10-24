@@ -17,7 +17,7 @@ import type { Course } from '@/types'
 import { isPaidCourse } from './isPaidCourse'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
 import { enrollActionLabel } from '@/utils/enrollmentRedirect'
-import { buildPublicLoginHref, isStudentUser, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { buildPublicLoginHref } from '@/utils/publicEnrollAuth'
 import { endedCourseBlocksEnrollment, ENDED_COURSE_DETAIL_MESSAGE, resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatPrice } from '@/utils/course'
 import { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
@@ -112,7 +112,6 @@ export default function CourseEnrollmentCard({
 
   const enrollLabel = enrollActionLabel(itemType)
   const loginHref = buildPublicLoginHref(`/courses/${course.slug}`)
-  const isStudent = isStudentUser(user?.role)
   const isEnded = resolveCourseIsEnded(course)
   const enrollmentBlockedByEnd = endedCourseBlocksEnrollment(course)
   const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success && !enrollmentBlockedByEnd
@@ -189,10 +188,6 @@ export default function CourseEnrollmentCard({
   async function submitEnrollment(extra?: Partial<EnrollmentFieldValues>) {
     if (!profile || !canEnroll) return
     if (!isAuthenticated) return
-    if (!isStudent) {
-      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-      return
-    }
     setApiError('')
     setFieldErrors({})
 
@@ -318,10 +313,6 @@ export default function CourseEnrollmentCard({
 
   function handlePrimaryClick() {
     if (!isAuthenticated) return
-    if (!isStudent) {
-      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-      return
-    }
     if (missing.length === 0 && !isPaidCourse(course) && !course.requires_registration_code) {
       void submitEnrollment()
       return
@@ -427,10 +418,6 @@ export default function CourseEnrollmentCard({
               >
                 سجّل الدخول لإكمال التسجيل
               </Link>
-            </div>
-          : !isStudent ?
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-5 text-center text-sm font-bold text-amber-900">
-              {PUBLIC_ENROLL_STUDENT_ONLY_MSG}
             </div>
           : profileLoading ?
             <div className="flex items-center justify-center gap-2 py-6 text-sm font-semibold text-slate-500">

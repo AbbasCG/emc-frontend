@@ -101,68 +101,130 @@ export type DepartmentDetail = WorkspaceDepartment & {
 
 /** ── Meetings ─────────────────────────────────────────────────────────── */
 
+/** The values the API stores (`meetings.type`). */
 export type MeetingType =
-  | 'exec'
   | 'executive'
-  | 'departments'
   | 'department'
   | 'programs'
   | 'partnerships'
   | 'quality'
-  | 'external'
   | 'external_partner'
   | 'general'
 
-export type MeetingStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
+/** `meetings.status`: what is recorded about the meeting itself. */
+export type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+
+/**
+ * The single plain state the UI badges, computed by the server:
+ * - awaiting_report: held (or due) and no official report yet
+ * - report_submitted: the meeting's one official report exists
+ */
+export type MeetingDisplayStatus = 'scheduled' | 'in_progress' | 'awaiting_report' | 'report_submitted' | 'cancelled'
+
+export type MeetingRef = { id: number; name: string }
+
+/** What the signed-in viewer may do with this meeting, as decided by the server. */
+export type MeetingCapabilities = {
+  can_view: boolean
+  can_join: boolean
+  can_confirm_attendance: boolean
+  can_manage: boolean
+  can_upload_report: boolean
+  can_view_report: boolean
+  can_view_attendance: boolean
+  can_view_quality_data: boolean
+}
+
+/** Who the meeting is for: invited people, a whole department, or nobody in particular. */
+export type MeetingAudience = 'explicit' | 'department' | 'general'
+
+export type ParticipantStatus = 'invited' | 'joined' | 'attended' | 'absent'
+
+export type MyAttendance = {
+  status: ParticipantStatus
+  joined_at: string | null
+  confirmed_at: string | null
+}
 
 export type OpsMeeting = {
   id: number
   title: string
-  starts_at?: string | null
-  meeting_date?: string | null
-  start_time?: string | null
   type: MeetingType
-  department_id?: string | number | null
-  department_name?: string | null
-  organizer_name?: string | null
-  department?: { id: number; name: string } | null
-  organizer?: { id: number; name: string } | null
   status: MeetingStatus
-  report?: MeetingReportDetail | null
+  display_status: MeetingDisplayStatus
+  /** `YYYY-MM-DD`, the meeting's own wall-clock date (Europe/Amsterdam). */
+  meeting_date: string | null
+  /** `HH:MM` 24-hour */
+  start_time: string | null
+  end_time: string | null
+  department: MeetingRef | null
+  organizer: MeetingRef | null
+  /** The join link. Present only for someone assigned to the meeting. */
+  meeting_url: string | null
+  audience: MeetingAudience
+  my_attendance: MyAttendance | null
+  /** Only present for someone who may see attendance. */
+  participants_count: number | null
+  has_report: boolean
+  report_id: number | null
+  capabilities: MeetingCapabilities
+  created_at: string | null
 }
 
-export type MeetingReportDetail = {
+/** One person who can be invited or marked present. `department` is shown as secondary text. */
+export type MeetingCandidate = {
   id: number
-  absentees?: string[] | null
-  team_commitment_score?: number | null
-  team_commitment_notes?: string | null
-  completed_tasks_summary?: string | null
-  kpi_percentage?: number | null
-  top_interactive_member?: string | null
-  challenges?: string | null
-  executive_requests?: string | null
-  next_month_goals?: string | null
-  improvement_suggestions?: string | null
-  achieved?: string | null
-  planned?: string | null
-  needs?: string | null
-  needs_reason?: string | null
-  notes?: string | null
-  created_at?: string | null
+  name: string
+  role: string | null
+  role_title: string | null
+  department: string | null
+}
+
+export type MeetingParticipantRow = {
+  user: { id: number; name: string; department: string | null }
+  status: ParticipantStatus
+  joined_at: string | null
+  confirmed_at: string | null
+}
+
+export type AttendanceSummary = {
+  invited: number
+  joined: number
+  attended: number
+  absent: number
+}
+
+/** The one official report of a meeting (the periodic report filed from the lounge). */
+export type MeetingReportView = {
+  id: number
+  absentees: string[]
+  team_commitment_score: number | null
+  team_commitment_notes: string | null
+  completed_tasks_summary: string | null
+  kpi_percentage: number | null
+  top_interactive_member: string | null
+  challenges: string | null
+  executive_requests: string | null
+  next_month_goals: string | null
+  improvement_suggestions: string | null
+  uploaded_by: MeetingRef | null
+  uploaded_at: string | null
 }
 
 export type OpsMeetingDetail = OpsMeeting & {
-  meeting_date?: string | null
-  start_time?: string | null
-  end_time?: string | null
-  meeting_url?: string | null
-  agenda?: string | string[] | null
-  attendees?: { name: string; role?: string }[]
-  decisions?: { id: number; text: string }[]
-  action_items?: OpsActionItem[]
-  minutes?: string | null
-  recording_link?: string | null
-  report?: MeetingReportDetail | null
+  description: string | null
+  recording_link: string | null
+  agenda: string[]
+  timezone: string
+  updated_at: string | null
+  /** False for a normal assigned user: names and counts are hidden. */
+  participants_visible: boolean
+  participants: MeetingParticipantRow[]
+  attendance_summary: AttendanceSummary | null
+  /** Only for someone who may read the report. */
+  decisions: { id: number; text: string }[]
+  action_items: OpsActionItem[]
+  report: MeetingReportView | null
 }
 
 export type OpsActionItem = {
@@ -189,7 +251,80 @@ export type FormTypeSlug =
   | 'suggestion'
   | 'grant_request'
 
-export type QuestionType = 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'date' | 'number'
+export type QuestionType =
+  | 'text'
+  | 'textarea'
+  | 'email'
+  | 'phone'
+  | 'number'
+  | 'url'
+  | 'date'
+  | 'time'
+  | 'select'
+  | 'radio'
+  | 'checkbox'
+  | 'multiselect'
+  | 'yes_no'
+  | 'star_rating'
+  | 'linear_scale'
+  | 'consent'
+  | 'file'
+  | 'image'
+  // Structural blocks: they shape the form and are never answered.
+  | 'section'
+  | 'description'
+  | 'page_break'
+
+/** The per-type settings a block can carry. The server validates them against the type and enforces them again on submission. */
+export type QuestionConfig = {
+  validation?: {
+    min_length?: number
+    max_length?: number
+    min?: number
+    max?: number
+    integer_only?: boolean
+    min_date?: string
+    max_date?: string
+    min_choices?: number
+    max_choices?: number
+  }
+  scale?: { min?: number; max?: number; min_label?: string; max_label?: string }
+  default_value?: string | number | string[]
+}
+
+/** The closed list of comparisons a visibility rule can make. Which of them a question offers depends on its type (formLogic.ts). */
+export type LogicOperator =
+  | 'equals'
+  | 'not_equals'
+  | 'contains'
+  | 'not_contains'
+  | 'is_empty'
+  | 'is_not_empty'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'any_of'
+  | 'none_of'
+
+export type LogicCondition = {
+  /** The question whose answer is read. */
+  question: number
+  operator: LogicOperator
+  value?: string | number | string[]
+}
+
+/** Shows or hides one block (a question, a section, a step) according to earlier answers. Data, never code. */
+export type QuestionLogic = {
+  action: 'show' | 'hide'
+  match: 'all' | 'any'
+  conditions: LogicCondition[]
+}
+
+/** How a respondent moves through the form. Part of what a published version freezes. */
+export type FormFlow = { review_step?: boolean }
+
+export type FormStatus = 'draft' | 'active' | 'closed' | 'archived'
 
 export type FormQuestion = {
   id: number
@@ -198,6 +333,81 @@ export type FormQuestion = {
   required: boolean
   options?: string[]
   sort_order: number
+  description?: string | null
+  placeholder?: string | null
+  help_text?: string | null
+  config?: QuestionConfig | null
+  /** The rule that shows or hides this block; null when it is always shown. */
+  logic?: QuestionLogic | null
+  /** Only in the staff editor: the type of an answered question cannot change. */
+  has_answers?: boolean
+}
+
+/** A person as the forms screens show them: a name, never contact details. */
+export type FormPerson = { id: number; name: string }
+
+/** Who may see the form (`private`: owner, collaborators and platform admins; `organization`: its scope). */
+export type FormVisibility = 'private' | 'organization'
+
+/** Who may read the responses, independently of who may open the form. */
+export type FormResponsesVisibility = 'restricted' | 'form_viewers'
+
+export type FormSettings = {
+  opens_at: string | null
+  closes_at: string | null
+  max_submissions: number | null
+  per_respondent_limit: number | null
+  allow_anonymous: boolean
+  /** Who may answer: anyone, any signed-in user, or only invited signed-in users. */
+  access_mode?: FormAccessMode
+  /** The form opens only through one of its valid share links. */
+  requires_share_link?: boolean
+  /** True when signing in is needed: anonymous answers are off, or a per-person limit makes identity necessary. */
+  requires_login: boolean
+}
+
+export type FormAccessMode = 'public' | 'authenticated' | 'invited'
+
+/** What the signed-in user may do with this form. The server re-checks every action. */
+export type FormAbilities = {
+  view: boolean
+  edit: boolean
+  publish: boolean
+  manage_access: boolean
+  view_responses: boolean
+  manage_responses: boolean
+  /** Correct what a respondent submitted: an explicit grant, separate from reading the responses. */
+  correct_responses?: boolean
+  delete: boolean
+  /** See how the form is shared (links, access mode, invitations). */
+  view_sharing?: boolean
+  /** Change how it is shared. */
+  manage_sharing?: boolean
+}
+
+export type FormAvailabilityState =
+  | 'open'
+  | 'closed'
+  | 'not_open_yet'
+  | 'ended'
+  | 'login_required'
+  | 'limit_reached'
+  | 'respondent_limit'
+  // Phase 3: share links and invitations
+  | 'share_link_required'
+  | 'share_link_invalid'
+  | 'share_link_revoked'
+  | 'share_link_expired'
+  | 'share_link_exhausted'
+  | 'not_invited'
+
+/** What the public page is told about whether the form takes answers right now. */
+export type FormAvailability = {
+  state: FormAvailabilityState
+  message: string | null
+  opens_at: string | null
+  closes_at: string | null
+  requires_login: boolean
 }
 
 export type OpsFormDefinition = {
@@ -206,7 +416,96 @@ export type OpsFormDefinition = {
   description?: string | null
   slug: string
   form_type: FormTypeSlug
+  flow?: FormFlow | null
   questions: FormQuestion[]
+  status?: FormStatus
+  visibility?: FormVisibility
+  responses_visibility?: FormResponsesVisibility
+  department_id?: number | null
+  department?: { id: number; name: string } | null
+  created_by?: FormPerson | null
+  owner?: FormPerson | null
+  last_editor?: FormPerson | null
+  publisher?: FormPerson | null
+  published_at?: string | null
+  current_version?: number | null
+  has_unpublished_changes?: boolean
+  /** Moves on every persisted draft change; sent back as `base_revision` so a stale editor is refused. */
+  draft_revision?: number
+  settings?: FormSettings
+  abilities?: FormAbilities
+  submissions_count?: number
+  last_submission_at?: string | null
+  created_at?: string
+  updated_at?: string
+  /** Public view only. */
+  availability?: FormAvailability
+  version?: number | null
+  preview?: boolean
+}
+
+export type FormVersionRow = {
+  id: number
+  version_number: number
+  origin: 'publish' | 'restore' | 'legacy'
+  note: string | null
+  question_count: number
+  published_at: string | null
+  publisher?: FormPerson | null
+  restored_from_version_id: number | null
+  is_current: boolean
+}
+
+/** One version with the questions exactly as respondents saw them. */
+export type FormVersionDetail = FormVersionRow & {
+  title: string | null
+  description: string | null
+  questions: FormQuestion[]
+}
+
+export type FormCollaboratorLevel = 'viewer' | 'editor'
+
+export type FormEmployee = { id: number; name: string; role: string; departments: string[] }
+
+export type FormCollaboratorRow = {
+  id: number
+  user: FormEmployee
+  access_level: FormCollaboratorLevel
+  can_view_responses: boolean
+  can_correct_responses?: boolean
+  granted_by?: FormPerson | null
+  granted_at: string | null
+}
+
+export type FormActivityRow = {
+  id: number
+  action: string
+  label: string
+  actor?: FormPerson | null
+  details: Record<string, unknown>
+  created_at: string
+}
+
+export type PagedRows<T> = { rows: T[]; currentPage: number; lastPage: number; total: number }
+
+/** One answer inside a response, as the response list returns it. A file is never given by its storage path. */
+export type FormAnswerRow = {
+  id: number
+  question_id: number
+  question_label?: string | null
+  question_type?: QuestionType | null
+  question_deleted?: boolean
+  /** The question as the respondent's published version froze it (what a correction is edited with). */
+  question_required?: boolean
+  question_options?: string[] | null
+  question_config?: QuestionConfig | null
+  value: string | string[] | null
+  /** The answer in words (yes / no, "4 / 5", a joined list), as the response detail shows it. */
+  display_value?: string | null
+  has_file: boolean
+  file_name: string | null
+  /** A reviewer changed what the respondent submitted. The previous value is in the protected correction history. */
+  corrected?: boolean
 }
 
 export type FormSubmissionRow = {
@@ -214,6 +513,17 @@ export type FormSubmissionRow = {
   submitted_at: string
   submitter_label?: string | null
   answers_preview?: string
+  status?: 'new' | 'reviewed' | 'archived'
+  /** The share link the response came through, by its label. */
+  share_link?: { id: number; label: string } | null
+  answers?: FormAnswerRow[]
+}
+
+export type FormSubmissionsPage = {
+  rows: FormSubmissionRow[]
+  currentPage: number
+  lastPage: number
+  total: number
 }
 
 /** ── Volunteers ────────────────────────────────────────────────────────── */

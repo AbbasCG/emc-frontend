@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Course } from '@/types'
 import type { StudentCourseAccess } from '@/api/studentApi'
 import toast from '@/lib/toast'
+import { UNDER_REVIEW_LABEL, UNDER_REVIEW_NOTICE } from '@/utils/publicCourseDetailCta'
 
 type Props = {
   access: StudentCourseAccess | null
@@ -37,10 +38,26 @@ export default function PaymentRequiredCta({ access, course }: Props) {
     window.location.href = url
   }
 
+  const underReview = access?.payment_under_review === true || access?.block_reason === 'payment_under_review'
+
   const label =
-    access?.block_reason === 'payment_pending' ? 'الدفع قيد المراجعة'
+    underReview ? UNDER_REVIEW_LABEL
+    : access?.block_reason === 'payment_pending' ? 'الدفع قيد المراجعة'
     : access?.block_reason === 'payment_failed' ? 'إعادة محاولة الدفع'
     : 'إكمال الدفع'
+
+  // Money received, enrollment awaiting a finance decision: nothing to pay, nothing to click, and the reason is spelled out.
+  if (underReview) {
+    return (
+      <div role="status" data-testid="payment-under-review" className="w-full rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-center">
+        <p className="inline-flex items-center justify-center gap-2 text-[12px] font-black text-deepBlue/70">
+          <CreditCard className="h-4 w-4 opacity-70" aria-hidden />
+          {label}
+        </p>
+        <p className="mt-1 text-[11px] font-semibold leading-5 text-deepBlue/60">{UNDER_REVIEW_NOTICE}</p>
+      </div>
+    )
+  }
 
   // Payment under review — no action to take yet, nothing to click.
   if (access?.block_reason === 'payment_pending') {

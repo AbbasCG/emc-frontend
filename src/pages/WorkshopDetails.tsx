@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { UNDER_REVIEW_LABEL } from '@/utils/publicCourseDetailCta'
 import { motion } from 'framer-motion'
 import {
   BadgeCheck,
@@ -23,12 +24,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
 import { formatPublicDate, formatPublicTime, toLatinDigits } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
-import { normalizeRole } from '@/utils/dashboardAccess'
 import {
   buildPublicLoginHref,
   buildWorkshopDetailEnrollHref,
   gatePublicEnrollClick,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
 import { resolveCertificateAvailability } from '@/utils/programCertificateAvailability'
 import { formatEuroInteger } from '@/utils/currency'
@@ -94,7 +93,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
 export default function WorkshopDetailsPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
   const enrollRef = useRef<HTMLDivElement>(null)
 
   const [workshop, setWorkshop] = useState<PublicWorkshop | null>(null)
@@ -104,6 +103,8 @@ export default function WorkshopDetailsPage() {
   const [notFound, setNotFound] = useState(() => !slug)
   const [loadError, setLoadError] = useState(false)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
+  // The payment arrived but the enrollment awaits a financial review (server-authoritative): never "complete payment".
+  const [paymentUnderReview, setPaymentUnderReview] = useState(false)
 
   // Re-arm the load state during render when the slug changes (react.dev "adjusting
   // state when a prop changes") instead of from the fetch effect below.
@@ -146,7 +147,10 @@ export default function WorkshopDetailsPage() {
     seenEnrollment.enrolledCourseId !== enrolledCourseId
   ) {
     setSeenEnrollment({ isAuthenticated, enrolledCourseId })
-    if (!isAuthenticated || !enrolledCourseId) setAlreadyEnrolled(false)
+    if (!isAuthenticated || !enrolledCourseId) {
+      setAlreadyEnrolled(false)
+      setPaymentUnderReview(false)
+    }
   }
 
   useEffect(() => {
@@ -155,6 +159,7 @@ export default function WorkshopDetailsPage() {
     void fetchStudentRegistrations().then((regs) => {
       if (!alive) return
       setAlreadyEnrolled(regs.some((r) => r.course_id === enrolledCourseId))
+      setPaymentUnderReview(regs.some((r) => r.course_id === enrolledCourseId && r.access?.payment_under_review === true))
     })
     return () => { alive = false }
   }, [isAuthenticated, enrolledCourseId])
@@ -165,7 +170,6 @@ export default function WorkshopDetailsPage() {
   )
 
   const redirectPath = slug ? `/workshops/${slug}` : '/workshops'
-  const isStudent = normalizeRole(user?.role) === 'student'
   const externalUrl = workshop?.external_registration_url ?? null
   const registrationOpen = workshop?.registration_open !== false
   const seatsFull = (workshop?.seats_remaining ?? 1) <= 0 && (workshop?.seats_total ?? 0) > 0
@@ -193,10 +197,9 @@ export default function WorkshopDetailsPage() {
   function scrollToEnroll() {
     gatePublicEnrollClick({
       isAuthenticated,
-      role: user?.role,
       redirectPath,
       navigate,
-      onStudent: () => enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      onLearner: () => enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
     })
   }
 
@@ -222,6 +225,13 @@ export default function WorkshopDetailsPage() {
         </a>
       )
     }
+    if (paymentUnderReview) {
+      return (
+        <span role="status" data-testid="workshop-payment-under-review" className={`${base} cursor-default bg-slate-500`}>
+          {UNDER_REVIEW_LABEL}
+        </span>
+      )
+    }
     if (alreadyEnrolled) {
       return (
         <Link to="/dashboard/student/courses" className={`${base} bg-emerald-600`}>
@@ -235,14 +245,6 @@ export default function WorkshopDetailsPage() {
           <GraduationCap size={18} />
           سجّل الدخول للتسجيل
         </Link>
-      )
-    }
-    if (!isStudent) {
-      return (
-        <button type="button" onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)} className={`${base} bg-[#F28C00]`}>
-          <GraduationCap size={18} />
-          سجّل في الورشة
-        </button>
       )
     }
     if (workshop?.course_slug) {
@@ -527,11 +529,13 @@ export default function WorkshopDetailsPage() {
         actionLabel={
           !isAuthenticated
             ? 'تسجيل الدخول للالتحاق'
-            : alreadyEnrolled
-              ? 'عرض تسجيلي'
+            : paymentUnderReview
+              ? UNDER_REVIEW_LABEL
+              : alreadyEnrolled
+                ? 'عرض تسجيلي'
               : 'سجّل في الورشة'
         }
-        disabled={!registrationOpen || seatsFull}
+        disabled={!registrationOpen || seatsFull || paymentUnderReview}
         onAction={scrollToEnroll}
         extra={
           !isAuthenticated ? (

@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import {
+  Activity,
   Award,
   BarChart3,
   Bell,
@@ -11,6 +12,7 @@ import {
   Calendar,
   CalendarDays,
   ClipboardCheck,
+  Scale,
   ClipboardList,
   Code2,
   Cpu,
@@ -235,6 +237,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'الفواتير',        href: '/dashboard/admin/finance/invoices',                 icon: FileText      },
         { label: 'المعاملات',       href: '/dashboard/admin/finance/transactions',             icon: BarChart3     },
         { label: 'المدفوعات اليدوية', href: '/dashboard/admin/finance/manual-payments',        icon: ClipboardCheck },
+        { label: 'تسوية المدفوعات',  href: '/dashboard/admin/finance/payment-reconciliations',  icon: Scale          },
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'سندات المصروفات',    href: '/dashboard/finance/expenses',                   icon: Receipt       },
         { label: 'سندات القبض (الإيرادات)', href: '/dashboard/finance/revenues',                   icon: TrendingUp    },
@@ -271,6 +274,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       defaultOpen: false,
       items: [
         { label: 'الإعدادات',         href: '/dashboard/settings',                      icon: Settings     },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'إعدادات الحضور',    href: '/dashboard/super-admin/attendance-settings', icon: ClipboardCheck },
         { label: 'البريد الإلكتروني', href: '/dashboard/super-admin/email-settings',    icon: Mail         },
         { label: 'سجلات البريد',      href: '/dashboard/super-admin/email-logs',        icon: ScrollText   },
@@ -298,6 +302,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       items: [
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
+        { label: 'مركز المتابعة التنفيذي', href: '/dashboard/executive/command-center', icon: Activity },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
         { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
@@ -377,6 +383,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
+        { label: 'تسوية المدفوعات', href: '/dashboard/finance/payment-reconciliations', icon: Scale },
         { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },
@@ -409,6 +416,8 @@ function techAdminSidebar(): SidebarNavGroup[] {
       defaultOpen: true,
       items: [
         { label: 'لوحة التحكم التقنية', href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'مركز المتابعة التقني', href: '/dashboard/executive/command-center', icon: Activity },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
 
         { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },
         { label: 'سجلات التدقيق',   href: '/dashboard/super-admin/audit-logs',  icon: ScrollText      },
@@ -544,8 +553,34 @@ function learnerBlock(collapsible = true): SidebarNavGroup[] {
   ]
 }
 
-/** Role-specific sidebar navigation (Arabic RTL labels). */
+/** The learner's own courses and workshops: the same page for every account, whatever its role. */
+export const LEARNER_COURSES_HREF = '/dashboard/student/courses'
+
+/**
+ * Sidebar navigation for a role (Arabic RTL labels), plus «دوراتي» for EVERY role.
+ *
+ * Learning is not a role: any account may be enrolled in a course or workshop, so the learner entry is added here, once, instead of
+ * being copied into every role's menu. A role added tomorrow gets it for free; a role whose menu already has it (the student's)
+ * is left exactly as it is. The role's own menu is never replaced or reordered, and the entry only reuses the existing learner
+ * route; whether the page opens is still decided by the access manifest, which grants it to every authenticated account.
+ */
 export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
+  const groups = roleSidebar(roleRaw, ctx)
+  if (groups.some((g) => g.items.some((item) => item.href === LEARNER_COURSES_HREF))) return groups
+
+  // An instructor already has a «دوراتي» that means the courses they TEACH; the learner entry is named so the two are never mixed up.
+  const label = normalizeRole(roleRaw ?? null) === 'instructor' ? 'دوراتي كمتعلّم' : 'دوراتي'
+
+  const learner: SidebarNavGroup = { title: 'التعلّم', items: [{ label, href: LEARNER_COURSES_HREF, icon: BookOpen }] }
+  // A trailing «الحساب» group stays last, as it does for every other heading added to a menu.
+  const last = groups[groups.length - 1]
+  if (last?.title === 'الحساب') return [...groups.slice(0, -1), learner, last]
+
+  return [...groups, learner]
+}
+
+/** Role-specific sidebar navigation (Arabic RTL labels). */
+function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
   const n = normalizeRole(roleRaw ?? null)
 
   if (n === 'super_admin') return superMasterSidebar()
@@ -563,6 +598,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
+          { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
@@ -675,6 +711,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'طلبات الاحتياج الكادر',
         items: [
           { label: 'طلبات الإدارات الواردة (HR)', href: '/dashboard/hr/incoming-requests', icon: Inbox },
+          { label: 'فرص التطوع', href: '/dashboard/hr/opportunities', icon: Megaphone },
           { label: 'تقديم طلب احتیاج قسم HR (للإدارة العليا)', href: '/dashboard/hr/my-requests', icon: UserPlus },
         ],
       },

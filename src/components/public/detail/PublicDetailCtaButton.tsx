@@ -3,7 +3,6 @@ import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Check, GraduationCap, Loader2, Lock, Tag, X } from 'lucide-react'
 import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'
-import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import toast from '@/lib/toast'
 import { initiateCheckout, validateCoupon, type CouponPricingPreview } from '@/api/checkoutApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -213,22 +212,6 @@ export default function PublicDetailCtaButton({
         {cta.label}
         <ArrowLeft size={size === 'lg' ? 18 : 16} aria-hidden />
       </Link>
-    )
-  }
-
-  if (cta.denyNonStudent) {
-    return (
-      <motion.button
-        type="button"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
-        className={cls}
-      >
-        <GraduationCap size={size === 'lg' ? 20 : 18} aria-hidden />
-        {cta.label}
-        <ArrowLeft size={size === 'lg' ? 18 : 16} aria-hidden />
-      </motion.button>
     )
   }
 

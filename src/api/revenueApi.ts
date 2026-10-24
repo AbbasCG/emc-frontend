@@ -13,9 +13,9 @@ export interface ManualRevenueItem {
   program_id?: number | null
   program_name?: string | null
   description: string
-  attachment_path?: string | null
+  /** The file itself is private — fetch it through voucherAttachmentApi. */
+  has_attachment: boolean
   attachment_name?: string | null
-  attachment_url?: string | null
   status: 'posted' | 'draft' | 'cancelled'
   created_by?: number | null
   updated_by?: number | null
@@ -39,7 +39,8 @@ export interface ManualRevenueItem {
 export interface RevenuesSummary {
   total_amount: number
   total_count: number
-  by_category: Array<{ category_name: string; category_code: string; total: number | string }>
+  by_category: Array<{ category_name: string; category_code: string; currency: string; total: number | string }>
+  by_currency: Array<{ currency: string; total: number | string; count: number }>
 }
 
 export interface RevenuesResponse {

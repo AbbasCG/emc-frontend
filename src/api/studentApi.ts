@@ -740,6 +740,11 @@ export type StudentCourseAccess = {
   payment_status: string | null
   payment_completed: boolean
   payment_url: string | null
+  /**
+   * Payment was received but the enrollment needs a finance decision (the payer teaches the program). Nothing is owed: the UI must
+   * say "received — under review" and never offer to pay again.
+   */
+  payment_under_review?: boolean
   enrollment_active: boolean
   can_start_placement_test: boolean
   placement_test_required: boolean
@@ -749,6 +754,7 @@ export type StudentCourseAccess = {
     | 'payment_pending'
     | 'payment_failed'
     | 'payment_required'
+    | 'payment_under_review'
     | 'registration_cancelled'
     | 'placement_test_required'
     | 'placement_test_in_progress'
@@ -793,6 +799,7 @@ function normalizeAccessBlock(raw: unknown): StudentCourseAccess | null {
     payment_status: a.payment_status != null ? String(a.payment_status) : null,
     payment_completed: a.payment_completed === true,
     payment_url: a.payment_url != null && String(a.payment_url).trim() !== '' ? String(a.payment_url) : null,
+    payment_under_review: a.payment_under_review === true || a.block_reason === 'payment_under_review',
     enrollment_active: a.enrollment_active === true,
     can_start_placement_test: a.can_start_placement_test === true,
     placement_test_required: a.placement_test_required === true,

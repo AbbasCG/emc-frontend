@@ -16,6 +16,8 @@ import {
 import { adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { cn } from '@/lib/utils'
+import { UserVerifiedBadge } from '@/components/super-admin/users/UserBadges'
+import { ResendVerificationButton } from '@/components/super-admin/users/ResendVerificationButton'
 import { AR_UNSPECIFIED } from '@/utils/dispAr'
 
 const TABS = [
@@ -148,10 +150,15 @@ export function UsersEnterpriseDetailDrawer({
               <Row label="الحالة الحسابية" val={statusLabel(user)} />
               <Row
                 label="تأكيد البريد"
-                val={emailVerifiedTs ? <>موثّق ({fmtDate(user.email_verified_at)})</> : 'غير موثّق'}
-                muted={!emailVerifiedTs}
+                val={
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    <UserVerifiedBadge user={user} />
+                    {emailVerifiedTs ? <span className="text-[11px] text-muted-600">{fmtDate(user.email_verified_at)}</span> : null}
+                  </span>
+                }
               />
             </div>
+            <ResendVerificationButton user={user} className="w-full" />
           </aside>
 
           <div className="min-w-0 space-y-3">

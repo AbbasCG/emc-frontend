@@ -77,6 +77,12 @@ export async function fetchConsultantApplications(params?: {
   }
 }
 
+/** One application by id, authorized by the server like the list (a refusal is a 403, a deleted record a 404). */
+export async function fetchConsultantApplication(id: number): Promise<ConsultantApplication> {
+  const res = await apiClient.get<unknown>(`/admin/consultant-applications/${id}`, { skipErrorToast: true })
+  return unwrapData<ConsultantApplication>(res.data)
+}
+
 export async function updateConsultantApplicationStatus(
   id: number,
   status: ConsultantApplication['status'],

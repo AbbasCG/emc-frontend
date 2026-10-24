@@ -23,6 +23,8 @@ import {
   fetchAdminUser,
   fetchAdminUsersPage,
   getAdminUserMutationMessage,
+  getResendVerificationErrorMessage,
+  resendUserVerification,
   restoreAdminUser,
   updateAdminUser,
   type AdminManagedUser,
@@ -570,6 +572,15 @@ export default function UsersManagementPage() {
     }
   }
 
+  async function sendVerification(u: AdminManagedUser) {
+    try {
+      const { message } = await resendUserVerification(u.id)
+      toast.success(message)
+    } catch (e) {
+      toast.error(getResendVerificationErrorMessage(e))
+    }
+  }
+
   async function executeRestore(u: AdminManagedUser) {
     setSaving(true)
     try {
@@ -628,6 +639,15 @@ export default function UsersManagementPage() {
               key: 'impersonate',
               label: 'الدخول كمستخدم',
               onClick: () => void impersonatePreview(u),
+            },
+          ]
+        : []),
+        ...(u.can_resend_verification === true && !isDeletedUser(u) ?
+          [
+            {
+              key: 'resend-verification',
+              label: 'إعادة إرسال رسالة التوثيق',
+              onClick: () => void sendVerification(u),
             },
           ]
         : []),

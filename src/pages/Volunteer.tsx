@@ -382,6 +382,12 @@ export default function Volunteer() {
                 <ArrowLeft size={16} />
               </Link>
               <Link
+                to="/volunteer-opportunities"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/[0.08] px-7 py-4 text-sm font-extrabold text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.14]"
+              >
+                تصفح فرص التطوع المتاحة
+              </Link>
+              <Link
                 to="/team"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/[0.08] px-7 py-4 text-sm font-extrabold text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.14]"
               >

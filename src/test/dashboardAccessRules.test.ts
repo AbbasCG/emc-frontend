@@ -171,12 +171,10 @@ describe('getAllowedRolesForPath — مسارات التعلّم والمحتو�
     expect(getAllowedRolesForPath('/dashboard/courses/12/content/lessons/3')).not.toContain('student')
   })
 
-  it('مسارات التعلّم الأخرى للطالب', () => {
-    expect(getAllowedRolesForPath('/dashboard/courses/12/modules')).toEqual(['student'])
-    expect(getAllowedRolesForPath('/dashboard/lessons/5')).toEqual(['student'])
-    expect(getAllowedRolesForPath('/dashboard/quizzes/5')).toEqual(['student'])
-    expect(getAllowedRolesForPath('/dashboard/certificates/7')).toEqual(['student'])
-    expect(getAllowedRolesForPath('/dashboard/learning')).toEqual(['student'])
+  it('مسارات التعلّم مفتوحة لكل حساب مسجّل — التعلّم ليس دوراً', () => {
+    for (const path of ['/dashboard/courses/12/modules', '/dashboard/lessons/5', '/dashboard/quizzes/5', '/dashboard/certificates/7', '/dashboard/learning', '/dashboard/student/courses']) {
+      expect(getAllowedRolesForPath(path)).toBe('authenticated')
+    }
   })
 
   it('قائمة الدورات المختصرة إدارية وليست مسار تعلّم للطالب', () => {

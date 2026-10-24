@@ -33,7 +33,8 @@ import {
   extractExtraRegistrationRows,
 } from '@/utils/studentDashboardEnvelope'
 import { mergeStudentEnrollments } from '@/utils/studentEnrollmentMerge'
-import { normalizeRole } from '@/utils/dashboardAccess'
+import { isLearnerPath, normalizeRole } from '@/utils/dashboardAccess'
+import { useLocation } from 'react-router'
 import { useAuth } from '@/contexts/AuthContext'
 
 const EMPTY_LMS = normalizeStudentLmsDashboard(null)
@@ -506,7 +507,10 @@ function StudentDashboardBridge({ children }: { children: ReactNode }) {
 
 export function StudentDashboardProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const enabled = normalizeRole(user?.role) === 'student'
+  const { pathname } = useLocation()
+  // Learning is not a role: a student always has this data, and anyone else gets it while they are in the learner space (their own
+  // enrollments, nothing more). Elsewhere in the dashboard it is not fetched, so no other role pays for it on every page.
+  const enabled = normalizeRole(user?.role) === 'student' || isLearnerPath(pathname)
   if (!enabled) {
     return createElement(StudentDashboardContext.Provider, { value: null }, children)
   }
