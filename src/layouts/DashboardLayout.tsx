@@ -237,7 +237,12 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const { pages: accessPages } = usePageAccess()
 
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
-    const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
+    const base = getSidebarByRole(user?.role, {
+      hasEnglishCourses: Boolean(user?.has_english_courses),
+      hasEnrolledCourses: Boolean(user?.has_enrolled_courses),
+      departmentName: user?.department_name || user?.department,
+      impactPointsBalance: user?.impact_points_balance,
+    })
 
     // «التشغيل والتقارير» — مجموعة مشتركة بارزة (غير مطوية) لكل أدوار الفريق:
     // لوحة التشغيل المرئية للجميع، تقارير الاجتماعات، تقرير الإثنين، ونقاط الأثر.

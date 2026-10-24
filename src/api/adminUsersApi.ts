@@ -472,6 +472,7 @@ export type CreateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -488,6 +489,7 @@ export async function createAdminUser(input: CreateAdminUserInput): Promise<Admi
   if (input.phone != null && String(input.phone).trim() !== '') body.phone = String(input.phone).trim()
   if (input.department != null && String(input.department).trim() !== '')
     body.department = String(input.department).trim()
+  if (input.department_id != null) body.department_id = input.department_id
   if (input.city != null && String(input.city).trim() !== '') body.city = String(input.city).trim()
   if (input.country != null && String(input.country).trim() !== '') body.country = String(input.country).trim()
   if (input.how_did_you_hear_about_us != null && String(input.how_did_you_hear_about_us).trim() !== '')
@@ -510,6 +512,7 @@ export type UpdateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -540,6 +543,7 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
   if (patch.phone != null && String(patch.phone).trim() !== '') commonPairs.phone = String(patch.phone).trim()
   if (patch.department != null && String(patch.department).trim() !== '')
     commonPairs.department = String(patch.department).trim()
+  if (patch.department_id != null) commonPairs.department_id = String(patch.department_id)
   if (patch.city != null && String(patch.city).trim() !== '') commonPairs.city = String(patch.city).trim()
   if (patch.country != null && String(patch.country).trim() !== '') commonPairs.country = String(patch.country).trim()
   if (patch.how_did_you_hear_about_us != null && String(patch.how_did_you_hear_about_us).trim() !== '')

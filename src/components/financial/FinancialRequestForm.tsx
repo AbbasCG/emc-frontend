@@ -42,9 +42,10 @@ const CURRENCIES = [
   { code: 'USD', label: 'دولار أمريكي' },
   { code: 'SAR', label: 'ريال سعودي' },
   { code: 'YER', label: 'ريال يمني' },
+  { code: 'TRY', label: 'ليرة تركية' },
+  { code: 'GBP', label: 'جنيه إسترليني' },
   { code: 'SYP', label: 'ليرة سورية' },
   { code: 'AED', label: 'درهم إماراتي' },
-  { code: 'GBP', label: 'جنيه إسترليني' },
 ]
 
 const INPUT_BASE = 'w-full rounded-xl border bg-white px-4 py-3 text-sm text-deepBlue transition focus:outline-none focus:ring-2 focus:ring-customBlue/40 focus:border-customBlue placeholder:text-slate-400'

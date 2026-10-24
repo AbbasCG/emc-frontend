@@ -118,3 +118,60 @@ export async function deleteRevenue(id: number): Promise<{ success: boolean; mes
   )
   return data
 }
+
+// ── Course Revenue Helpers ─────────────────────────────────────────────────────
+
+export interface PaidCourse {
+  id: number
+  title: string
+  price: number
+  currency: string
+  status: string
+}
+
+export interface CoursePendingStudent {
+  registration_id: number
+  user_id: number | null
+  full_name: string
+  email: string
+  phone: string
+  course_price: number
+  currency: string
+  status: string
+}
+
+export interface CashboxBalance {
+  total_revenues: number
+  total_expenses: number
+  balance: number
+}
+
+export async function fetchPaidCourses(): Promise<PaidCourse[]> {
+  const { data } = await apiClient.get<{ success: boolean; data: PaidCourse[] }>(
+    '/admin/finance/revenues/paid-courses'
+  )
+  return data.data
+}
+
+export async function fetchCourseStudentsPendingPayment(courseId: number): Promise<{
+  course: PaidCourse
+  students: CoursePendingStudent[]
+}> {
+  const { data } = await apiClient.get<{
+    success: boolean
+    course: PaidCourse
+    data: CoursePendingStudent[]
+  }>(`/admin/finance/revenues/course-students/${courseId}`)
+  return { course: data.course, students: data.data }
+}
+
+export async function fetchCashboxBalance(): Promise<CashboxBalance> {
+  const { data } = await apiClient.get<{ success: boolean } & CashboxBalance>(
+    '/admin/finance/revenues/cashbox-balance'
+  )
+  return {
+    total_revenues: data.total_revenues,
+    total_expenses: data.total_expenses,
+    balance: data.balance,
+  }
+}

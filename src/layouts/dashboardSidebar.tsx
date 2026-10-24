@@ -518,8 +518,30 @@ function techAdminSidebar(): SidebarNavGroup[] {
 }
 
 export interface SidebarContext {
-  /** True when the instructor teaches at least one course with requires_placement_test=true — gates المعهد الإنجليزي. Source of truth: courses.requires_placement_test, never role/department/title. */
+  /** True when the instructor teaches at least one course with requires_placement_test=true — gates المعهد الإنجليزي. */
   hasEnglishCourses?: boolean
+  /** True when user is enrolled in at least one course or workshop */
+  hasEnrolledCourses?: boolean
+  /** Department name if user belongs to or leads a department */
+  departmentName?: string | null
+  /** Impact points balance */
+  impactPointsBalance?: number
+}
+
+function learnerBlock(collapsible = true): SidebarNavGroup[] {
+  return [
+    {
+      title: 'تعلّمي والدورات',
+      collapsible,
+      defaultOpen: false,
+      items: [
+        { label: 'دوراتي والورش', href: '/dashboard/student/courses', icon: BookOpen },
+        { label: 'المسارات التعليمية', href: '/dashboard/student/learning-paths', icon: GraduationCap },
+        { label: 'الشهادات', href: '/dashboard/student/certificates', icon: Award },
+        { label: 'التقويم الدراسي', href: '/dashboard/student/calendar', icon: CalendarDays },
+      ],
+    },
+  ]
 }
 
 /** Role-specific sidebar navigation (Arabic RTL labels). */
@@ -729,14 +751,37 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
       ...resourceCenterBlock(),
       ...communicationsBlock(n),
     ]
   }
 
-  if (n === 'department_manager') {
+  if (n === 'department_member') {
+    const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
     return [
-      { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
+      {
+        title: deptTitle,
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: Calendar },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+          membersNavItem(),
+        ],
+      },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
+      ...resourceCenterBlock({ collapsible: true }),
+      ...communicationsBlock(n),
+    ]
+  }
+
+  if (n === 'department_manager') {
+    const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
+    return [
+      { items: [{ label: deptTitle, href: '/dashboard/department', icon: Building2 }] },
       {
         title: 'التعلّم والبرامج والطلبات',
         items: [
@@ -748,13 +793,16 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       {
-        title: 'إدارة الموظفين',
+        title: 'إدارة الفريق والهيكلة',
         items: [
+          { label: 'الهيكلة والتسكين الإداري', href: '/dashboard/department/structure', icon: FolderTree },
           { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
-          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: Calendar },
           membersNavItem(),
         ]
       },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
       ...communicationsBlock(n),
     ]
   }

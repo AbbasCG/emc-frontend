@@ -27,6 +27,7 @@ export const EMC_DASHBOARD_ROLES = [
   'strategy_planning_manager',
   'digital_ambassadors_manager',
   'advisors_manager',
+  'department_member',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -58,6 +59,7 @@ const ROLE_HOME: Record<string, string> = {
   support_agent: '/dashboard/support',
   volunteer: '/dashboard/ops/volunteers',
   department_manager: '/dashboard/department',
+  department_member: '/dashboard/department/meeting-lounge',
   programs_manager: '/dashboard/programs-manager',
   operations_manager: '/dashboard/operations-manager',
   partnerships_manager: '/dashboard/partnerships-manager',
@@ -136,7 +138,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // link/route visibility; DepartmentAccessService::canManageDepartment() on
   // the backend remains the actual authority for every read/write here).
   { prefix: '/dashboard/department/structure', roles: ['department_manager', 'ai_manager', 'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
-  { prefix: '/dashboard/department', roles: ['department_manager'] },
+  { prefix: '/dashboard/department', roles: ['department_manager', 'department_member'] },
   // Organizational AI Department workspace (إدارة الذكاء الاصطناعي والتحول
   // الرقمي) — generic department-leader workspace, NOT the technical AI
   // Platform. Access is granted here by role for sidebar/redirect purposes;
@@ -275,7 +277,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
       'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
       'marketing', 'marketing_manager', 'quality', 'quality_manager',
       'support_agent', 'operations_manager', 'partnerships_manager',
-      'community_manager', 'volunteer', 'department_manager', 'ai_manager',
+      'community_manager', 'volunteer', 'department_manager', 'department_member', 'ai_manager',
       'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager',
     ]
   }

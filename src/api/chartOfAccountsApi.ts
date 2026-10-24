@@ -10,6 +10,7 @@ export interface ChartOfAccountItem {
   is_selectable: boolean
   is_system?: boolean
   is_deletable?: boolean
+  default_for_currency?: string | null
   created_at?: string
   updated_at?: string
   parent?: ChartOfAccountItem | null
@@ -43,6 +44,13 @@ export async function fetchAccountsList(params?: {
   return data.data
 }
 
+export async function fetchAccountDefaults(): Promise<Record<string, { id: number; code: string; name_ar: string; currency: string }>> {
+  const { data } = await http.get<{ success: boolean; data: Record<string, { id: number; code: string; name_ar: string; currency: string }> }>(
+    '/admin/finance/accounts/defaults'
+  )
+  return data.data
+}
+
 export async function suggestAccountCode(parentId?: number): Promise<CodeSuggestionResponse> {
   const { data } = await http.get<CodeSuggestionResponse>(
     '/admin/finance/chart-of-accounts/suggest-code',
@@ -58,6 +66,7 @@ export async function createChartOfAccount(payload: {
   type?: 'debit' | 'credit'
   parent_id?: number | null
   is_selectable?: boolean
+  default_for_currency?: string | null
 }): Promise<ChartOfAccountItem> {
   const { data } = await http.post<{ success: boolean; data: ChartOfAccountItem }>(
     '/admin/finance/accounts',
@@ -72,6 +81,7 @@ export async function updateChartOfAccount(
     name_ar: string
     name_en?: string
     is_selectable: boolean
+    default_for_currency?: string | null
   }
 ): Promise<ChartOfAccountItem> {
   const { data } = await http.put<{ success: boolean; data: ChartOfAccountItem }>(

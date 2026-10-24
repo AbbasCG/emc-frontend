@@ -179,6 +179,7 @@ export function UsersEnterpriseDetailDrawer({
                   <Kv k="معرّف داخلي" v={String(user.id)} />
                   <Kv k="الاسم الكامل" v={fieldOrUnset(user.name)} />
                   <Kv k="البريد" v={fieldOrUnset(user.email)} />
+                  <Kv k="الإدارة" v={fieldOrUnset((user as any).department_name || user.department)} />
                   <Kv k="الجوال" v={fieldOrUnset(user.phone)} />
                   <Kv k="المدينة" v={fieldOrUnset(user.city)} />
                   <Kv k="الدولة" v={fieldOrUnset(user.country)} />

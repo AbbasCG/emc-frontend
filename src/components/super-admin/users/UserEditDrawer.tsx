@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import { adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
+import { adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS } from '@/pages/super-admin/users/assignableRoles'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatDate, formatRelativeDate } from '@/utils/dateTime'
@@ -47,6 +47,9 @@ type Props = {
   lastLoginAt?: string | null
   createdAt?: string | null
   roleOptions: RoleOption[]
+  departmentList?: { id: number; name_ar?: string; name?: string }[]
+  formDepartmentId?: string
+  onFormDepartmentId?: (v: string) => void
   onClose: () => void
   onSubmit: () => void | Promise<void>
   onFormName: (v: string) => void
@@ -90,6 +93,9 @@ export function UserEditDrawer({
   lastLoginAt,
   createdAt,
   roleOptions,
+  departmentList = DEFAULT_EMC_DEPARTMENTS,
+  formDepartmentId,
+  onFormDepartmentId,
   onClose,
   onSubmit,
   onFormName,
@@ -252,9 +258,11 @@ export function UserEditDrawer({
               <Field label="الجوال">
                 <input value={formPhone} onChange={(e) => onFormPhone(e.target.value)} className={INPUT} dir="ltr" />
               </Field>
-              <Field label="القسم / الإدارة">
-                <input value={formDepartment} onChange={(e) => onFormDepartment(e.target.value)} className={INPUT} />
-              </Field>
+              {formRole !== 'department_manager' && formRole !== 'department_member' && (
+                <Field label="القسم / الإدارة">
+                  <input value={formDepartment} onChange={(e) => onFormDepartment(e.target.value)} className={INPUT} />
+                </Field>
+              )}
               <Field label="المدينة">
                 <input value={formCity} onChange={(e) => onFormCity(e.target.value)} className={INPUT} />
               </Field>
@@ -277,8 +285,38 @@ export function UserEditDrawer({
                 ))}
               </select>
             </Field>
+
+            {(formRole === 'department_manager' || formRole === 'department_member') && (
+              <Field
+                label="الإدارة التابع لها"
+                error={!formDepartmentId && !formDepartment ? 'يرجى اختيار الإدارة المعنية' : undefined}
+              >
+                <select
+                  value={formDepartmentId || ''}
+                  onChange={(e) => {
+                    const id = e.target.value
+                    onFormDepartmentId?.(id)
+                    const matched = departmentList?.find((d) => String(d.id) === id)
+                    onFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
+                  }}
+                  className={cn(
+                    INPUT,
+                    !formDepartmentId && !formDepartment && 'border-amber-400 bg-amber-50/30 text-amber-900',
+                  )}
+                >
+                  <option value="">-- اختر الإدارة المعنية --</option>
+                  {departmentList?.map((d) => (
+                    <option key={d.id} value={String(d.id)}>
+                      {d.name_ar || d.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
             <p className="rounded-xl bg-[#0C2A4B]/5 px-3 py-2 text-[11px] font-bold text-[#0C2A4B]">
               الدور الحالي: {adminRoleLabelAr(formRole)}
+              {formDepartment ? ` (${formDepartment})` : ''}
             </p>
           </Section>
 
