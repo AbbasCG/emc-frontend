@@ -6,7 +6,8 @@ import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { useTranslation } from 'react-i18next'
 import HomeCourseCard from './HomeCourseCard'
 import type { Course } from '../../types'
-import { fetchCoursesFromApi } from '../../api/coursesApi.public'
+import { extractCoursesList, fetchCoursesFromApi } from '../../api/coursesApi.public'
+import apiClient from '@/api/axios'
 import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { staggerContainer } from '@/utils/animations'
 
@@ -26,36 +27,111 @@ const TIER_TABS: TierTab[] = [
 ]
 
 /**
- * Strict chronological sorting rule:
- * 1. Active / Upcoming / New programs appear first.
- * 2. Within active programs, newly added programs appear first (created_at / ID descending: آخر ما أضيف يظهر أولاً).
- * 3. Expired or ended programs (isEnded) appear strictly at the bottom.
+ * دالة مساعدة لتحويل النصوص التاريخية إلى وقت رقمي موثوق (Timestamp)
  */
-export function sortCoursesChronologically(list: Course[]): Course[] {
-  return [...list].sort((a, b) => {
-    const isEndedA = resolveCourseIsEnded(a)
-    const isEndedB = resolveCourseIsEnded(b)
+function safeTimestamp(val: unknown): number | null {
+  if (!val || typeof val !== 'string') return null
+  const ts = Date.parse(val)
+  return Number.isFinite(ts) ? ts : null
+}
 
-    // Rule 1: Active courses strictly first, ended courses strictly last
-    if (isEndedA !== isEndedB) {
-      return isEndedA ? 1 : -1
+/**
+ * فحص دقيق وشامل لانتهاء الدورة أو الورشة (Bulletproof IsEnded check)
+ */
+function isProgramEnded(c: Course): boolean {
+  if (resolveCourseIsEnded(c)) return true
+
+  // للورش التي حُدد لها تاريخ بدء فقط وتجاوز موعدها الحالي بأكثر من 24 ساعة
+  const isWorkshop = c.program_type === 'workshop' || Boolean((c as Record<string, unknown>).is_workshop)
+  if (isWorkshop && c.start_date) {
+    const startTs = safeTimestamp(c.start_date)
+    if (startTs != null && startTs + 24 * 60 * 60 * 1000 < Date.now()) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * جلب الدورات وورش العمل معاً بالتوازي لعرضها في برامج الصفحة الرئيسية
+ */
+async function fetchAllFeaturedPrograms(): Promise<Course[]> {
+  const [coursesRes, workshopsRes] = await Promise.allSettled([
+    fetchCoursesFromApi(),
+    apiClient
+      .get('/workshops', { params: { per_page: 50 }, skipErrorToast: true })
+      .then((res) => extractCoursesList(res.data))
+      .catch(() => [] as Course[]),
+  ])
+
+  const listA = coursesRes.status === 'fulfilled' ? coursesRes.value : []
+  const listB = workshopsRes.status === 'fulfilled' ? workshopsRes.value : []
+
+  // دمج البرامج وإزالة أي تكرار عبر الـ id والـ slug
+  const map = new Map<string, Course>()
+  for (const item of [...listA, ...listB]) {
+    if (!item || !item.title) continue
+    const key = item.id != null ? `id_${item.id}` : `slug_${item.slug}`
+    if (!map.has(key)) {
+      map.set(key, item)
+    }
+  }
+  return Array.from(map.values())
+}
+
+/**
+ * خوارزمية ترتيب البرامج الذكية للصفحة الرئيسية (Enterprise-Grade Ranking):
+ * 1. الأولوية المطلقة للفعاليات والورش القادمة (تاريخ بدء مستقبلي): تُرتّب تصاعدياً (الأقرب موعداً أولاً).
+ * 2. تليها البرامج والدورات المستمرة/المفتوحة للتسجيل: تُرتّب تنازلياً حسب الأحدث إضافة (id تنازلي).
+ * 3. البرامج المنتهية تُدفع إلى النهاية تماماً ولا تظهر إلا لسد الفراغ عند قلة البرامج النشطة.
+ */
+export function sortFeaturedPrograms(courses: Course[]): Course[] {
+  const now = Date.now()
+  const todayBuffer = now - 24 * 60 * 60 * 1000
+
+  const upcomingWithDate: Course[] = []
+  const activeOpen: Course[] = []
+  const ended: Course[] = []
+
+  for (const c of courses) {
+    if (isProgramEnded(c)) {
+      ended.push(c)
+      continue
     }
 
-    // Rule 2: Newly added first (date created descending, then ID descending)
-    const getCreatedTs = (c: Course): number => {
-      const rawCreated = (c as Record<string, unknown>).created_at as string | undefined
-      if (rawCreated) {
-        const parsed = Date.parse(rawCreated)
-        if (!isNaN(parsed)) return parsed
-      }
-      return 0
+    const startTs = safeTimestamp(c.start_date)
+    if (startTs != null && startTs >= todayBuffer) {
+      upcomingWithDate.push(c)
+    } else {
+      activeOpen.push(c)
     }
+  }
 
-    const timeDiff = getCreatedTs(b) - getCreatedTs(a)
-    if (timeDiff !== 0) return timeDiff
-
-    return (b.id ?? 0) - (a.id ?? 0)
+  // 1. الفعاليات القادمة: الأقرب بدءاً أولاً (Chronological Soonest)
+  upcomingWithDate.sort((a, b) => {
+    const timeA = safeTimestamp(a.start_date) ?? Number.POSITIVE_INFINITY
+    const timeB = safeTimestamp(b.start_date) ?? Number.POSITIVE_INFINITY
+    if (timeA !== timeB) return timeA - timeB
+    return (Number(b.id) || 0) - (Number(a.id) || 0)
   })
+
+  // 2. البرامج المفتوحة / المضافة حديثاً: الأحدث إضافةً أولاً (Newest Added First)
+  activeOpen.sort((a, b) => {
+    const idA = Number(a.id) || 0
+    const idB = Number(b.id) || 0
+    return idB - idA
+  })
+
+  // 3. البرامج المنتهية: الأحدث انتهاءً أولاً
+  ended.sort((a, b) => {
+    const endA = safeTimestamp(a.end_date) ?? 0
+    const endB = safeTimestamp(b.end_date) ?? 0
+    if (endA !== endB) return endB - endA
+    return (Number(b.id) || 0) - (Number(a.id) || 0)
+  })
+
+  return [...upcomingWithDate, ...activeOpen, ...ended]
 }
 
 function matchTier(c: Course, tier: TierTabId): boolean {
@@ -144,7 +220,7 @@ export default function FeaturedCoursesSection() {
 
   useEffect(() => {
     let active = true
-    fetchCoursesFromApi()
+    fetchAllFeaturedPrograms()
       .then((list) => {
         if (!active) return
         setCourses(list)
@@ -170,10 +246,10 @@ export default function FeaturedCoursesSection() {
     }
   }, [courses])
 
-  // Filter and sort chronologically: active/newest first, ended last
+  // Filter by active tier, then apply enterprise ranking (upcoming first, newest, ended last)
   const displayedCourses = useMemo(() => {
     const filtered = courses.filter((c) => matchTier(c, activeTier))
-    const sorted = sortCoursesChronologically(filtered)
+    const sorted = sortFeaturedPrograms(filtered)
     return sorted.slice(0, 8)
   }, [courses, activeTier])
 
@@ -206,7 +282,7 @@ export default function FeaturedCoursesSection() {
               {t('home.featured.title')}
             </h2>
             <p className="mt-2 text-xs font-semibold text-ink-400 sm:text-sm">
-              برامج تدريبية مرتبة زمنياً: الدورات المتاحة والجديدة أولاً، والبرامج المنتهية في الأرشيف
+              برامج تدريبية مرتبة زمنياً: الفعاليات والورش القادمة والمتاحة أولاً، والبرامج المنتهية في الأرشيف
             </p>
           </div>
 
@@ -287,4 +363,3 @@ export default function FeaturedCoursesSection() {
     </section>
   )
 }
-
