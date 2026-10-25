@@ -57,8 +57,8 @@ export default function ExpenseManagementPage() {
   // Filters state
   const [search, setSearch] = useState('')
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('')
-  const [dateFrom] = useState<string>('')
-  const [dateTo] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
 
   // Form states
   const [editingExpense, setEditingExpense] = useState<ManualExpenseItem | null>(null)
@@ -201,7 +201,7 @@ export default function ExpenseManagementPage() {
     setDescription(expense.description || '')
     setStatus(expense.status === 'cancelled' ? 'posted' : expense.status)
     setAttachment(null)
-    setAttachmentPreview(expense.attachment_url || null)
+    setAttachmentPreview((expense as any).attachment_url || null)
     setShowAdvancedPaymentAccount(!!expense.payment_account_id)
     setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })

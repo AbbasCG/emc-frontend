@@ -80,8 +80,8 @@ export default function RevenueManagementPage() {
 
   // Filters state
   const [search, setSearch] = useState('')
-  const [dateFrom] = useState<string>('')
-  const [dateTo] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
 
   // Form states
   const [editingRevenue, setEditingRevenue] = useState<ManualRevenueItem | null>(null)
@@ -294,7 +294,7 @@ export default function RevenueManagementPage() {
     setDescription(revenue.description || '')
     setStatus(revenue.status === 'cancelled' ? 'posted' : revenue.status)
     setAttachment(null)
-    setAttachmentPreview(revenue.attachment_url || null)
+    setAttachmentPreview((revenue as any).attachment_url || null)
     setShowAdvancedAccount(!!revenue.deposit_account_id)
     setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
