@@ -22,7 +22,7 @@ import { fetchPublicWorkshopBySlug, type PublicWorkshop } from '@/api/workshopsA
 import { fetchStudentRegistrations } from '@/api/studentApi'
 import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
-import { formatPublicDate, formatPublicTime, toLatinDigits } from '@/utils/publicDetailFormat'
+import { formatPublicDate, formatPublicTime, toLatinDigits, WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import {
   buildPublicLoginHref,
@@ -51,7 +51,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
   const startTime = formatPublicTime(workshop.start_time)
   const endTime = formatPublicTime(workshop.end_time)
   const clockRange =
- startTime && endTime ? `${startTime} ${endTime}`: startTime || endTime || ''
+ startTime && endTime ? `${startTime} – ${endTime}`: startTime || endTime || ''
 
   const deliveryMode = workshop.is_online
     ? 'عن بُعد'
@@ -68,7 +68,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
     items.push({ id: 'start', icon: CalendarDays, label: 'تاريخ البداية', value: startDate, accent: 'blue' })
   }
   if (clockRange) {
-    items.push({ id: 'time', icon: Clock3, label: 'الوقت', value: clockRange, accent: 'blue' })
+    items.push({ id: 'time', icon: Clock3, label: 'الوقت', value: `${clockRange} ${WORKSHOP_TZ_LABEL}`, accent: 'blue' })
   }
   if (workshop.seats_total != null && workshop.seats_total > 0) {
     items.push({ id: 'seats', icon: Users, label: 'إجمالي المقاعد', value: `${workshop.seats_total} مقعد`, accent: 'green' })

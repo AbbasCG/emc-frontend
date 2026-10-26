@@ -42,6 +42,20 @@ export function sessionFormatFromApi(
   return 'دورة متعددة الأيام'
 }
 
+const SESSION_FORMAT_AR: Record<string, string> = {
+  workshop_single_session: ONE_SESSION_WORKSHOP_UI,
+  workshop_one_session: ONE_SESSION_WORKSHOP_UI,
+  online: 'عن بُعد',
+  offline: 'حضوري',
+  hybrid: 'مختلط',
+}
+
+/** Public Arabic label for API session_format; unknown values pass through. */
+export function sessionFormatLabelAr(raw?: string | null): string {
+  const s = String(raw ?? '').trim()
+  return SESSION_FORMAT_AR[s.toLowerCase()] ?? s
+}
+
 /** Map wizard session format → Laravel session_format enum (omit when not applicable) */
 export function sessionFormatToApi(uiLabel: string): 'workshop_single_session' | undefined {
   if (uiLabel === ONE_SESSION_WORKSHOP_UI) return 'workshop_single_session'

@@ -4,7 +4,7 @@ import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { Link, useNavigate } from 'react-router'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
 import { formatEuroInteger } from '@/utils/currency'
-import { toLatinDigits } from '@/utils/publicDetailFormat'
+import { toLatinDigits, WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
@@ -171,6 +171,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
                 <span dir="ltr" className="tabular-nums">
                   {timeLabel}
                 </span>
+                <span className="font-semibold text-slate-500">{WORKSHOP_TZ_LABEL}</span>
               </>
             )}
           </span>

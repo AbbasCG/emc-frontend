@@ -1,6 +1,7 @@
 import type { Course } from '@/types'
 import type { CourseDetailDerived } from '@/utils/courseDetailDerived'
-import { formatPublicText } from '@/utils/publicDetailFormat'
+import { formatPublicText, formatStudyTime } from '@/utils/publicDetailFormat'
+import { sessionFormatLabelAr } from '@/utils/courseDuration'
 import { safeTrimUnknown } from '@/utils/publicCourseNormalize'
 
 type Props = { course: Course; derived: CourseDetailDerived }
@@ -18,8 +19,8 @@ export default function PremiumSchedule({ course, derived }: Props) {
 
   if (derived.hoursLabel) rows.push({ label: 'ساعات التدريب', value: formatPublicText(derived.hoursLabel) })
   if (studyDays) rows.push({ label: 'أيام الدراسة', value: formatPublicText(studyDays) })
-  if (studyTime) rows.push({ label: 'وقت الدراسة', value: formatPublicText(studyTime) })
-  if (sessionFmt) rows.push({ label: 'صيغة الجلسات', value: sessionFmt })
+  if (studyTime) rows.push({ label: 'وقت الدراسة', value: formatStudyTime(studyTime) })
+  if (sessionFmt) rows.push({ label: 'صيغة الجلسات', value: sessionFormatLabelAr(sessionFmt) })
   if (derived.programAr) rows.push({ label: 'نوع البرنامج', value: derived.programAr })
   if (dept) rows.push({ label: 'القسم', value: dept })
   if (track) rows.push({ label: 'المسار', value: track })
