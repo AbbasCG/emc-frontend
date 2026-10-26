@@ -58,25 +58,28 @@ function resolveProgramTier(course: Course): { label: string; badgeCls: string; 
     hours >= 40
   ) {
     return {
-      label: 'مسار تأهيل شامل · معتمد',
-      badgeCls: 'bg-indigo-500/10 text-indigo-800 border-indigo-300/60',
+      label: 'مسار تأهيل شامل متقدم',
+      badgeCls: 'bg-customBlue/10 text-customBlue border-customBlue/30',
       isFree,
     }
   }
 
   return {
-    label: isFree ? 'دورة تخصصية · مجانية' : 'دورة تخصصية معتمدة',
-    badgeCls: 'bg-customBlue/10 text-customBlue border-customBlue/30',
+    label: 'دورة تدريبية متخصصة',
+    badgeCls: 'bg-deepBlue/10 text-deepBlue border-deepBlue/20',
     isFree,
   }
 }
 
 function resolveOutcomeHook(course: Course): string {
-  if (course.target_audience && course.target_audience.trim().length > 15) {
-    return course.target_audience.trim()
+  if (course.short_description && course.short_description.trim().length > 0) {
+    return course.short_description.trim()
   }
   const title = (course.title || '').toLowerCase()
-  if (title.includes('ذكاء') || title.includes('ai') || title.includes('بيانات') || title.includes('آلة')) {
+  if (title.includes('برمج') || title.includes('كود') || title.includes('ويب') || title.includes('مطور')) {
+    return 'ستبني بنهاية المحتوى: مشاريع وتطبيقات ويب حقيقية جاهزة للعمل'
+  }
+  if (title.includes('ذكاء') || title.includes('بيان') || title.includes('آل') || title.includes('ai')) {
     return 'ستبني بنهاية المحتوى: نماذج وتطبيقات ذكاء اصطناعي وأتمتة عملية معتمدة'
   }
   if (title.includes('إدارة') || title.includes('قياد') || title.includes('مشروع')) {
@@ -113,7 +116,18 @@ function HomeCourseCard({ course }: Props) {
 
   const instructorName = course.instructor?.name || course.instructor_name || null
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
-  const isEnded = resolveCourseIsEnded(course)
+
+  const isWorkshop = course.program_type === 'workshop' || Boolean((course as Record<string, unknown>).is_workshop)
+  const isEnded =
+    resolveCourseIsEnded(course) ||
+    Boolean(
+      isWorkshop &&
+        course.start_date &&
+        Date.parse(course.start_date) + 24 * 60 * 60 * 1000 < Date.now(),
+    )
+  const detailHref = isWorkshop ? `/workshops/${course.slug}` : `/courses/${course.slug}`
+  const detailLabel = isWorkshop ? 'تفاصيل الورشة والتسجيل' : 'تفاصيل البرنامج والتسجيل'
+
   const tier = resolveProgramTier(course)
   const formattedDate = formatArabicDate(course.start_date)
   const outcomeHook = resolveOutcomeHook(course)
@@ -204,7 +218,7 @@ function HomeCourseCard({ course }: Props) {
             )}
 
             <h3 className="line-clamp-2 font-display text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:text-lg">
-              <Link to={`/courses/${course.slug}`}>
+              <Link to={detailHref}>
                 {course.title}
               </Link>
             </h3>
@@ -256,10 +270,10 @@ function HomeCourseCard({ course }: Props) {
       {/* 4. Full-Width Direct CTA (10% Accent Orange, min 44px touch target) */}
       <div className="mt-4 pt-3 border-t border-slate-100">
         <Link
-          to={`/courses/${course.slug}`}
+          to={detailHref}
           className="flex h-11 sm:h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-4 text-xs sm:text-sm font-black text-white shadow-md shadow-customOrange/20 transition-all duration-200 hover:bg-customOrange/90 hover:shadow-lg active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-customOrange focus:ring-offset-2"
         >
-          <span>تفاصيل البرنامج والتسجيل</span>
+          <span>{detailLabel}</span>
           <ArrowLeft size={16} />
         </Link>
       </div>
