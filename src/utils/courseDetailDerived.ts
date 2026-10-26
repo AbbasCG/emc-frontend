@@ -28,8 +28,9 @@ import {
   formatPublicDate,
   formatPublicTime,
   formatSessionDurationFromRange,
+  formatStudyTime,
 } from '@/utils/publicDetailFormat'
-import { resolveCourseDisplayDuration } from '@/utils/courseDuration'
+import { resolveCourseDisplayDuration, sessionFormatLabelAr } from '@/utils/courseDuration'
 import type { LucideIcon } from 'lucide-react'
 import {
   Award,
@@ -203,8 +204,8 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
   )
 
   const studyDays = safeTrimUnknown(course.study_days ?? apiExtra.study_days)
-  const studyTime = safeTrimUnknown(course.study_time ?? apiExtra.study_time)
-  const sessionFmt = safeTrimUnknown(course.session_format ?? apiExtra.session_format)
+  const studyTime = formatStudyTime(safeTrimUnknown(course.study_time ?? apiExtra.study_time))
+  const sessionFmt = sessionFormatLabelAr(safeTrimUnknown(course.session_format ?? apiExtra.session_format))
   const level = levelLabelAr(course.level ?? apiExtra.level)
 
   const sessionsRaw =
