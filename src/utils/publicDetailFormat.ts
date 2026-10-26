@@ -1,4 +1,7 @@
 const TZ = 'Europe/Amsterdam'
+
+/** Label shown next to workshop times — all times are entered and stored in Netherlands time. */
+export const WORKSHOP_TZ_LABEL = 'بتوقيت هولندا'
 const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
 
 /** Convert Eastern Arabic numerals to Western (1 2 3 …). */
@@ -54,6 +57,16 @@ export function formatPublicTime(raw: unknown): string {
   } catch {
     return s
   }
+}
+
+/**
+ * study_time is free text: a bare "15:00" becomes "3:00 م بتوقيت هولندا";
+ * anything else ("19:00 - 21:00 بتوقيت هولندا", "مساءً") is shown as-is.
+ */
+export function formatStudyTime(raw: unknown): string {
+  const s = raw == null ? '' : String(raw).trim()
+  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(s)) return `${formatPublicTime(s)} ${WORKSHOP_TZ_LABEL}`
+  return formatPublicText(s)
 }
 
 export function formatPublicCount(n: number, unit: string): string {

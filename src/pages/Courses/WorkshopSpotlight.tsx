@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import type { WorkshopItem } from '@/services/coursesApi'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
 import { formatEuroInteger } from '@/utils/currency'
+import { WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 
 type WorkshopSpotlightProps = {
   workshops: WorkshopItem[]
@@ -154,7 +155,8 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
                     {' '}
                     <span dir="ltr" className="tabular-nums">
                       {workshop.time}
-                    </span>
+                    </span>{' '}
+                    {WORKSHOP_TZ_LABEL}
                   </>
                 )}
               </span>

@@ -21,7 +21,7 @@ export function CrudFilterBar({
       dir="rtl"
       className={cn('flex flex-col gap-2.5 sm:flex-row sm:items-center', className)}
     >
-      <label className="relative block min-w-0 flex-[1.5] sm:max-w-[28rem]">
+      <label className="relative block w-full sm:w-auto sm:min-w-[16rem] sm:flex-1 sm:max-w-[28rem]">
         <Search
           className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
           aria-hidden
@@ -37,7 +37,7 @@ export function CrudFilterBar({
       </label>
 
       {children ?
-        <div className="flex flex-wrap items-center gap-2">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">{children}</div>
       : null}
     </div>
   )
