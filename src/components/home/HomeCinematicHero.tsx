@@ -15,23 +15,11 @@ import {
   FlaskConical,
   Smile,
   Handshake,
-  Award,
   ChevronDown,
   Compass,
-  UserPlus,
   Users,
 } from 'lucide-react'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
-
-/**
- * Hero actions: short labels, one distinctive icon each, no boxes. The third one
- * scrolls to the tracks section rather than navigating away.
- */
-const HERO_ACTIONS = [
-  { key: 'explore', label: 'استكشف البرامج', href: '/courses', anchor: null as string | null, Icon: Compass },
-  { key: 'join', label: 'ابدأ مجاناً', href: '/signup', anchor: null as string | null, Icon: UserPlus },
-  { key: 'tracks', label: 'المسارات والشهادات', href: '#', anchor: 'learning-tracks', Icon: Award },
-] as const
 
 /**
  * The three sibling platforms of the EMC ecosystem. External destinations, so
@@ -333,12 +321,40 @@ function HeroStat({ value, label }: { value: string; label: string }) {
 
 export default function HomeCinematicHero() {
   const { t } = useTranslation()
+  const [activeAudience, setActiveAudience] = useState<'learner' | 'professional' | 'enterprise'>('learner')
+
+  const audiences = [
+    {
+      id: 'learner' as const,
+      label: 'أنا طالب / خريج',
+      hint: 'ابدأ بورشة مجانية أو استكشف مسار تخصصك',
+      primaryBtn: { text: 'احجز ورشة قادمة مجاناً', href: '/workshops' },
+      secondaryBtn: { text: 'حدّد مسارك في 15 ثانية', anchor: 'path-finder', href: undefined },
+    },
+    {
+      id: 'professional' as const,
+      label: 'أنا مهني / موظف',
+      hint: 'طوّر مهاراتك في الذكاء الاصطناعي وهندسة الأوامر',
+      primaryBtn: { text: 'استكشف مسارات الذكاء الاصطناعي', href: '/courses' },
+      secondaryBtn: { text: 'اختبر مستواك ومسارك', anchor: 'path-finder', href: undefined },
+    },
+    {
+      id: 'enterprise' as const,
+      label: 'نحن مؤسسة / شركة',
+      hint: 'تدريب مبني على حاجة فريقك ومشاريع أعمالك',
+      primaryBtn: { text: 'حلول تدريب المنظمات والفرق', href: '/business' },
+      secondaryBtn: { text: 'استشارات الشراكات المؤسسية', anchor: undefined, href: '/partnerships' },
+    },
+  ]
+
+  const currentAudienceData = audiences.find((a) => a.id === activeAudience) ?? audiences[0]
+
   return (
     <section
       dir="rtl"
       className="relative isolate min-h-[100svh] overflow-hidden bg-deepBlue pt-[4.75rem] lg:pt-[5.25rem]"
     >
-      {/* V3 signature (the scene's one brand mark): tricolor hairline pinned to the top edge */}
+      {/* V3 signature: tricolor hairline pinned to top edge */}
       <div aria-hidden className="emc-tricolor-on-dark absolute inset-x-0 top-0 z-10" />
 
       {/* Canvas dot grid */}
@@ -370,10 +386,10 @@ export default function HomeCinematicHero() {
           {/* Eyebrow badge */}
           <motion.div
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
-            className="mb-8 flex justify-start"
+            className="mb-6 flex justify-start"
           >
-            <span className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.08] px-5 py-2.5 text-xs font-black tracking-wide text-white/80 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-customOrange" aria-hidden />
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.08] px-5 py-2.5 text-xs font-black tracking-wide text-white/90 backdrop-blur-md">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-customOrange" aria-hidden />
               {t('home.hero.badge')}
             </span>
           </motion.div>
@@ -381,7 +397,7 @@ export default function HomeCinematicHero() {
           {/* Headline */}
           <motion.h1
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] } } }}
-            className="font-display text-[2.5rem] font-black leading-[1.1] tracking-tight text-white [text-wrap:balance] sm:text-[3rem] lg:text-[3.4rem] xl:text-[3.8rem]"
+            className="font-display text-[2.5rem] font-black leading-[1.15] tracking-tight text-white [text-wrap:balance] sm:text-[3rem] lg:text-[3.4rem] xl:text-[3.8rem]"
           >
             {t('home.hero.titleLine1')}
             <br />
@@ -395,71 +411,98 @@ export default function HomeCinematicHero() {
             {t('home.hero.titleLine3')}
           </motion.h1>
 
-          {/* Subheadline */}
+          {/* Action-Oriented Motivation Subtitle */}
           <motion.p
             variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } } }}
-            className="mt-7 max-w-lg text-lg font-medium leading-9 text-white/60 lg:text-xl"
+            className="mt-6 max-w-xl text-base sm:text-lg font-medium leading-relaxed text-white/75"
           >
-            {t('home.hero.subtitle')}
+            ابنِ مسيرتك المهنية بمنهج يقود للعمق لا مجرد محتوى — برامج تدريبية وتأهيلية معتمدة تمكّنك من أدوات الذكاء الاصطناعي والتخصصات الواعدة.
           </motion.p>
 
-          {/* CTAs */}
+          {/* ── Audience Switcher ── */}
           <motion.div
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
-            className="mt-10 flex flex-wrap justify-start gap-3"
+            className="mt-8 rounded-2xl bg-white/[0.06] border border-white/10 p-2 sm:p-2.5 max-w-xl backdrop-blur-md"
           >
-            {/* Three short line-actions: the boxes are gone, each keeps its own
-                icon so the choice is read by shape as much as by word. */}
-            {HERO_ACTIONS.map(({ key, label, href, anchor, Icon }) => {
-              const inner = (
-                <>
-                  <Icon size={17} className="shrink-0 text-amber" aria-hidden />
-                  <span>{label}</span>
-                  <ArrowLeftIcon
-                    size={15}
-                    className="shrink-0 opacity-60 transition-transform duration-300 group-hover:-translate-x-1 group-hover:opacity-100"
-                  />
-                </>
-              )
-              const cls =
-                'group inline-flex items-center gap-2.5 py-2 text-[15px] font-extrabold text-white transition-colors duration-200 hover:text-amber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-4 focus-visible:ring-offset-deepBlue'
-              return anchor ? (
-                <a
-                  key={key}
-                  href={`#${anchor}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    document.getElementById(anchor)?.scrollIntoView({
-                      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-                    })
-                  }}
-                  className={cls}
-                >
-                  {inner}
-                </a>
-              ) : (
-                <Link key={key} to={href} className={cls}>
-                  {inner}
-                </Link>
-              )
-            })}
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              {audiences.map((aud) => {
+                const isSelected = aud.id === activeAudience
+                return (
+                  <button
+                    key={aud.id}
+                    type="button"
+                    onClick={() => setActiveAudience(aud.id)}
+                    className={`rounded-xl py-2 sm:py-2.5 px-2 text-center text-xs font-black transition-all duration-200 ${
+                      isSelected
+                        ? 'bg-white text-deepBlue shadow-lg ring-1 ring-white/50'
+                        : 'text-white/70 hover:text-white hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    {aud.label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-center text-[11px] font-semibold text-sky-200/90 truncate px-2">
+              💡 {currentAudienceData.hint}
+            </p>
           </motion.div>
 
-          {/* The three sibling platforms of the ecosystem, each with its own mark. */}
+          {/* ── Action Triggers (60-30-10 palette) ── */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
+            className="mt-6 flex flex-wrap items-center justify-start gap-3.5"
+          >
+            {/* Primary Action Button (10% Kinetic Orange) */}
+            <Link
+              to={currentAudienceData.primaryBtn.href}
+              className="inline-flex items-center gap-2.5 rounded-2xl bg-customOrange px-6 sm:px-7 py-3.5 text-sm sm:text-base font-black text-white shadow-xl shadow-customOrange/30 hover:bg-customOrange/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <span>{currentAudienceData.primaryBtn.text}</span>
+              <ArrowLeftIcon size={16} />
+            </Link>
+
+            {/* Secondary Action Button (Subtle Institutional) */}
+            {currentAudienceData.secondaryBtn.anchor ? (
+              <a
+                href={`#${currentAudienceData.secondaryBtn.anchor}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById(currentAudienceData.secondaryBtn.anchor ?? '')?.scrollIntoView({
+                    behavior: 'smooth',
+                  })
+                }}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 sm:px-6 py-3.5 text-xs sm:text-sm font-black text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+              >
+                <Compass size={16} className="text-sky" />
+                <span>{currentAudienceData.secondaryBtn.text}</span>
+              </a>
+            ) : currentAudienceData.secondaryBtn.href ? (
+              <Link
+                to={currentAudienceData.secondaryBtn.href}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 sm:px-6 py-3.5 text-xs sm:text-sm font-black text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+              >
+                <Compass size={16} className="text-sky" />
+                <span>{currentAudienceData.secondaryBtn.text}</span>
+              </Link>
+            ) : null}
+          </motion.div>
+
+          {/* Sibling platforms of ecosystem */}
           <motion.div
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.06 } } }}
-            className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3"
+            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2.5"
           >
-            <span className="text-[11px] font-black tracking-[0.14em] text-white/40">منظومة EMC</span>
+            <span className="text-[11px] font-black tracking-wider text-white/40">منظومة EMC:</span>
             {ECOSYSTEM.map(({ key, label, href, Icon }) => (
               <a
                 key={key}
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="group inline-flex items-center gap-2 text-[13.5px] font-bold text-white/70 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-4 focus-visible:ring-offset-deepBlue"
+                className="group inline-flex items-center gap-1.5 text-xs font-bold text-white/70 hover:text-white transition"
               >
-                <Icon size={15} className="shrink-0 text-sky transition-colors group-hover:text-amber" aria-hidden />
+                <Icon size={14} className="text-sky group-hover:text-amber" aria-hidden />
                 {label}
               </a>
             ))}

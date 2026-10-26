@@ -139,9 +139,12 @@ export type MeetingCapabilities = {
 export type MeetingAudience = 'explicit' | 'department' | 'general'
 
 export type ParticipantStatus = 'invited' | 'joined' | 'attended' | 'absent'
+export type ExcuseStatus = 'with_excuse' | 'without_excuse'
 
 export type MyAttendance = {
   status: ParticipantStatus
+  excuse_status?: ExcuseStatus | null
+  excuse_reason?: string | null
   joined_at: string | null
   confirmed_at: string | null
 }
@@ -159,6 +162,9 @@ export type OpsMeeting = {
   end_time: string | null
   department: MeetingRef | null
   organizer: MeetingRef | null
+  moderator?: MeetingRef | null
+  top_interactive_user?: MeetingRef | null
+  discipline_rate?: number | null
   /** The join link. Present only for someone assigned to the meeting. */
   meeting_url: string | null
   audience: MeetingAudience
@@ -183,6 +189,8 @@ export type MeetingCandidate = {
 export type MeetingParticipantRow = {
   user: { id: number; name: string; department: string | null }
   status: ParticipantStatus
+  excuse_status?: ExcuseStatus | null
+  excuse_reason?: string | null
   joined_at: string | null
   confirmed_at: string | null
 }
@@ -205,7 +213,7 @@ export type MeetingReportView = {
   top_interactive_member: string | null
   challenges: string | null
   executive_requests: string | null
-  next_month_goals: string | null
+  next_month_goals?: string | null
   improvement_suggestions: string | null
   uploaded_by: MeetingRef | null
   uploaded_at: string | null

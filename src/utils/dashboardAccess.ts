@@ -116,6 +116,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // the backend role:admin,super_admin,tech_admin,ai_manager gate and the
   // organizational_departments.ai_expert_applications page capability.
   { prefix: '/dashboard/admin/ai/expert-applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
+  { prefix: '/dashboard/admin/trainers/applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },

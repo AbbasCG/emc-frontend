@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import HomeCinematicHero from '../components/home/HomeCinematicHero'
+import HomePathFinder from '../components/home/HomePathFinder'
 import HomeImpactMetrics from '../components/home/HomeImpactMetrics'
 // M10: hidden — partner marquee duplicated HomePartnersSection (kept the grid as the single partners scene)
 // import HomeTrustStrip from '../components/home/HomeTrustStrip'
@@ -18,6 +19,7 @@ import PublicSeo from '@/components/public/PublicSeo'
 import { OrganizationJsonLd } from '@/components/public/JsonLd'
 
 const FeaturedCoursesSection = lazy(() => import('../components/home/FeaturedCoursesSection'))
+const HomeThemesBento = lazy(() => import('../components/home/HomeThemesBento'))
 const HomeEcosystemBento = lazy(() => import('../components/home/HomeEcosystemBento'))
 
 // DL2.0: editorial fallback — hairline-seated row placeholders, no card boxes
@@ -54,9 +56,17 @@ export default function Home() {
       {/* 1. Cinematic dark hero headline + the team's 12-themes orbit («منظومة EMC») + stat pills */}
       <HomeCinematicHero />
 
-      {/* 2. Featured courses from API (light) editorial rows, real content immediately after the hero */}
+      {/* 2. Interactive Path Finder: 3-step smart guide */}
+      <HomePathFinder />
+
+      {/* 3. Featured courses from API with 3-second card anatomy and skeleton screens */}
       <Suspense fallback={<SectionFallback />}>
         <FeaturedCoursesSection />
+      </Suspense>
+
+      {/* 4. 12 Core Knowledge Themes Bento Grid (60-30-10 visual hierarchy) */}
+      <Suspense fallback={<SectionFallback />}>
+        <HomeThemesBento />
       </Suspense>
 
       {/* 3. Learning journey (light) the purchase story: ورشة → دورة → مسار → شهادة معتمدة on one rail */}

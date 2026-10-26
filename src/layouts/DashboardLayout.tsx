@@ -199,6 +199,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/mobile-readiness': 'جاهزية الجوال',
   '/dashboard/admin/ai': 'AI Command Center',
   '/dashboard/admin/ai/expert-applications': 'طلبات انضمام الخبراء',
+  '/dashboard/admin/trainers/applications': 'طلبات انضمام المدربين',
   '/dashboard/admin/ai/automations': 'AI Automations',
   '/dashboard/admin/ai/insights': 'AI Insights',
   '/dashboard/admin/ai/usage': 'AI Usage',

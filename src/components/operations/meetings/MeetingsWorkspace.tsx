@@ -3,12 +3,13 @@ import { Link } from 'react-router'
 import {
   AlertTriangle, CalendarCheck2, CalendarPlus, ChevronLeft, ChevronRight, Flag, LayoutDashboard, Lock, Plus, RefreshCw, SearchX, Users,
 } from 'lucide-react'
-import type { MeetingsQuery, MeetingsWhen } from '@/api/meetingsApi'
-import { usePageAccess } from '@/contexts/PageAccessContext'
+import MeetingReportModal from '@/components/operations/MeetingReportModal'
 import MeetingCard from '@/components/operations/MeetingCard'
 import CreateMeetingForm from '@/components/operations/CreateMeetingForm'
-import MeetingReportModal from '@/components/operations/MeetingReportModal'
-import type { MeetingType, OpsMeeting } from '@/types/operations'
+import CloseMeetingLoungeModal from '@/components/operations/meetings/CloseMeetingLoungeModal'
+import { usePageAccess } from '@/contexts/PageAccessContext'
+import { fetchMeeting, type MeetingsQuery, type MeetingsWhen } from '@/api/meetingsApi'
+import type { MeetingType, OpsMeeting, OpsMeetingDetail } from '@/types/operations'
 import { MeetingDetailsDrawer } from './MeetingDetailsDrawer'
 import { MeetingsFilters } from './MeetingsFilters'
 import { MeetingsKpis } from './MeetingsKpis'
@@ -69,6 +70,17 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
   const [openId, setOpenId] = useState<number | null>(null)
   const [formType, setFormType] = useState<MeetingType | null>(null)
   const [reportFor, setReportFor] = useState<{ id: number; title: string } | null>(null)
+  const [closeLoungeMeeting, setCloseLoungeMeeting] = useState<OpsMeetingDetail | null>(null)
+
+  async function startCloseLounge(id: number) {
+    try {
+      const detail = await fetchMeeting(id)
+      setCloseLoungeMeeting(detail)
+    } catch {
+      // fallback to open drawer if fetch fails
+      setOpenId(id)
+    }
+  }
 
   const debouncedQ = useDebounced(filters.q.trim(), 300)
 
@@ -272,9 +284,10 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
                 key={m.id}
                 m={m}
                 onOpen={setOpenId}
+                onCloseLounge={startCloseLounge}
                 onUploadReport={startReport}
-                onJoin={(id) => void attendance.join(id, m.meeting_url)}
-                onConfirm={(id) => void attendance.confirm(id)}
+                onJoin={(id: number) => void attendance.join(id, m.meeting_url)}
+                onConfirm={(id: number) => void attendance.confirm(id)}
                 busyId={attendance.busyId}
               />
             ))}
@@ -337,6 +350,18 @@ export function MeetingsWorkspace({ mode }: { mode: WorkspaceMode }) {
           onSuccess={(meeting) => {
             patchMeeting(meeting)
             setReportFor(null)
+            reload()
+          }}
+        />
+      )}
+
+      {closeLoungeMeeting && (
+        <CloseMeetingLoungeModal
+          meeting={closeLoungeMeeting}
+          onClose={() => setCloseLoungeMeeting(null)}
+          onSuccess={(updated) => {
+            patchMeeting(updated)
+            setCloseLoungeMeeting(null)
             reload()
           }}
         />

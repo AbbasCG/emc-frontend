@@ -43,7 +43,8 @@ export const SITE_INDEX: readonly IndexGroup[] = [
     title: 'انضم إلينا',
     lead: 'شارك بخبرتك أو بمؤسستك أو بوقتك',
     links: [
-      { href: '/join-expert', label: 'انضم إلينا كمدرب', description: 'الانضمام إلى مجتمع المدربين والخبراء في EMC' },
+      { href: '/join-trainer', label: 'انضم إلينا كمدرب', description: 'تقديم دورات وبرامج تدريبية متخصصة في الذكاء الاصطناعي' },
+      { href: '/join-expert', label: 'انضم إلينا كخبير', description: 'الانضمام كخبير، محكّم، أو مرشد في فعاليات ومشاريع EMC' },
       { href: '/partnerships', label: 'الشراكات', description: 'تعاون مؤسسي وأكاديمي' },
       { href: '/business', label: 'للمؤسسات', description: 'تدريب مبني على حاجة فريقك' },
       { href: '/consultants', label: 'قدّم كمستشار', description: 'انضم إلى إدارة المستشارين بخبرتك' },

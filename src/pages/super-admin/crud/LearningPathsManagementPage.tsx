@@ -387,6 +387,8 @@ interface FormState {
   requirements: string[]
   instructor_id: string
   instructor_name: string
+  start_date: string
+  end_date: string
   course_ids: number[]
   featured_image_file: File | null
   featured_image_preview: string | null
@@ -411,6 +413,8 @@ const defaultForm = (): FormState => ({
   price: '',
   discount_price: '',
   status: 'draft',
+  start_date: '',
+  end_date: '',
   is_featured: false,
   enrollment_open: true,
   learning_outcomes: [''],
@@ -440,6 +444,8 @@ function pathToForm(p: LearningPath): FormState {
     price:                p.price != null ? String(p.price) : '',
     discount_price:       p.discount_price != null ? String(p.discount_price) : '',
     status:               p.status,
+    start_date:           p.start_date ? String(p.start_date).slice(0, 10) : '',
+    end_date:             p.end_date ? String(p.end_date).slice(0, 10) : '',
     is_featured:          p.is_featured,
     enrollment_open:      p.enrollment_open,
     learning_outcomes:    p.learning_outcomes.length ? p.learning_outcomes : [''],
@@ -484,12 +490,20 @@ function FormModal({
 
   const handleSubmit = async () => {
     if (!form.title.trim()) { setError('عنوان المسار مطلوب'); return }
+    if (!form.start_date.trim()) { setError('تاريخ بداية المسار مطلوب'); return }
+    if (!form.end_date.trim()) { setError('تاريخ انتهاء المسار مطلوب'); return }
+    if (form.start_date.trim() && form.end_date.trim() && form.end_date < form.start_date) {
+      setError('يجب أن يكون تاريخ انتهاء المسار بعد تاريخ البداية')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
       const fd = new FormData()
       fd.append('title',             form.title)
       fd.append('slug',              form.slug)
+      fd.append('start_date',        form.start_date)
+      fd.append('end_date',          form.end_date)
       fd.append('short_description', form.short_description)
       fd.append('full_description',  form.full_description)
       fd.append('duration',          form.duration)
@@ -618,6 +632,29 @@ function FormModal({
                     <option value="published">منشور</option>
                     <option value="archived">مؤرشف</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700">تاريخ بداية المسار *</label>
+                  <input
+                    type="date"
+                    required
+                    value={form.start_date}
+                    onChange={(e) => set('start_date', e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700">تاريخ انتهاء المسار *</label>
+                  <input
+                    type="date"
+                    required
+                    value={form.end_date}
+                    onChange={(e) => set('end_date', e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
+                  />
                 </div>
               </div>
 
