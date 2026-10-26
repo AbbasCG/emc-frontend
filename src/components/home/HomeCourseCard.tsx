@@ -32,7 +32,16 @@ export default function HomeCourseCard({ course }: Props) {
   const startDate = formatPublicDate(course.start_date)
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
 
-  const isEnded = resolveCourseIsEnded(course)
+  const isWorkshop = course.program_type === 'workshop' || Boolean((course as Record<string, unknown>).is_workshop)
+  const isEnded =
+    resolveCourseIsEnded(course) ||
+    Boolean(
+      isWorkshop &&
+        course.start_date &&
+        Date.parse(course.start_date) + 24 * 60 * 60 * 1000 < Date.now(),
+    )
+  const detailHref = isWorkshop ? `/workshops/${course.slug}` : `/courses/${course.slug}`
+  const detailLabel = isWorkshop ? 'تفاصيل الورشة' : 'تفاصيل الدورة'
 
   return (
     <motion.article
@@ -43,7 +52,7 @@ export default function HomeCourseCard({ course }: Props) {
     >
       {/* Invisible cover link — makes entire card clickable while inner buttons keep their own events */}
       <Link
-        to={`/courses/${course.slug}`}
+        to={detailHref}
         className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
         aria-hidden="true"
         tabIndex={-1}
@@ -81,7 +90,7 @@ export default function HomeCourseCard({ course }: Props) {
             {isFree ? 'مجاناً' : formatPrice(course.price)}
           </span>
           <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-black text-deepBlue backdrop-blur-sm">
-            {isOnline ? 'أونلاين' : 'حضوري'}
+            {isWorkshop ? 'ورشة' : isOnline ? 'أونلاين' : 'حضوري'}
           </span>
         </div>
       </div>
@@ -154,10 +163,10 @@ export default function HomeCourseCard({ course }: Props) {
         {/* CTA — full-width button */}
         <div className="mt-auto pt-5">
           <Link
-            to={`/courses/${course.slug}`}
+            to={detailHref}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue px-5 py-3.5 text-sm font-black text-white shadow-sm transition-all duration-200 hover:bg-customBlue"
           >
-            تفاصيل الدورة
+            {detailLabel}
             <ArrowLeft size={14} aria-hidden />
           </Link>
         </div>
