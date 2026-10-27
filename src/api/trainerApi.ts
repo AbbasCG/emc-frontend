@@ -30,6 +30,6 @@ export async function submitTrainerApplication(payload: TrainerApplicationPayloa
   const res = await apiClient.post<{ success: boolean; uuid: string; message?: string }>('/trainer-applications', payload, {
     // Avoid double toast since TrainerApply has its own dedicated error handler
     skipErrorToast: true,
-  } as any)
+  })
   return res.data
 }

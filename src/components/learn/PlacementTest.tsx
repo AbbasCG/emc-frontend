@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Sparkles,
   CheckCircle2,
@@ -10,8 +10,6 @@ import {
   BookOpen,
   Clock,
   ArrowLeft,
-  Calendar,
-  Layers,
 } from 'lucide-react'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { trackFunnelEvent, type FunnelEventProps } from '@/lib/funnelEvents'
@@ -112,7 +110,7 @@ function scorePlacementPrograms(
     if (isFree) score += 10
 
     const durationText = w.duration_hours ? `${w.duration_hours} ساعات تدريبية` : 'ساعتان تفاعليتان'
-    const priceText = isFree ? 'مجاناً بالكامل' : formatPrice(w.price)
+    const priceText = isFree ? 'مجاناً بالكامل' : formatPrice(w.price ?? 0)
 
     results.push({
       id: `workshop-${w.id}`,

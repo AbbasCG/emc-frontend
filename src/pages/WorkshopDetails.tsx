@@ -34,6 +34,7 @@ import { formatEuroInteger } from '@/utils/currency'
 import PremiumSnapshot from '@/components/public/course-detail/premium/PremiumSnapshot'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
 import type { MetricWidget } from '@/components/public/course-detail/CourseDetailMetricsDashboard'
+import { useNow } from '@/hooks/useNow'
 
 const PAGE_TOP = 'pt-[calc(4rem+1rem)] sm:pt-[calc(4.25rem+1.25rem)]'
 const STICKY_TOP = 'lg:top-[calc(4.25rem+0.75rem)]'
@@ -95,6 +96,7 @@ export default function WorkshopDetailsPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const enrollRef = useRef<HTMLDivElement>(null)
+  const nowMs = useNow()
 
   const [workshop, setWorkshop] = useState<PublicWorkshop | null>(null)
   // Seeded from the initial slug so the "missing slug" case is already settled on the
@@ -174,7 +176,7 @@ export default function WorkshopDetailsPage() {
   const isEnded = Boolean(
     workshop?.is_ended ||
     workshop?.computed_status === 'ended' ||
-    (workshop?.end_date && new Date(workshop.end_date).getTime() < Date.now())
+    (workshop?.end_date && new Date(workshop.end_date).getTime() < nowMs)
   )
   const registrationOpen = !isEnded && workshop?.registration_open !== false
   const seatsFull = (workshop?.seats_remaining ?? 1) <= 0 && (workshop?.seats_total ?? 0) > 0

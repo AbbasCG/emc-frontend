@@ -41,7 +41,7 @@ import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/userBadgeStatus'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
-import { adminRoleLabelAr, getAssignableRoleOptions, DEFAULT_EMC_DEPARTMENTS } from '@/pages/super-admin/users/assignableRoles'
+import { adminRoleLabelAr, getAssignableRoleOptions, DEFAULT_EMC_DEPARTMENTS, type DepartmentOption } from '@/pages/super-admin/users/assignableRoles'
 import {
   canDeleteAdminUserRow,
   canEditAdminUserRow,
@@ -91,7 +91,7 @@ export default function UsersManagementPage() {
   const [serverPaginated, setServerPaginated] = useState(true)
   const [summary, setSummary] = useState<AdminUsersSummary | null>(null)
   const [departmentOptions, setDepartmentOptions] = useState<string[]>(() => DEFAULT_EMC_DEPARTMENTS.map((d) => d.name_ar))
-  const [departmentList, setDepartmentList] = useState<{ id: number; name_ar?: string; name?: string }[]>(DEFAULT_EMC_DEPARTMENTS)
+  const [departmentList, setDepartmentList] = useState<DepartmentOption[]>(DEFAULT_EMC_DEPARTMENTS)
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
   const [loadErr, setLoadErr] = useState<string | null>(null)
@@ -119,9 +119,9 @@ export default function UsersManagementPage() {
       .then((res) => {
         if (cancelled) return
         const raw = res.data?.data ?? res.data
-        const deps = Array.isArray(raw) ? raw : []
+        const deps: DepartmentOption[] = Array.isArray(raw) ? raw : []
         setDepartmentList(deps)
-        setDepartmentOptions(deps.map((d: any) => d.name_ar || d.name || String(d.id)))
+        setDepartmentOptions(deps.map((d) => d.name_ar || d.name || String(d.id)))
       })
       .catch(() => {})
     return () => {
@@ -419,8 +419,8 @@ export default function UsersManagementPage() {
       setFormRole((u.role && String(u.role)) || 'student')
       setFormPhone(u.phone ?? '')
       setFormDepartment(u.department ?? '')
-      if ((u as any).department_id) {
-        setFormDepartmentId(String((u as any).department_id))
+      if (u.department_id) {
+        setFormDepartmentId(String(u.department_id))
       } else if (u.department) {
         const matched = departmentList.find((d) => d.name_ar === u.department || d.name === u.department)
         setFormDepartmentId(matched ? String(matched.id) : '')

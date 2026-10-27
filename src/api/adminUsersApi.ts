@@ -37,6 +37,9 @@ export type AdminManagedUser = {
   /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
   phone?: string | null
   department?: string | null
+  /** Canonical department id / display name, present when the backend serialises them. */
+  department_id?: number | null
+  department_name?: string | null
   city?: string | null
   country?: string | null
   gender?: string | null
@@ -180,6 +183,9 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
 
   const related = relateNotesFromRaw(raw)
 
+  const deptIdNum = raw.department_id != null && raw.department_id !== '' ? Number(raw.department_id) : NaN
+  const deptNameRaw = raw.department_name
+
   const deletedRaw = raw.deleted_at ?? raw.deletedAt
   const deleted_at =
     deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
@@ -202,6 +208,8 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     deleted_at,
     phone,
     department,
+    ...(Number.isFinite(deptIdNum) ? { department_id: Math.trunc(deptIdNum) } : {}),
+    ...(typeof deptNameRaw === 'string' && deptNameRaw.trim() !== '' ? { department_name: deptNameRaw.trim() } : {}),
     city,
     country,
     gender,

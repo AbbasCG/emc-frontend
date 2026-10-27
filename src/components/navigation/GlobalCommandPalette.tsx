@@ -131,6 +131,17 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
   const [courses, setCourses] = useState<Course[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
 
+  // A freshly opened palette starts empty. Adjusted during render (React's documented pattern for state that follows a prop)
+  // rather than in an effect, which would render the stale query once first.
+  const [wasOpen, setWasOpen] = useState(isOpen)
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen)
+    if (isOpen) {
+      setQuery('')
+      setSelectedIndex(0)
+    }
+  }
+
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsContainerRef = useRef<HTMLDivElement>(null)
@@ -178,8 +189,6 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
     if (isOpen) {
       document.body.style.overflow = 'hidden'
       setTimeout(() => inputRef.current?.focus(), 50)
-      setQuery('')
-      setSelectedIndex(0)
     } else {
       document.body.style.overflow = ''
     }
@@ -219,11 +228,6 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
       })
       .slice(0, 16)
   }, [allItems, query])
-
-  // Reset selected index when query changes
-  useEffect(() => {
-    setSelectedIndex(0)
-  }, [query])
 
   // Handle keyboard navigation
   const handleItemSelect = useCallback(
@@ -278,7 +282,7 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-[#0C2A4B]/60 backdrop-blur-md"
+            className="fixed inset-0 bg-navy/60 backdrop-blur-md"
           />
 
           {/* Dialog Container */}
@@ -296,7 +300,10 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  setSelectedIndex(0)
+                }}
                 onKeyDown={handleInputKeyDown}
                 placeholder="ابحث في الدورات، المحاور المعرفية، المسارات، أو الخدمات..."
                 className="w-full text-base font-bold text-deepBlue placeholder:text-slate-400 focus:outline-none"
@@ -304,7 +311,10 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery('')}
+                  onClick={() => {
+                    setQuery('')
+                    setSelectedIndex(0)
+                  }}
                   className="rounded-lg p-1 text-slate-400 hover:text-deepBlue"
                 >
                   <X size={16} />
@@ -403,7 +413,7 @@ export default function GlobalCommandPalette({ open: controlledOpen, onClose: co
             </div>
 
             {/* Bottom Keyboard Hints Bar */}
-            <div className="flex items-center justify-between border-t border-slate-100 bg-[#FBFAF7] px-5 py-3 text-xs text-slate-500 font-bold">
+            <div className="flex items-center justify-between border-t border-slate-100 bg-paper px-5 py-3 text-xs text-slate-500 font-bold">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
                   <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">↑</kbd>

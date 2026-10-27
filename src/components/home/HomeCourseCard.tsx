@@ -20,6 +20,7 @@ import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { resolveCourseSeatMetrics } from '@/utils/courseDetailPageData'
 import { seatsLine } from '@/data/webSpec'
 import { staggerItem } from '@/utils/animations'
+import { useNow } from '@/hooks/useNow'
 
 type Props = { course: Course; index?: number }
 
@@ -102,6 +103,7 @@ function resolveLevelText(course: Course, tierLabel: string): string {
 }
 
 function HomeCourseCard({ course }: Props) {
+  const nowMs = useNow()
   const rawImg =
     course.course_image ||
     course.image_url ||
@@ -123,7 +125,7 @@ function HomeCourseCard({ course }: Props) {
     Boolean(
       isWorkshop &&
         course.start_date &&
-        Date.parse(course.start_date) + 24 * 60 * 60 * 1000 < Date.now(),
+        Date.parse(course.start_date) + 24 * 60 * 60 * 1000 < nowMs,
     )
   const detailHref = isWorkshop ? `/workshops/${course.slug}` : `/courses/${course.slug}`
   const detailLabel = isWorkshop ? 'تفاصيل الورشة والتسجيل' : 'تفاصيل البرنامج والتسجيل'

@@ -22,7 +22,6 @@ export interface KnowledgeTheme {
   stat?: string
   icon: React.ComponentType<{ size?: number; className?: string }>
   featuredSize: 'large' | 'medium' | 'compact'
-  accentColor: string
   tag: string
   link: string
 }
@@ -37,7 +36,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: '+8 برامج ومعسكرات',
     icon: Bot,
     featuredSize: 'large',
-    accentColor: '#ED8B1C',
     tag: 'مستقبل الأعمال',
     link: '/tracks#ai',
   },
@@ -50,7 +48,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: '+1,200 خريج ومستفيد',
     icon: Briefcase,
     featuredSize: 'medium',
-    accentColor: '#0C2A4B',
     tag: 'سوق العمل',
     link: '/tracks#career',
   },
@@ -63,7 +60,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: '+15 تخصصاً نوعياً',
     icon: GraduationCap,
     featuredSize: 'medium',
-    accentColor: '#0C2A4B',
     tag: 'إرشاد أكاديمي',
     link: '/tracks#academic',
   },
@@ -76,7 +72,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: 'برنامج القيادات الشابة',
     icon: Crown,
     featuredSize: 'medium',
-    accentColor: '#0C2A4B',
     tag: 'إدارة واستراتيجية',
     link: '/tracks#leadership',
   },
@@ -89,7 +84,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: '+5 مسارات تفاعلية',
     icon: Smile,
     featuredSize: 'medium',
-    accentColor: '#0C2A4B',
     tag: 'الجيل الصاعد',
     link: '/tracks#children',
   },
@@ -102,7 +96,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     stat: 'محادثة وتأهيل IELTS',
     icon: Languages,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'تواصل عالمي',
     link: '/tracks#language',
   },
@@ -113,7 +106,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'برامج عابرة للحدود تفتح آفاق التجارب والمشاريع الدولية المشتركة.',
     icon: Globe,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'آفاق دولية',
     link: '/tracks#global',
   },
@@ -124,7 +116,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'ورش حية ومختبرات تطبيقية تصنع الخبرة من خلال الممارسة العملية المباشرة.',
     icon: FlaskConical,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'ممارسة عملية',
     link: '/tracks#experiential',
   },
@@ -135,7 +126,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'إرساء مفاهيم التخطيط المالي الشخصي، الإدارة الذكية للسيولة، والاستثمار.',
     icon: TrendingUp,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'ريادة مالية',
     link: '/tracks#finance',
   },
@@ -146,7 +136,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'حوارات فكرية ومحاضرات نوعية توسع الرؤية وترسخ التفكير النقدي.',
     icon: Sparkles,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'تفكير نقدي',
     link: '/tracks#awareness',
   },
@@ -157,7 +146,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'مهارات التوازن النفسي، إدارة ضغوط العمل والدراسة، والصحة الذهنية.',
     icon: Heart,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'صحة نفسية',
     link: '/tracks#wellbeing',
   },
@@ -168,7 +156,6 @@ export const THEMES_BENTO_DATA: KnowledgeTheme[] = [
     desc: 'ربط المعرفة بالمؤسسات والمنظمات عبر برامج تدريبية مخصصة ومشاريع نفع عام.',
     icon: Handshake,
     featuredSize: 'compact',
-    accentColor: '#0C2A4B',
     tag: 'تحالفات استراتيجية',
     link: '/tracks#partnerships',
   },

@@ -14,7 +14,7 @@ import {
   updateAdminUser,
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
-import { getAssignableRoleOptions, adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS } from '@/pages/super-admin/users/assignableRoles'
+import { getAssignableRoleOptions, adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS, type DepartmentOption } from '@/pages/super-admin/users/assignableRoles'
 import { canOfferSuperAdminRoleOption } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SuperAdminCrudHeader } from '@/pages/super-admin/SuperAdminCrudHeader'
@@ -36,7 +36,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [department, setDepartment] = useState<string>('')
-  const [departments, setDepartments] = useState<{ id: number; name_ar?: string; name?: string }[]>(DEFAULT_EMC_DEPARTMENTS)
+  const [departments, setDepartments] = useState<DepartmentOption[]>(DEFAULT_EMC_DEPARTMENTS)
   const [saving, setSaving] = useState(false)
 
   const baseOptions = useMemo(() => getAssignableRoleOptions(includeSuperAdmin), [includeSuperAdmin])
@@ -59,15 +59,15 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
         
         if (cancelled) return
         
-        const deps = unwrapData<any>(depsRes.data)
+        const deps = unwrapData<unknown>(depsRes.data)
         if (Array.isArray(deps)) {
-          setDepartments(deps)
+          setDepartments(deps as DepartmentOption[])
         }
         
         setName(u.name)
         setEmail(u.email)
         setRole((u.role && String(u.role)) || 'student')
-        if ((u as any).department_id) setDepartment(String((u as any).department_id))
+        if (u.department_id) setDepartment(String(u.department_id))
         else if (u.department) setDepartment(String(u.department))
       } catch (e) {
         if (cancelled) return
@@ -89,8 +89,8 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
       let cancelled = false
       apiClient.get('/departments/options').then(res => {
         if (cancelled) return
-        const deps = unwrapData<any>(res.data)
-        if (Array.isArray(deps)) setDepartments(deps)
+        const deps = unwrapData<unknown>(res.data)
+        if (Array.isArray(deps)) setDepartments(deps as DepartmentOption[])
       }).catch(() => {})
       return () => { cancelled = true }
     }

@@ -294,7 +294,8 @@ export default function RevenueManagementPage() {
     setDescription(revenue.description || '')
     setStatus(revenue.status === 'cancelled' ? 'posted' : revenue.status)
     setAttachment(null)
-    setAttachmentPreview((revenue as any).attachment_url || null)
+    // Voucher attachments are private documents served by an authenticated endpoint: never previewed from a row field.
+    setAttachmentPreview(null)
     setShowAdvancedAccount(!!revenue.deposit_account_id)
     setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })

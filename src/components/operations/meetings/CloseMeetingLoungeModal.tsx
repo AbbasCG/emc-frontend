@@ -66,6 +66,7 @@ export default function CloseMeetingLoungeModal({ meeting, onClose, onSuccess }:
 
   useEffect(() => {
     let alive = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the participant request starts
     setLoadingCandidates(true)
     fetchMeetingParticipantPool(meeting.id)
       .then((res) => {

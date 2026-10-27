@@ -118,10 +118,10 @@ function normalizeWorkshopRow(raw: unknown): PublicWorkshop | null {
     end_time: pickStr(o.end_time),
     location_type: locationType,
     meeting_link: pickStr(o.meeting_link, o.join_url),
-    registration_open: !Boolean(o.is_ended === true || o.is_ended === 1 || pickStr(o.computed_status)?.toLowerCase() === 'ended') && o.registration_open !== false && o.registration_open !== 0,
+    registration_open: !(o.is_ended === true || o.is_ended === 1 || pickStr(o.computed_status)?.toLowerCase() === 'ended') && o.registration_open !== false && o.registration_open !== 0,
     is_ended: Boolean(o.is_ended === true || o.is_ended === 1 || pickStr(o.computed_status)?.toLowerCase() === 'ended'),
-    computed_status: pickStr(o.computed_status) ?? (Boolean(o.is_ended === true || o.is_ended === 1) ? 'ended' : 'published'),
-    status_label_ar: pickStr(o.status_label_ar) ?? (Boolean(o.is_ended === true || o.is_ended === 1) ? 'منتهية' : 'منشورة'),
+    computed_status: pickStr(o.computed_status) ?? (o.is_ended === true || o.is_ended === 1 ? 'ended' : 'published'),
+    status_label_ar: pickStr(o.status_label_ar) ?? (o.is_ended === true || o.is_ended === 1 ? 'منتهية' : 'منشورة'),
     is_online: isOnline,
     instructor_name: pickStr(
       o.trainer_name,

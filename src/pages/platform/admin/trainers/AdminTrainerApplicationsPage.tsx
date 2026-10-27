@@ -61,6 +61,7 @@ export default function AdminTrainerApplicationsPage() {
   }, [page, search, status])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch when the filter or page changes; the loading flag must reset before the request
     load()
   }, [load])
 

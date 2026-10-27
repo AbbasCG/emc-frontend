@@ -59,6 +59,7 @@ export default function TrainerApplicationDetailModal({ id, onClose, onStatusCha
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the detail request starts, whenever the id changes
     setLoading(true)
     fetchTrainerApplicationDetail(id)
       .then(res => {

@@ -186,8 +186,8 @@ const AssigneeWorkspacePage: React.FC = () => {
     }
   }, [user, authLoading]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount / user change; the loading flag must reset before the request
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount / user change; the loading flag must reset before the request
     fetchTasks();
     fetchMyMeetings();
   }, [fetchTasks, fetchMyMeetings]);

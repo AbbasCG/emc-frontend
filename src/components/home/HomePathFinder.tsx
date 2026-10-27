@@ -241,7 +241,7 @@ export default function HomePathFinder() {
     <section
       id="path-finder"
       dir="rtl"
-      className="relative overflow-hidden bg-[#FBFAF7] py-16 sm:py-24 border-b border-slate-200/60"
+      className="relative overflow-hidden bg-paper py-16 sm:py-24 border-b border-slate-200/60"
     >
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}

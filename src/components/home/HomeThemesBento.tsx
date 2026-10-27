@@ -23,7 +23,7 @@ function HomeThemesBento() {
     <section
       id="themes-bento"
       dir="rtl"
-      className="relative overflow-hidden bg-[#FBFAF7] py-20 sm:py-28 border-y border-slate-200/70"
+      className="relative overflow-hidden bg-paper py-20 sm:py-28 border-y border-slate-200/70"
     >
       {/* Background Subtle Grid Texture */}
       <div
@@ -60,7 +60,7 @@ function HomeThemesBento() {
           {/* 1. Large Hero Bento Card: AI & Digital (Spans 2 cols, 2 rows on desktop) */}
           <motion.div
             variants={staggerItem}
-            className="md:col-span-2 lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-3xl border-2 border-deepBlue/15 bg-gradient-to-br from-deepBlue via-[#0e365e] to-[#081d33] p-7 sm:p-9 text-white shadow-xl flex flex-col justify-between transition-all duration-300 hover:border-customOrange hover:shadow-2xl hover:shadow-customOrange/10"
+            className="md:col-span-2 lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-3xl border-2 border-deepBlue/15 bg-gradient-to-br from-deepBlue via-primary-700 to-primary-900 p-7 sm:p-9 text-white shadow-xl flex flex-col justify-between transition-all duration-300 hover:border-customOrange hover:shadow-2xl hover:shadow-customOrange/10"
           >
             {/* Ambient Corner Glow */}
             <div
@@ -223,7 +223,7 @@ function HomeThemesBento() {
                     <motion.div
                       key={theme.id}
                       variants={staggerItem}
-                      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-[#FBFBFA] p-5 transition-all duration-200 hover:bg-white hover:border-customBlue/30 hover:shadow-md"
+                      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-paper p-5 transition-all duration-200 hover:bg-white hover:border-customBlue/30 hover:shadow-md"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-3">

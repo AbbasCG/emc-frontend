@@ -201,7 +201,8 @@ export default function ExpenseManagementPage() {
     setDescription(expense.description || '')
     setStatus(expense.status === 'cancelled' ? 'posted' : expense.status)
     setAttachment(null)
-    setAttachmentPreview((expense as any).attachment_url || null)
+    // Voucher attachments are private documents served by an authenticated endpoint: never previewed from a row field.
+    setAttachmentPreview(null)
     setShowAdvancedPaymentAccount(!!expense.payment_account_id)
     setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })

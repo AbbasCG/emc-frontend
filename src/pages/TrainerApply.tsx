@@ -201,7 +201,7 @@ export default function TrainerApply() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] pt-24 pb-16" ref={topRef}>
+    <main className="min-h-screen bg-slate-50 pt-24 pb-16" ref={topRef}>
       <PublicSeo
         title="انضم إلينا كمدرب | استمارة المدربين مركز EMC"
         description="استمارة الانضمام لنخبة مدربي الذكاء الاصطناعي والتكنولوجيا في مركز EMC."
@@ -219,7 +219,7 @@ export default function TrainerApply() {
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mt-6">
         {/* Intro Banner */}
-        <div className="mb-8 rounded-3xl bg-gradient-to-br from-deepBlue via-[#0a3060] to-[#0f4080] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="mb-8 rounded-3xl bg-gradient-to-br from-deepBlue via-primary-700 to-primary-600 p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
           <div className="absolute top-0 -left-10 h-48 w-48 rounded-full bg-customBlue/20 blur-3xl" />
           <div className="relative z-10 text-right">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-sky-200 backdrop-blur-sm mb-3">

@@ -62,6 +62,9 @@ export function adminRoleLabelAr(role: string | null | undefined): string {
   return ROLE_LABEL_AR[n as (typeof EMC_DASHBOARD_ROLES)[number]] ?? n
 }
 
+/** A department as returned by `GET /departments/options`. */
+export type DepartmentOption = { id: number; name_ar?: string; name?: string }
+
 export const DEFAULT_EMC_DEPARTMENTS: { id: number; name_ar: string; name: string }[] = [
   { id: 1, name_ar: 'الإدارة العليا', name: 'الإدارة العليا' },
   { id: 2, name_ar: 'إدارة البرامج والمسارات', name: 'إدارة البرامج والمسارات' },

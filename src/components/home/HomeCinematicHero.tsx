@@ -145,20 +145,31 @@ function HeroStat({ value, label }: { value: string; label: string }) {
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
+/** A hero call to action: a route link, or (with `anchor`) a smooth scroll to an element on the same page. */
+type HeroAction = { text: string; href: string; anchor?: string }
+
+type HeroAudience = {
+  id: 'learner' | 'professional'
+  label: string
+  hint: string
+  primaryBtn: HeroAction
+  secondaryBtn: HeroAction
+}
+
 export default function HomeCinematicHero() {
   const { t } = useTranslation()
   const [activeAudience, setActiveAudience] = useState<'learner' | 'professional'>('learner')
 
-  const audiences = [
+  const audiences: HeroAudience[] = [
     {
-      id: 'learner' as const,
+      id: 'learner',
       label: 'طالب / خريج',
       hint: 'حدّد أهدافك ونقطة انطلاقك في دقيقتين أو احجز مقعدك في ورشة قادمة مجاناً',
       primaryBtn: { text: 'حدّد أهدافك ونقطة انطلاقك', href: '/learn#placement' },
       secondaryBtn: { text: 'احجز ورشة قادمة مجاناً', href: '/workshops' },
     },
     {
-      id: 'professional' as const,
+      id: 'professional',
       label: 'مهني / ممارس',
       hint: 'طوّر مهاراتك في الذكاء الاصطناعي واستكشف المسارات التأهيلية الشاملة',
       primaryBtn: { text: 'حدّد أهدافك ونقطة انطلاقك', href: '/learn#placement' },

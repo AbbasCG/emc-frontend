@@ -13,6 +13,7 @@ import {
   gatePublicEnrollClick,
 } from '@/utils/publicEnrollAuth'
 import { rememberFunnelContact, trackFunnelEvent } from '@/lib/funnelEvents'
+import { useNow } from '@/hooks/useNow'
 
 type Props = {
   workshop: PublicWorkshop
@@ -41,6 +42,7 @@ function formatTime(t: string | null): string | null {
 export default function WorkshopListCard({ workshop, index = 0 }: Props) {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
+  const nowMs = useNow()
 
   const imgSrc =
     workshop.cover_image ?
@@ -94,7 +96,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
   const isEnded = Boolean(
     workshop.is_ended ||
     workshop.computed_status === 'ended' ||
-    (workshop.end_date && new Date(workshop.end_date).getTime() < Date.now())
+    (workshop.end_date && new Date(workshop.end_date).getTime() < nowMs)
   )
 
   const seatsTotal = workshop.seats_total
