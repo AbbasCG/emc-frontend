@@ -26,9 +26,11 @@ import {
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { LmsPreviewModal, type LmsPreviewState } from '@/components/lms/management/LmsPreviewModal'
+import HrVolunteerProfileEditModal from '@/components/hr/HrVolunteerProfileEditModal'
 import {
   approveVolunteerProfile,
   fetchHrVolunteerProfile,
+  fetchHrVolunteerProfileFilterOptions,
   fetchVolunteerHrProfileCvBlob,
   rejectVolunteerProfile,
   startVolunteerProfileReview,
@@ -54,6 +56,9 @@ const STATUS_CFG: Record<VolunteerHrProfileStatus, { label: string; badge: strin
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
+
+/** Statuses HR may edit (the server applies the same rule): with HR for review, or an accepted volunteer. */
+const HR_EDITABLE: VolunteerHrProfileStatus[] = ['submitted', 'under_review', 'approved']
 
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return 'غير متوفر'
@@ -717,6 +722,11 @@ export default function HrVolunteerProfileDetailModal({
   const [confirmingApprove, setConfirmingApprove] = useState(false)
   const [reason, setReason] = useState('')
   const [preview, setPreview] = useState<LmsPreviewState>({ kind: 'idle' })
+  const [editing, setEditing] = useState(false)
+  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([])
+  // The panel's own keyboard handling (Escape closes it, Tab stays inside) must stand down while the edit form is on top.
+  const editingRef = useRef(false)
+  useEffect(() => { editingRef.current = editing }, [editing])
   const objectUrlRef = useRef<string | null>(null)
 
   // Route param changed while the modal is open → show the loader again before
@@ -758,6 +768,7 @@ export default function HrVolunteerProfileDetailModal({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (editingRef.current) return
       if (e.key === 'Escape') {
         e.preventDefault()
         onClose()
@@ -781,6 +792,25 @@ export default function HrVolunteerProfileDetailModal({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  /** Opens the edit form once the departments it offers are loaded (the same list the HR filters use). */
+  async function openEditor() {
+    if (!profile) return
+    if (!HR_EDITABLE.includes(profile.status)) {
+      toast.message(profile.status === 'archived' ? 'لا يمكن تعديل ملف مؤرشف.' : 'هذا الطلب لدى المتطوع لاستكماله أو إعادة إرساله، ولا يُعدَّل من الموارد البشرية في هذه الحالة.')
+      return
+    }
+    if (departments.length === 0) {
+      try {
+        const options = await fetchHrVolunteerProfileFilterOptions()
+        setDepartments(options.departments.map((d) => ({ id: d.id, name: d.name_ar || d.name || String(d.id) })))
+      } catch (err) {
+        toast.error(getApiErrorMessage(err))
+        return
+      }
+    }
+    setEditing(true)
+  }
 
   async function handleReview() {
     if (!profile) return
@@ -944,12 +974,29 @@ export default function HrVolunteerProfileDetailModal({
                 onApprove={() => void handleApprove()}
                 onReject={() => void handleReject()}
                 onMessage={() => window.open(`mailto:${profile.email}`, '_self')}
-                onEdit={() => toast.message('تعديل معلومات التطوع يتم من ملف الفريق بعد القبول، أو عبر تحديث بيانات المتطوع.')}
+                onEdit={() => void openEditor()}
               />
             </footer>
           </>
         )}
       </div>
+
+      {/* The form is portaled, but React events still bubble to this overlay, whose click closes the panel: stop them here. */}
+      {editing && profile && (
+        <div className="contents" onClick={(e) => e.stopPropagation()}>
+        <HrVolunteerProfileEditModal
+          profile={profile}
+          departments={departments}
+          onClose={() => setEditing(false)}
+          onSaved={(next) => {
+            setProfile(next)
+            setEditing(false)
+            toast.success('تم حفظ بيانات المتطوع')
+            onChanged()
+          }}
+        />
+        </div>
+      )}
 
       <LmsPreviewModal
         state={preview}

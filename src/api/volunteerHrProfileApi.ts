@@ -40,6 +40,8 @@ export type VolunteerHrProfile = {
   professional_bio: string | null
   linkedin_url: string | null
   portfolio_url: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
   /** null = not yet answered (only possible on rows predating this feature) — new submissions always have an explicit true/false. */
   photo_publication_consent: boolean | null
   photo_consent_at: string | null
