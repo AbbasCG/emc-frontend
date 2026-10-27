@@ -144,6 +144,10 @@ describe('fetchPublicWorkshopsPage — payload shapes and normalization', () => 
       location_type: 'online',
       meeting_link: 'https://meet.example.com/w',
       registration_open: true,
+      // an ended workshop is flagged from the server's is_ended / computed_status; a bare row is not ended
+      is_ended: false,
+      computed_status: 'published',
+      status_label_ar: 'منشورة',
       is_online: true,
       instructor_name: null,
       instructor_avatar: null,
