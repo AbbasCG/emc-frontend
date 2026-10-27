@@ -177,6 +177,8 @@ const TrackLandingPage              = lazy(() => import('./pages/TrackLandingPag
 const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
+const OpsFormTemplatesPage          = lazy(() => import('./pages/operations/admin/OpsFormTemplatesPage'))
+const OpsFormsAnalyticsPage         = lazy(() => import('./pages/operations/admin/OpsFormsAnalyticsPage'))
 const OpsFormDetailPage             = lazy(() => import('./pages/operations/admin/OpsFormDetailPage'))
 const OpsVolunteersPage             = lazy(() => import('./pages/operations/admin/OpsVolunteersPage'))
 const AcceptedVolunteersPage        = lazy(() => import('./pages/admin/AcceptedVolunteersPage'))
@@ -787,6 +789,8 @@ function App() {
                   <Route path="/dashboard/admin/meetings/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/admin/forms" element={<OpsFormsPage />} />
                   <Route path="/dashboard/admin/forms/create" element={<OpsFormCreatePage />} />
+                  <Route path="/dashboard/admin/forms/templates" element={<OpsFormTemplatesPage />} />
+                  <Route path="/dashboard/admin/forms/analytics" element={<OpsFormsAnalyticsPage />} />
                   <Route path="/dashboard/admin/forms/:id" element={<OpsFormDetailPage />} />
                   <Route path="/dashboard/admin/volunteers" element={<OpsVolunteersPage />} />
                   <Route path="/dashboard/admin/volunteers/:id" element={<OpsVolunteerDetailPage />} />

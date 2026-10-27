@@ -6,6 +6,8 @@ import FormBuilderEditor from '@/components/operations/formBuilder/FormBuilderEd
 import type { SaveStatus } from '@/components/operations/formBuilder/useDraftAutosave'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import FormResponsesPanel from '@/components/operations/formResponses/FormResponsesPanel'
+import FormAnalyticsPanel from '@/components/operations/formAnalytics/FormAnalyticsPanel'
+import FormAutomationPanel from '@/components/operations/formAutomation/FormAutomationPanel'
 import FormActivityPanel from '@/components/operations/formAdmin/FormActivityPanel'
 import FormCollaboratorsPanel from '@/components/operations/formAdmin/FormCollaboratorsPanel'
 import FormPreviewModal from '@/components/operations/formAdmin/FormPreviewModal'
@@ -13,6 +15,7 @@ import FormPublishingPanel from '@/components/operations/formAdmin/FormPublishin
 import FormSharePanel from '@/components/operations/formAdmin/FormSharePanel'
 import FormStatusHeader from '@/components/operations/formAdmin/FormStatusHeader'
 import FormVersionsPanel from '@/components/operations/formAdmin/FormVersionsPanel'
+import FormTemplateActions from '@/components/operations/formTemplates/FormTemplateActions'
 import { fetchFormDefinition } from '@/api/formsApi'
 import type { OpsFormDefinition } from '@/types/operations'
 
@@ -26,12 +29,14 @@ function loadMessage(error: unknown): string {
   return LOAD_ERROR
 }
 
-type TabKey = 'builder' | 'responses' | 'publishing' | 'sharing' | 'collaborators' | 'activity' | 'versions'
+type TabKey = 'builder' | 'responses' | 'analytics' | 'publishing' | 'automation' | 'sharing' | 'collaborators' | 'activity' | 'versions'
 
 const TAB_LABELS: Record<TabKey, string> = {
   builder: 'المحرر',
   responses: 'الإرسالات',
+  analytics: 'التحليلات',
   publishing: 'إعدادات النشر',
+  automation: 'الإشعارات والأتمتة',
   sharing: 'المشاركة',
   collaborators: 'المتعاونون',
   activity: 'سجل النشاط',
@@ -42,8 +47,9 @@ const TAB_LABELS: Record<TabKey, string> = {
 function visibleTabs(form: OpsFormDefinition): TabKey[] {
   const a = form.abilities
   const tabs: TabKey[] = ['builder']
-  if (a?.view_responses) tabs.push('responses')
+  if (a?.view_responses) tabs.push('responses', 'analytics')
   if (a?.edit || a?.manage_access) tabs.push('publishing')
+  if (a?.edit) tabs.push('automation')
   if (a?.view_sharing) tabs.push('sharing')
   if (a?.edit) tabs.push('collaborators')
   tabs.push('activity', 'versions')
@@ -131,6 +137,8 @@ export default function OpsFormDetailPage() {
 
       <FormStatusHeader form={form} onChanged={setForm} onPreview={() => setPreviewing(true)} unsaved={canEdit && saveStatus !== 'saved'} />
 
+      <FormTemplateActions form={form} hasUnsavedEdits={canEdit && saveStatus !== 'saved'} />
+
       {notice && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{notice}</p>}
 
       <div role="tablist" aria-label="أقسام النموذج" className="flex flex-wrap justify-end gap-2 rounded-2xl bg-deepBlue/[0.03] p-2 ring-1 ring-deepBlue/[0.06]">
@@ -168,9 +176,11 @@ export default function OpsFormDetailPage() {
 
       <div role="tabpanel" id={`form-panel-${active}`} aria-labelledby={`form-tab-${active}`} hidden={active === 'builder'}>
         {active === 'responses' && <FormResponsesPanel formId={fid} />}
+        {active === 'analytics' && <FormAnalyticsPanel formId={fid} />}
         {active === 'publishing' && (
           <FormPublishingPanel form={form} onChanged={setForm} onAccessRemoved={() => navigate('/dashboard/admin/forms')} />
         )}
+        {active === 'automation' && <FormAutomationPanel formId={fid} />}
         {active === 'sharing' && <FormSharePanel form={form} />}
         {active === 'collaborators' && <FormCollaboratorsPanel form={form} />}
         {active === 'activity' && <FormActivityPanel formId={fid} />}

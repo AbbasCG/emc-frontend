@@ -52,6 +52,10 @@ export default function OpsFormCreatePage() {
         <p className="mt-2 text-xs font-semibold leading-6 text-slate-500">
           يُنشأ النموذج مسودة خاصة بك. بعد الإنشاء تفتح لك لوحة البناء لإضافة الأسئلة والأقسام بالسحب والإفلات، ولا يراه أحد حتى تشاركه وتنشره.
         </p>
+        <Link to="/dashboard/admin/forms/templates" className="mt-3 inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange">
+          أو ابدأ من قالب جاهز
+          <ChevronLeft size={14} />
+        </Link>
       </header>
       <form onSubmit={(e) => void submit(e)} noValidate className="grid gap-5 rounded-[1.35rem] bg-white p-6 text-right shadow-lg ring-1 ring-deepBlue/[0.06] sm:p-8">
         <label className="grid gap-2">

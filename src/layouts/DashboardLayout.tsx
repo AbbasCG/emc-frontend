@@ -146,6 +146,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/meetings': 'الاجتماعات',
   '/dashboard/admin/forms': 'النماذج',
   '/dashboard/admin/forms/create': 'إنشاء نموذج',
+  '/dashboard/admin/forms/templates': 'قوالب النماذج',
+  '/dashboard/admin/forms/analytics': 'تحليلات النماذج',
   '/dashboard/admin/volunteers': 'المتطوعون',
   '/dashboard/admin/partners': 'الشركاء',
   '/dashboard/admin/partnership-requests': 'طلبات الشراكة',

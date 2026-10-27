@@ -293,7 +293,7 @@ describe('tabs', () => {
     mount()
     await screen.findByRole('heading', { name: String(FORM.title) })
 
-    expect(sectionTabs()).toEqual(['المحرر', 'الإرسالات', 'إعدادات النشر', 'المتعاونون', 'سجل النشاط', 'الإصدارات'])
+    expect(sectionTabs()).toEqual(['المحرر', 'الإرسالات', 'التحليلات', 'إعدادات النشر', 'الإشعارات والأتمتة', 'المتعاونون', 'سجل النشاط', 'الإصدارات'])
   })
 
   it('a viewer sees the form, its history and its versions — not the responses, settings or collaborators', async () => {
@@ -315,6 +315,7 @@ describe('tabs', () => {
 
     const names = screen.getAllByRole('tab').map((t) => t.textContent)
     expect(names).not.toContain('الإرسالات')
+    expect(names).not.toContain('التحليلات') // analytics summarise the responses: same permission
     expect(names).toContain('المحرر')
     expect(names).toContain('المتعاونون')
   })
