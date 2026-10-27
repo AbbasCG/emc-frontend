@@ -123,13 +123,13 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
 
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
-  { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'department_manager', 'admin', 'super_admin', 'tech_admin'] },
-  { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'department_manager', 'admin', 'super_admin', 'tech_admin'] },
-  { prefix: '/dashboard/finance', roles: ['finance_manager', 'department_manager'] },
-  { prefix: '/dashboard/quality', roles: ['quality_manager', 'department_manager'] },
-  { prefix: '/dashboard/hr', roles: ['hr_manager', 'department_manager'] },
+  { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
+  { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
+  { prefix: '/dashboard/finance', roles: ['finance_manager'] },
+  { prefix: '/dashboard/quality', roles: ['quality_manager'] },
+  { prefix: '/dashboard/hr', roles: ['hr_manager'] },
   { prefix: '/dashboard/partner', roles: ['partner'] },
-  { prefix: '/dashboard/marketing', roles: ['marketing_manager', 'department_manager'] },
+  { prefix: '/dashboard/marketing', roles: ['marketing_manager'] },
   { prefix: '/dashboard/support', roles: ['support_agent'] },
   { prefix: '/dashboard/volunteer', roles: ['super_admin', 'tech_admin', 'admin', 'hr_manager'] },
   { prefix: '/dashboard/ops/volunteers', roles: ['volunteer'] },
@@ -138,20 +138,20 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // link/route visibility; DepartmentAccessService::canManageDepartment() on
   // the backend remains the actual authority for every read/write here).
   { prefix: '/dashboard/department/structure', roles: ['department_manager', 'ai_manager', 'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
-  { prefix: '/dashboard/department', roles: ['department_manager', 'department_member'] },
+  { prefix: '/dashboard/department', roles: ['department_manager'] },
   // Organizational AI Department workspace (إدارة الذكاء الاصطناعي والتحول
   // الرقمي) — generic department-leader workspace, NOT the technical AI
   // Platform. Access is granted here by role for sidebar/redirect purposes;
   // the workspace itself still resolves actual leadership server-side via
   // DepartmentAccessService, never trusting the role slug alone.
-  { prefix: '/dashboard/ai-department', roles: ['ai_manager', 'department_manager'] },
+  { prefix: '/dashboard/ai-department', roles: ['ai_manager'] },
   // Shared generic workspace for the 3 new department-manager roles — same
   // pattern as ai-department above, one reusable route instead of three.
-  { prefix: '/dashboard/department-workspace', roles: ['strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager', 'department_manager'] },
-  { prefix: '/dashboard/programs-manager', roles: ['programs_manager', 'department_manager'] },
-  { prefix: '/dashboard/operations-manager', roles: ['operations_manager', 'department_manager'] },
-  { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager', 'department_manager'] },
-  { prefix: '/dashboard/community-manager', roles: ['community_manager', 'department_manager'] },
+  { prefix: '/dashboard/department-workspace', roles: ['strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
+  { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
+  { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
+  { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager'] },
+  { prefix: '/dashboard/community-manager', roles: ['community_manager'] },
   { prefix: '/dashboard/section-lead', roles: ['section_lead'] },
 ].sort((a, b) => b.prefix.length - a.prefix.length)
 
@@ -238,31 +238,18 @@ export function normalizeRole(role?: string | null): string | null {
   return ROLE_ALIASES[t] ?? t
 }
 
-export const DEPARTMENT_SLUG_TO_SPECIALIZED_ROLE: Record<string, string> = {
-  finance: 'finance_manager',
-  'human-resources': 'hr_manager',
-  'marketing-media': 'marketing_manager',
-  'quality-governance': 'quality_manager',
-  'programs-tracks': 'programs_manager',
-  operations: 'operations_manager',
-  'ai-transformation': 'ai_manager',
-  'community-health': 'community_manager',
-  partnerships: 'partnerships_manager',
-  'strategy-planning': 'strategy_planning_manager',
-  'digital-ambassadors': 'digital_ambassadors_manager',
-  advisors: 'advisors_manager',
-  'executive-management': 'executive_admin',
-  technology: 'tech_admin',
-}
+/** Roles that no department can confer: a specialised role reported for a department manager is never allowed to resolve to these homes. */
+const PRIVILEGED_ROLES = new Set(['super_admin', 'admin', 'tech_admin', 'executive_admin'])
 
-export function getDashboardPathByRole(role?: string | null, specializedRoleOrDeptSlug?: string | null): string {
+/**
+ * Landing page for a role. `specializedRole` is the role the SERVER reports for a department manager who leads a department
+ * (`specialized_role`). It is never derived from a department slug or name, and a privileged role is ignored.
+ */
+export function getDashboardPathByRole(role?: string | null, specializedRole?: string | null): string {
   const n = normalizeRole(role)
   if (!n) return '/dashboard/profile'
-  if (n === 'department_manager' && specializedRoleOrDeptSlug) {
-    const spec = DEPARTMENT_SLUG_TO_SPECIALIZED_ROLE[specializedRoleOrDeptSlug] ?? specializedRoleOrDeptSlug
-    if (ROLE_HOME[spec]) {
-      return ROLE_HOME[spec]
-    }
+  if (n === 'department_manager' && specializedRole && !PRIVILEGED_ROLES.has(specializedRole) && ROLE_HOME[specializedRole]) {
+    return ROLE_HOME[specializedRole]
   }
   return ROLE_HOME[n] ?? '/dashboard/profile'
 }
