@@ -1031,6 +1031,11 @@ export function CourseProgramFormModal({
         toast.warning('حقل الموقع مطلوب للحضوري أو الهجين')
         return false
       }
+      if (!startDate.trim()) {
+        setFieldErrors((prev) => ({ ...prev, start_date: 'تاريخ البداية مطلوب' }))
+        toast.warning('تاريخ البداية مطلوب')
+        return false
+      }
       if (!endDate.trim()) {
         setFieldErrors((prev) => ({ ...prev, end_date: 'تاريخ الانتهاء مطلوب' }))
         toast.warning('تاريخ الانتهاء مطلوب')
@@ -1671,7 +1676,7 @@ export function CourseProgramFormModal({
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <ModernDatePicker
-              label="تاريخ البداية (اختياري)"
+              label="تاريخ البداية *"
               value={startDate}
               onChange={(v) => {
                 setStartDate(v)

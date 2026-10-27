@@ -1,12 +1,13 @@
-import DashboardRouteSearchModal from '@/components/dashboard/DashboardRouteSearchModal'
+import GlobalCommandPalette from '@/components/navigation/GlobalCommandPalette'
 
 export default function CommandPalette({
   open,
+  onOpen,
   onClose,
 }: {
   open: boolean
   onOpen: () => void
   onClose: () => void
 }) {
-  return <DashboardRouteSearchModal open={open} onClose={onClose} />
+  return <GlobalCommandPalette open={open} onOpen={onOpen} onClose={onClose} />
 }

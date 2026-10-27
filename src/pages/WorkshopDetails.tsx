@@ -22,7 +22,7 @@ import { fetchPublicWorkshopBySlug, type PublicWorkshop } from '@/api/workshopsA
 import { fetchStudentRegistrations } from '@/api/studentApi'
 import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
-import { formatPublicDate, formatPublicTime, toLatinDigits } from '@/utils/publicDetailFormat'
+import { formatPublicDate, formatPublicTime, toLatinDigits, WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import {
   buildPublicLoginHref,
@@ -51,7 +51,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
   const startTime = formatPublicTime(workshop.start_time)
   const endTime = formatPublicTime(workshop.end_time)
   const clockRange =
- startTime && endTime ? `${startTime} ${endTime}`: startTime || endTime || ''
+ startTime && endTime ? `${startTime} – ${endTime}`: startTime || endTime || ''
 
   const deliveryMode = workshop.is_online
     ? 'عن بُعد'
@@ -68,7 +68,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
     items.push({ id: 'start', icon: CalendarDays, label: 'تاريخ البداية', value: startDate, accent: 'blue' })
   }
   if (clockRange) {
-    items.push({ id: 'time', icon: Clock3, label: 'الوقت', value: clockRange, accent: 'blue' })
+    items.push({ id: 'time', icon: Clock3, label: 'الوقت', value: `${clockRange} ${WORKSHOP_TZ_LABEL}`, accent: 'blue' })
   }
   if (workshop.seats_total != null && workshop.seats_total > 0) {
     items.push({ id: 'seats', icon: Users, label: 'إجمالي المقاعد', value: `${workshop.seats_total} مقعد`, accent: 'green' })
@@ -171,7 +171,12 @@ export default function WorkshopDetailsPage() {
 
   const redirectPath = slug ? `/workshops/${slug}` : '/workshops'
   const externalUrl = workshop?.external_registration_url ?? null
-  const registrationOpen = workshop?.registration_open !== false
+  const isEnded = Boolean(
+    workshop?.is_ended ||
+    workshop?.computed_status === 'ended' ||
+    (workshop?.end_date && new Date(workshop.end_date).getTime() < Date.now())
+  )
+  const registrationOpen = !isEnded && workshop?.registration_open !== false
   const seatsFull = (workshop?.seats_remaining ?? 1) <= 0 && (workshop?.seats_total ?? 0) > 0
 
   const metrics = useMemo(() => (workshop ? buildMetrics(workshop) : []), [workshop])
@@ -195,6 +200,7 @@ export default function WorkshopDetailsPage() {
   }
 
   function scrollToEnroll() {
+    if (isEnded) return
     gatePublicEnrollClick({
       isAuthenticated,
       redirectPath,
@@ -210,6 +216,13 @@ export default function WorkshopDetailsPage() {
       sm ? 'px-5 py-2.5 text-sm' : 'px-7 py-3.5 text-sm'
     }`
 
+    if (isEnded) {
+      return (
+        <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500`}>
+          الورشة منتهية
+        </span>
+      )
+    }
     if (!registrationOpen || seatsFull) {
       return (
         <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500`}>
@@ -304,11 +317,13 @@ export default function WorkshopDetailsPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-base font-black text-navy">سجّل في الورشة</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
-            !registrationOpen || seatsFull
+            isEnded
+              ? 'bg-slate-100 text-slate-700 ring-slate-200'
+              : !registrationOpen || seatsFull
               ? 'bg-orange-50 text-orange-800 ring-orange-100'
               : 'bg-emerald-50 text-emerald-800 ring-emerald-100'
           }`}>
-            {seatsFull ? 'اكتمل العدد' : registrationOpen ? 'متاح للتسجيل' : 'مغلق'}
+            {isEnded ? 'الورشة منتهية' : seatsFull ? 'اكتمل العدد' : registrationOpen ? 'متاح للتسجيل' : 'مغلق'}
           </span>
         </div>
       </div>
@@ -396,12 +411,16 @@ export default function WorkshopDetailsPage() {
                   {certificateAvailability.badgeLabel}
                 </span>
               )}
-              {registrationOpen && !seatsFull && (
+              {isEnded ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/45 bg-rose-500/22 px-3 py-1 text-[11px] font-black text-white">
+                  الورشة منتهية
+                </span>
+              ) : registrationOpen && !seatsFull ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-100" />
                   التسجيل مفتوح
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* Title */}

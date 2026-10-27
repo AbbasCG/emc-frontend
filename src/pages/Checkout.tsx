@@ -759,11 +759,13 @@ export default function Checkout() {
                 )}
               </div>
 
-              {/* وعد الانطلاق verbatim, from the single shared module */}
-              <div className="rounded-xl border border-line bg-paper2 p-4 text-right">
-                <p className="text-sm font-semibold leading-7 text-ink-500">{LAUNCH_PROMISE}</p>
-                <p className="mt-3 text-sm font-black text-navy">{REFUND_LINE}</p>
-              </div>
+              {/* وعد الانطلاق verbatim, from the single shared module. Rendered only for paid items */}
+              {!couponCoversAll && (price?.amount ?? 0) > 0 && (
+                <div className="rounded-xl border border-line bg-paper2 p-4 text-right">
+                  <p className="text-sm font-semibold leading-7 text-ink-500">{LAUNCH_PROMISE}</p>
+                  <p className="mt-3 text-sm font-black text-navy">{REFUND_LINE}</p>
+                </div>
+              )}
 
               {method === 'bank_transfer' ? (
                 <BankTransferPanel

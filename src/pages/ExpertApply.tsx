@@ -12,15 +12,13 @@ import {
   AlertCircle,
   Info,
   Briefcase,
-  Users,
   Settings,
   Calendar,
   HeartHandshake,
   ClipboardCheck,
   Mic,
   Lightbulb,
-  Search,
-  BookOpen
+  Search
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
@@ -132,9 +130,7 @@ const EXPERTISE_FIELDS = [
 const EXPERTISE_LEVEL_OPTIONS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير', 'متخصص مهني']
 
 const CONTRIBUTION_ROLES = [
-  'مدرب / مدربة',
   'خبير / خبيرة',
-  'مستشار / مستشارة',
   'متخصص / متخصصة في الفعاليات والمؤتمرات',
   'مرشد / Mentor',
   'محكم / مقيّم للمشاريع والتحديات',
@@ -143,41 +139,6 @@ const CONTRIBUTION_ROLES = [
 ]
 
 /* ── Specific Role Options ── */
-const TRAINER_PROGRAM_TYPES = [
-  'ورش عمل قصيرة',
-  'دورات تدريبية',
-  'برامج احترافية',
-  'مسارات تدريبية',
-  'دبلومات',
-  'معسكرات تدريبية',
-  'محاضرات وندوات',
-  'برامج تأهيل مهني',
-  'برامج تدريب للشركات والمؤسسات',
-  'مشاريع تطبيقية'
-]
-
-const TRAINER_TARGET_AUDIENCES = [
-  'طلاب المدارس',
-  'طلاب الجامعات',
-  'الخريجون',
-  'الباحثون عن عمل',
-  'الموظفون',
-  'رواد الأعمال',
-  'أصحاب المشاريع',
-  'المبتدئون',
-  'المتخصصون',
-  'المحترفون',
-  'أخرى'
-]
-
-const TRAINER_DELIVERY_MODES = ['عن بُعد', 'حضوري', 'كلاهما']
-
-const TRAINER_CONTENT_READINESS_OPTIONS = [
-  'نعم، لدي منهج تدريبي متكامل',
-  'لدي محتوى تدريبي جزئي',
-  'لدي خبرة ويمكنني إعداد المحتوى',
-  'لا، وأرغب في تطوير المحتوى بالتعاون مع EMC'
-]
 
 const EXPERT_CONTRIBUTION_TYPES = [
   'مراجعة وتقييم البرامج',
@@ -192,45 +153,6 @@ const EXPERT_CONTRIBUTION_TYPES = [
   'أخرى'
 ]
 
-const CONSULTANT_FIELDS = [
-  'الذكاء الاصطناعي',
-  'التحول الرقمي',
-  'الاستراتيجية',
-  'الأعمال',
-  'التسويق',
-  'البيانات',
-  'التقنية',
-  'الموارد البشرية',
-  'ريادة الأعمال',
-  'إدارة المشاريع',
-  'التعليم والتدريب',
-  'أخرى'
-]
-
-const CONSULTANT_TYPES = [
-  'استشارات استراتيجية',
-  'استشارات تقنية',
-  'استشارات التحول الرقمي',
-  'استشارات الذكاء الاصطناعي',
-  'استشارات الأعمال',
-  'استشارات التسويق',
-  'استشارات المشاريع',
-  'استشارات التدريب والتطوير',
-  'تقييم وتطوير المشاريع',
-  'أخرى'
-]
-
-const CONSULTANT_TARGET_CLIENTS = [
-  'أفراد',
-  'شركات',
-  'مؤسسات',
-  'جامعات',
-  'مدارس',
-  'جهات حكومية',
-  'منظمات ومؤسسات غير ربحية',
-  'رواد أعمال',
-  'شركات ناشئة'
-]
 
 const EVENTS_TYPES = [
   'مؤتمرات',
@@ -515,9 +437,7 @@ export default function ExpertApply() {
     ]
 
     const roles = form.contribution_roles
-    if (roles.includes('مدرب / مدربة')) baseSteps.push({ id: 'trainer', label: 'للمدربين', icon: BookOpen })
     if (roles.includes('خبير / خبيرة')) baseSteps.push({ id: 'expert', label: 'للخبراء', icon: Lightbulb })
-    if (roles.includes('مستشار / مستشارة')) baseSteps.push({ id: 'consultant', label: 'للمستشارين', icon: Users })
     if (roles.includes('متخصص / متخصصة في الفعاليات والمؤتمرات')) baseSteps.push({ id: 'events', label: 'للفعاليات', icon: Mic })
     if (roles.includes('مرشد / Mentor')) baseSteps.push({ id: 'mentor', label: 'للمرشدين', icon: GraduationCap })
     if (roles.includes('محكم / مقيّم للمشاريع والتحديات')) baseSteps.push({ id: 'evaluator', label: 'للمحكمين', icon: Search })
@@ -636,13 +556,13 @@ export default function ExpertApply() {
   return (
     <main className="bg-[#f4f7fb] pt-20" ref={topRef}>
       <PublicSeo
-        title="انضم إلينا كمدرب وخبير"
-        description="الانضمام إلى مجتمع المدربين والخبراء والمستشارين والمتخصصين في EMC."
+        title="انضم إلينا كخبير"
+        description="الانضمام إلى مجتمع الخبراء والمرشدين والمحكمين والمتخصصين في EMC."
         path="/join-expert"
       />
       <PageHeader
-        title="مجتمع المدربين والخبراء"
-        breadcrumbs={[{ label: 'الرئيسية', href: '/' }, { label: 'انضم إلينا كمدرب' }]}
+        title="مجتمع الخبراء والمرشدين"
+        breadcrumbs={[{ label: 'الرئيسية', href: '/' }, { label: 'انضم إلينا كخبير' }]}
       />
 
       <section className="px-4 py-12 sm:px-6 lg:px-8">
@@ -651,13 +571,13 @@ export default function ExpertApply() {
           {currentStep === 1 && (
             <div className="mb-8 rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-slate-100 text-right leading-relaxed text-slate-600">
               <h2 className="text-xl font-bold text-deepBlue mb-4">
-                الانضمام إلى مجتمع المدربين والخبراء في EMC
+                الانضمام إلى مجتمع الخبراء والمرشدين في EMC
               </h2>
               <p className="mb-4">
-                تسعى EMC إلى بناء مجتمع من المدربين والخبراء والمستشارين والمتخصصين في مختلف المجالات، للمساهمة في تقديم برامج تدريبية نوعية، ومسارات مهنية، واستشارات، وفعاليات، ومبادرات ومشاريع معرفية تستجيب لاحتياجات المتعلمين وسوق العمل.
+                تسعى EMC إلى بناء مجتمع من الخبراء والمرشدين والمحكمين والمتخصصين في مختلف المجالات، للمساهمة في تقييم المشاريع، وتطوير المبادرات، وتقديم التوجيه والإرشاد، وتنظيم الفعاليات والمؤتمرات المعرفية.
               </p>
               <p className="mb-4">
-                إذا كنت تمتلك خبرة مهنية أو أكاديمية، أو خبرة في التدريب، أو الاستشارات، أو الإرشاد، أو تصميم وإدارة الفعاليات والمؤتمرات، ندعوك للتعريف بخبراتك ومجالات اهتمامك.
+                إذا كنت تمتلك خبرة تخصصية، أو خبرة في الإرشاد المهني، أو التحكيم وتقييم المشاريع، أو تصميم وإدارة الفعاليات، ندعوك للتعريف بخبراتك ومجالات اهتمامك.
               </p>
               <p className="text-xs font-bold text-customBlue">
                 ستساعدنا المعلومات المقدمة في التعرف على خبراتك وتصنيفها ضمن مجتمع EMC، والتواصل معك عند توفر فرص أو مشاريع تتناسب مع تخصصك وخبرتك.
@@ -794,42 +714,6 @@ export default function ExpertApply() {
                   </div>
                 )}
 
-                {/* ── القسم الخامس | للمدربين ── */}
-                {currentStepData?.id === 'trainer' && (
-                  <div className="space-y-6">
-                    <Field label="16. ما المجالات التي يمكنك التدريب فيها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={EXPERTISE_FIELDS} selected={form.trainer_fields || []} onChange={(v: string[]) => set('trainer_fields', v)} />
-                    </Field>
-
-                    <Field label="17. ما نوع البرامج التدريبية التي يمكنك تقديمها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={TRAINER_PROGRAM_TYPES} selected={form.trainer_program_types || []} onChange={(v: string[]) => set('trainer_program_types', v)} />
-                    </Field>
-
-                    <Field label="18. ما الفئات التي تستطيع تدريبها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={TRAINER_TARGET_AUDIENCES} selected={form.trainer_target_audiences || []} onChange={(v: string[]) => set('trainer_target_audiences', v)} />
-                    </Field>
-
-                    <Field label="19. ما نمط التدريب الذي يمكنك تقديمه؟" optional hint="اختيار متعدد">
-                      <TagPicker options={TRAINER_DELIVERY_MODES} selected={form.trainer_delivery_mode || []} onChange={(v: string[]) => set('trainer_delivery_mode', v)} />
-                    </Field>
-
-                    <Field label="20. هل لديك خبرة سابقة في التدريب أو التعليم؟" optional>
-                      <RadioGroup options={['نعم', 'لا']} selected={form.trainer_has_experience ? 'نعم' : 'لا'} onChange={(v: string) => set('trainer_has_experience', v === 'نعم')} />
-                    </Field>
-
-                    <Field label="21. كم سنة من الخبرة لديك في التدريب؟" optional>
-                      <RadioGroup options={YEARS_EXPERIENCE_OPTIONS} selected={form.trainer_years_experience || ''} onChange={(v: string) => set('trainer_years_experience', v)} />
-                    </Field>
-
-                    <Field label="22. ما أبرز الدورات أو الورش أو البرامج التي سبق لك تقديمها؟" optional>
-                      <Textarea value={form.trainer_previous_courses || ''} onChange={(v: string) => set('trainer_previous_courses', v)} placeholder="اذكر أهم الورش والبرامج..." />
-                    </Field>
-
-                    <Field label="23. هل لديك محتوى أو منهج تدريبي جاهز؟" optional>
-                      <RadioGroup options={TRAINER_CONTENT_READINESS_OPTIONS} selected={form.trainer_content_readiness || ''} onChange={(v: string) => set('trainer_content_readiness', v)} />
-                    </Field>
-                  </div>
-                )}
 
                 {/* ── القسم السادس | للخبراء ── */}
                 {currentStepData?.id === 'expert' && (
@@ -858,26 +742,6 @@ export default function ExpertApply() {
                   </div>
                 )}
 
-                {/* ── القسم السابع | للمستشارين ── */}
-                {currentStepData?.id === 'consultant' && (
-                  <div className="space-y-6">
-                    <Field label="29. ما المجالات التي يمكنك تقديم الاستشارات فيها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={CONSULTANT_FIELDS} selected={form.consultant_fields || []} onChange={(v: string[]) => set('consultant_fields', v)} />
-                    </Field>
-
-                    <Field label="30. ما نوع الاستشارات التي يمكنك تقديمها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={CONSULTANT_TYPES} selected={form.consultant_types || []} onChange={(v: string[]) => set('consultant_types', v)} />
-                    </Field>
-
-                    <Field label="31. ما أبرز المشاريع أو الجهات التي سبق لك تقديم استشارات لها؟" optional>
-                      <Textarea value={form.consultant_previous_clients || ''} onChange={(v: string) => set('consultant_previous_clients', v)} />
-                    </Field>
-
-                    <Field label="32. ما نوع الجهات التي تستطيع العمل معها؟" optional hint="اختيار متعدد">
-                      <TagPicker options={CONSULTANT_TARGET_CLIENTS} selected={form.consultant_target_clients || []} onChange={(v: string[]) => set('consultant_target_clients', v)} />
-                    </Field>
-                  </div>
-                )}
 
                 {/* ── القسم الثامن | لمتخصصي الفعاليات والمؤتمرات ── */}
                 {currentStepData?.id === 'events' && (

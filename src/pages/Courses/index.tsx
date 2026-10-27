@@ -37,7 +37,7 @@ export default function CoursesPage() {
   const [activeLevel, setActiveLevel] = useState<string>('all')
   const [activeProgramType, setActiveProgramType] = useState('all')
   const [activeAvailability, setActiveAvailability] = useState('all')
-  const [sortBy, setSortBy] = useState('popular')
+  const [sortBy, setSortBy] = useState('newest')
 
   const resetFilters = useCallback(() => {
     setSearchQuery('')
@@ -47,7 +47,7 @@ export default function CoursesPage() {
     setActiveLevel('all')
     setActiveProgramType('all')
     setActiveAvailability('all')
-    setSortBy('popular')
+    setSortBy('newest')
   }, [])
 
   const categoryOptions = useMemo(() => {
@@ -167,24 +167,42 @@ export default function CoursesPage() {
         })
         break
       case 'newest':
-        result.sort((a, b) => b.id - a.id)
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return b.id - a.id
+        })
         break
       case 'price_low':
-        result.sort((a, b) => a.price - b.price)
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return a.price - b.price
+        })
         break
       case 'price_high':
-        result.sort((a, b) => b.price - a.price)
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return b.price - a.price
+        })
         break
       case 'duration':
-        result.sort((a, b) => a.duration_weeks - b.duration_weeks)
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return a.duration_weeks - b.duration_weeks
+        })
         break
       case 'soonest': {
         const ts = (x: CourseItem) => (x.start_date ? new Date(x.start_date).getTime() : Number.POSITIVE_INFINITY)
-        result.sort((a, b) => ts(a) - ts(b))
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return ts(a) - ts(b)
+        })
         break
       }
       case 'name_az':
-        result.sort((a, b) => a.title.localeCompare(b.title, 'ar'))
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return a.title.localeCompare(b.title, 'ar')
+        })
         break
     }
 

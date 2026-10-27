@@ -526,10 +526,14 @@ export default function CourseDetails() {
           <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
         )}
 
-        {/* §8 the launch promise, verbatim from webSpec, on a hairline seam. No box. */}
-        <div className="emc-hairline" aria-hidden />
-        <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
-        <p className="text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
+        {/* §8 the launch promise, verbatim from webSpec, on a hairline seam. Rendered only for paid courses */}
+        {!isFree && (
+          <>
+            <div className="emc-hairline" aria-hidden />
+            <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
+            <p className="text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
+          </>
+        )}
       </div>
     </div>
   )

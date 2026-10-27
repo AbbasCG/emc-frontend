@@ -1,23 +1,106 @@
 import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, MapPin, Monitor } from 'lucide-react'
+import {
+  BookOpen,
+  Clock,
+  MapPin,
+  Monitor,
+  Calendar,
+  Sparkles,
+  Target,
+  ArrowLeft,
+  CheckCircle2,
+} from 'lucide-react'
 import type { Course } from '../../types'
 import { formatPrice } from '../../utils/course'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { resolveCourseSeatMetrics } from '@/utils/courseDetailPageData'
-import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
-import { OPEN_ENROLLMENT_LABEL, seatsLine } from '@/data/webSpec'
+import { seatsLine } from '@/data/webSpec'
 import { staggerItem } from '@/utils/animations'
 
 type Props = { course: Course; index?: number }
 
-// Design Language 2.0 — the featured course is an editorial ROW, not a card:
-// flying-page thumbnail (emc-page-clip-sm) · serif title · one meta line ·
-// price at the baseline with «تفاصيل الدورة» as a drawing-arc line CTA.
-// The row sits on an emc-row hairline seat (hover: paper tint + sky bar).
+function formatArabicDate(dateStr?: string | null): string | null {
+  if (!dateStr) return null
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return null
+    return d.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return null
+  }
+}
+
+function resolveProgramTier(course: Course): { label: string; badgeCls: string; isFree: boolean } {
+  const isFree = course.type === 'free' || Boolean(course.is_free) || Number(course.price) === 0
+  const title = (course.title || '').toLowerCase()
+  const rawCatalogType = (course as Record<string, unknown>).catalog_type as string | undefined
+  const kind = ((course.program_kind || course.program_type || rawCatalogType || '') as string).toLowerCase()
+  const hours = Number(course.training_hours || 0)
+
+  if (kind === 'workshop' || title.includes('ورشة') || title.includes('ندوة') || (hours > 0 && hours <= 6)) {
+    return {
+      label: isFree ? 'ورشة عمل تفاعلية · مجانية' : 'ورشة عمل تطبيقية',
+      badgeCls: 'bg-amber-500/10 text-amber-800 border-amber-300/60',
+      isFree,
+    }
+  }
+
+  if (
+    course.learning_path != null ||
+    Boolean(course.is_part_of_learning_path) ||
+    kind === 'path' ||
+    title.includes('مسار') ||
+    title.includes('دبلوم') ||
+    hours >= 40
+  ) {
+    return {
+      label: 'مسار تأهيل شامل متقدم',
+      badgeCls: 'bg-customBlue/10 text-customBlue border-customBlue/30',
+      isFree,
+    }
+  }
+
+  return {
+    label: 'دورة تدريبية متخصصة',
+    badgeCls: 'bg-deepBlue/10 text-deepBlue border-deepBlue/20',
+    isFree,
+  }
+}
+
+function resolveOutcomeHook(course: Course): string {
+  if (course.short_description && course.short_description.trim().length > 0) {
+    return course.short_description.trim()
+  }
+  const title = (course.title || '').toLowerCase()
+  if (title.includes('برمج') || title.includes('كود') || title.includes('ويب') || title.includes('مطور')) {
+    return 'ستبني بنهاية المحتوى: مشاريع وتطبيقات ويب حقيقية جاهزة للعمل'
+  }
+  if (title.includes('ذكاء') || title.includes('بيان') || title.includes('آل') || title.includes('ai')) {
+    return 'ستبني بنهاية المحتوى: نماذج وتطبيقات ذكاء اصطناعي وأتمتة عملية معتمدة'
+  }
+  if (title.includes('إدارة') || title.includes('قياد') || title.includes('مشروع')) {
+    return 'ستبني بنهاية المحتوى: خطة تشغيلية وتنفيذية لإدارة المشاريع باحترافية'
+  }
+  if (title.includes('تصميم') || title.includes('واجه')) {
+    return 'ستبني بنهاية المحتوى: نظام تصميم وتجربة مستخدم (UI/UX) قابلة للإطلاق'
+  }
+  if (title.includes('لغ') || title.includes('إنجليز') || title.includes('هولند')) {
+    return 'ستكتسب بنهاية المحتوى: طلاقة لغوية وتواصلاً احترافياً معتمداً'
+  }
+  return 'ستبني بنهاية المحتوى: مهارات تطبيقية حقيقية ومشروع تخرج عملي معتمد'
+}
+
+function resolveLevelText(course: Course, tierLabel: string): string {
+  if (course.level && course.level.trim().length > 0) return course.level
+  if (tierLabel.includes('ورشة')) return 'مبتدئ إلى متوسط'
+  if (tierLabel.includes('مسار')) return 'متوسط إلى متقدم'
+  return 'جميع المستويات'
+}
+
 function HomeCourseCard({ course }: Props) {
   const rawImg =
     course.course_image ||
@@ -32,109 +115,191 @@ function HomeCourseCard({ course }: Props) {
   const isOnline = Boolean(course.is_online)
 
   const instructorName = course.instructor?.name || course.instructor_name || null
-
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
 
-  const isEnded = resolveCourseIsEnded(course)
+  const isWorkshop = course.program_type === 'workshop' || Boolean((course as Record<string, unknown>).is_workshop)
+  const isEnded =
+    resolveCourseIsEnded(course) ||
+    Boolean(
+      isWorkshop &&
+        course.start_date &&
+        Date.parse(course.start_date) + 24 * 60 * 60 * 1000 < Date.now(),
+    )
+  const detailHref = isWorkshop ? `/workshops/${course.slug}` : `/courses/${course.slug}`
+  const detailLabel = isWorkshop ? 'تفاصيل الورشة والتسجيل' : 'تفاصيل البرنامج والتسجيل'
 
-  // §1.3 — no start date on a product row. «تسجيل مفتوح» takes its place, and the
-  // seats line renders only when the API actually reports remaining seats.
-  const seatsUrgency = isEnded ? null : seatsLine(resolveCourseSeatMetrics(course).remaining)
+  const tier = resolveProgramTier(course)
+  const formattedDate = formatArabicDate(course.start_date)
+  const outcomeHook = resolveOutcomeHook(course)
+  const levelText = resolveLevelText(course, tier.label)
+
+  const seatMetrics = resolveCourseSeatMetrics(course)
+  const seatsUrgency = isEnded ? null : seatsLine(seatMetrics.remaining)
+  const isHighDemand = !isEnded && seatMetrics.remaining != null && seatMetrics.remaining <= 5 && seatMetrics.remaining > 0
+  const isFullCapacity = !isEnded && seatMetrics.remaining === 0
 
   return (
-    <motion.article variants={staggerItem} aria-label={course.title} className="emc-row group relative">
-      {/* Invisible cover link the whole row navigates while the CTA keeps focus semantics */}
-      <Link
-        to={`/courses/${course.slug}`}
-        className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
-        aria-hidden="true"
-        tabIndex={-1}
-      />
+    <motion.article
+      variants={staggerItem}
+      aria-label={course.title}
+      className={`group relative flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm transition-all duration-300 hover:border-customBlue/40 hover:shadow-xl ${
+        isEnded ? 'opacity-85 grayscale-[0.2]' : ''
+      }`}
+    >
+      <div>
+        {/* 1. Top Classification Bar (3-Second Rule) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Primary Tier Badge */}
+            <span
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1 text-xs font-black shadow-xs ${tier.badgeCls}`}
+            >
+              <Sparkles size={12} className="shrink-0" />
+              <span>{tier.label}</span>
+            </span>
 
-      <div className="relative flex items-center gap-4 py-5 ps-3 sm:gap-6 sm:py-6 sm:ps-4">
-        {/* Thumbnail flying-page mask instead of a rounded box */}
-        <div className="emc-page-clip-sm relative aspect-[16/10] w-24 shrink-0 sm:w-36">
-          {imgSrc ? (
-            <img
-              src={imgSrc}
-              alt={course.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue to-customBlue">
-              <BookOpen className="h-7 w-7 text-white/25 sm:h-9 sm:w-9" aria-hidden />
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1 text-right">
-          {course.certificate && (
-            <p className="mb-1 hidden text-[10px] font-bold tracking-wide text-customBlue sm:block">
-              {course.certificate}
-            </p>
-          )}
-
-          {!isEnded && (
-            <p className="mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] font-bold sm:text-[11px]">
-              <span className="rounded-full border border-line px-2 py-0.5 text-ocean">
-                {OPEN_ENROLLMENT_LABEL}
+            {/* Chronological Status */}
+            {isEnded ? (
+              <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                برنامج منتهٍ
               </span>
-              {seatsUrgency && <span className="text-ink-400">{seatsUrgency}</span>}
-            </p>
-          )}
-
-          {/* Serif title */}
-          <h3 className="line-clamp-2 font-display text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:line-clamp-1 sm:text-xl">
-            {course.title}
-          </h3>
-
-          {/* One meta line */}
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-ink-400 sm:text-xs">
-            {instructorName && <span className="truncate">مع {instructorName}</span>}
-            {hours != null && (
-              <span className="hidden items-center gap-1.5 sm:flex">
-                <Clock className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
-                {String(hours)} ساعة تدريبية
+            ) : formattedDate ? (
+              <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-300/70 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                <Calendar size={11} className="text-emerald-600" />
+                <span>يبدأ {formattedDate}</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-lg border border-sky-300/70 bg-sky-50 px-2.5 py-1 text-[11px] font-bold text-sky-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                <span>متاح للتسجيل الفوري</span>
               </span>
             )}
-            <span className="flex items-center gap-1.5">
-              {isOnline ? (
-                <Monitor className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
-              ) : (
-                <MapPin className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
-              )}
-              {isOnline ? 'عن بُعد' : course.location || 'حضوري في المركز'}
-            </span>
           </div>
 
-          {/* Baseline: price + line CTA */}
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span className="flex items-center gap-2.5">
-              {isFree ? (
-                <span className="text-sm font-black text-customBlue sm:text-base">مجاناً</span>
-              ) : (
-                <span className="font-latin text-base font-black tabular-nums text-deepBlue sm:text-lg" dir="ltr">
-                  {formatPrice(course.price)}
-                </span>
-              )}
-              {isEnded && <CourseStatusBadge isEnded placement="inline" />}
-            </span>
-            <Link
-              to={`/courses/${course.slug}`}
-              className="emc-cta-line relative z-10 text-xs sm:text-sm"
-            >
-              تفاصيل الدورة
-              <ArrowLeftIcon className="h-3.5 w-3.5" />
-            </Link>
+          {/* Price Tag */}
+          <div className="shrink-0">
+            {isFree ? (
+              <span className="inline-block rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-black text-white shadow-xs">
+                مجاناً بالكامل
+              </span>
+            ) : (
+              <span className="font-latin text-base font-black text-deepBlue" dir="ltr">
+                {formatPrice(course.price)}
+              </span>
+            )}
           </div>
         </div>
+
+        {/* Thumbnail & Title Layout */}
+        <div className="flex items-start gap-4 mb-4">
+          <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 border border-slate-100 sm:w-32">
+            {imgSrc ? (
+              <img
+                src={imgSrc}
+                alt={course.title}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue to-customBlue text-white/30">
+                <BookOpen size={24} />
+              </div>
+            )}
+
+            {isEnded && (
+              <div className="absolute top-1 right-1 z-10">
+                <CourseStatusBadge isEnded placement="overlay" />
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1 text-right">
+            {instructorName && (
+              <p className="text-[11px] font-bold text-customBlue mb-1">
+                تقديم: {instructorName}
+              </p>
+            )}
+
+            <h3 className="line-clamp-2 font-display text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:text-lg">
+              <Link to={detailHref}>
+                {course.title}
+              </Link>
+            </h3>
+
+            {/* Dynamic Demand / Seats Indicator */}
+            {isHighDemand && seatsUrgency ? (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-black text-customOrange border border-amber-300/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-customOrange animate-ping" />
+                  <span>{seatsUrgency}</span>
+                </span>
+              </div>
+            ) : seatsUrgency ? (
+              <p className="mt-1 text-[11px] font-black text-customOrange">
+                {seatsUrgency}
+              </p>
+            ) : isFullCapacity ? (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-black text-rose-700 border border-rose-200">
+                  اكتملت المقاعد
+                </span>
+              </div>
+            ) : seatMetrics.enrolled != null && seatMetrics.enrolled >= 5 ? (
+              <p className="mt-1 text-[11px] font-bold text-slate-500">
+                +{seatMetrics.enrolled} مسجل في الدفعة
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        {/* 2. Practical Outcome Hook (مؤشر القيمة التطبيقية) */}
+        <div className="mb-4 rounded-xl border border-slate-200/80 bg-slate-50/80 p-3 text-right">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-600" />
+            <p className="text-xs font-bold leading-relaxed text-slate-700">
+              {outcomeHook}
+            </p>
+          </div>
+        </div>
+
+        {/* 3. Triad Metadata Tokens (شريط البيانات الثلاثي) */}
+        <div className="grid grid-cols-3 gap-2 py-3 border-t border-slate-100 text-center text-[11px] font-bold text-slate-600">
+          {/* Duration */}
+          <div className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-50 py-1.5 px-2">
+            <Clock size={13} className="text-customBlue shrink-0" />
+            <span className="truncate">{hours ? `${hours} ساعة` : 'مرن'}</span>
+          </div>
+
+          {/* Modality */}
+          <div className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-50 py-1.5 px-2">
+            {isOnline ? (
+              <Monitor size={13} className="text-customBlue shrink-0" />
+            ) : (
+              <MapPin size={13} className="text-customBlue shrink-0" />
+            )}
+            <span className="truncate">{isOnline ? 'عن بُعد' : 'حضوري'}</span>
+          </div>
+
+          {/* Level */}
+          <div className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-50 py-1.5 px-2">
+            <Target size={13} className="text-customBlue shrink-0" />
+            <span className="truncate">{levelText}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Full-Width Direct CTA (10% Accent Orange, min 44px touch target) */}
+      <div className="mt-4 pt-3 border-t border-slate-100">
+        <Link
+          to={detailHref}
+          className="flex h-11 sm:h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-4 text-xs sm:text-sm font-black text-white shadow-md shadow-customOrange/20 transition-all duration-200 hover:bg-customOrange/90 hover:shadow-lg active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-customOrange focus:ring-offset-2"
+        >
+          <span>{detailLabel}</span>
+          <ArrowLeft size={16} />
+        </Link>
       </div>
     </motion.article>
   )
 }
 
-// Memoized: rendered in a list by FeaturedCoursesSection, which re-renders on
-// fetch/in-view state changes while individual course props stay stable.
 export default memo(HomeCourseCard)

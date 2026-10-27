@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import axios from 'axios'
+import apiClient from '@/api/axios'
 import {
   Copy,
   Eye,
@@ -40,7 +41,7 @@ import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/userBadgeStatus'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
-import { adminRoleLabelAr, getAssignableRoleOptions } from '@/pages/super-admin/users/assignableRoles'
+import { adminRoleLabelAr, getAssignableRoleOptions, DEFAULT_EMC_DEPARTMENTS } from '@/pages/super-admin/users/assignableRoles'
 import {
   canDeleteAdminUserRow,
   canEditAdminUserRow,
@@ -89,7 +90,8 @@ export default function UsersManagementPage() {
   const [lastPage, setLastPage] = useState(1)
   const [serverPaginated, setServerPaginated] = useState(true)
   const [summary, setSummary] = useState<AdminUsersSummary | null>(null)
-  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>(() => DEFAULT_EMC_DEPARTMENTS.map((d) => d.name_ar))
+  const [departmentList, setDepartmentList] = useState<{ id: number; name_ar?: string; name?: string }[]>(DEFAULT_EMC_DEPARTMENTS)
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
   const [loadErr, setLoadErr] = useState<string | null>(null)
@@ -109,6 +111,23 @@ export default function UsersManagementPage() {
     () => getAssignableRoleOptions(includeSuperAdminAssignment),
     [includeSuperAdminAssignment],
   )
+
+  useEffect(() => {
+    let cancelled = false
+    apiClient
+      .get('/departments/options')
+      .then((res) => {
+        if (cancelled) return
+        const raw = res.data?.data ?? res.data
+        const deps = Array.isArray(raw) ? raw : []
+        setDepartmentList(deps)
+        setDepartmentOptions(deps.map((d: any) => d.name_ar || d.name || String(d.id)))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const roleFilterOptions = useMemo(
     () => [{ value: 'all', labelAr: 'كل الأدوار' }, ...roleOptionsForm],
@@ -337,6 +356,7 @@ export default function UsersManagementPage() {
   const [formRole, setFormRole] = useState('student')
   const [formPhone, setFormPhone] = useState('')
   const [formDepartment, setFormDepartment] = useState('')
+  const [formDepartmentId, setFormDepartmentId] = useState('')
   const [formCity, setFormCity] = useState('')
   const [formCountry, setFormCountry] = useState('')
   const [formHow, setFormHow] = useState('')
@@ -371,6 +391,7 @@ export default function UsersManagementPage() {
     setFormRole('student')
     setFormPhone('')
     setFormDepartment('')
+    setFormDepartmentId('')
     setFormCity('')
     setFormCountry('')
     setFormHow('')
@@ -398,6 +419,14 @@ export default function UsersManagementPage() {
       setFormRole((u.role && String(u.role)) || 'student')
       setFormPhone(u.phone ?? '')
       setFormDepartment(u.department ?? '')
+      if ((u as any).department_id) {
+        setFormDepartmentId(String((u as any).department_id))
+      } else if (u.department) {
+        const matched = departmentList.find((d) => d.name_ar === u.department || d.name === u.department)
+        setFormDepartmentId(matched ? String(matched.id) : '')
+      } else {
+        setFormDepartmentId('')
+      }
       setFormCity(u.city ?? '')
       setFormCountry(u.country ?? '')
       setFormHow(u.how_did_you_hear_about_us ?? '')
@@ -432,7 +461,13 @@ export default function UsersManagementPage() {
       }
       return true
     }
-    if (step === 2) return true
+    if (step === 2) {
+      if ((formRole === 'department_manager' || formRole === 'department_member') && !formDepartmentId && !formDepartment) {
+        toast.warning('يرجى تحديد الإدارة التابع لها')
+        return false
+      }
+      return true
+    }
     if (step === 3) {
       if (!pw.trim()) {
         toast.warning('كلمة المرور مطلوبة')
@@ -468,6 +503,7 @@ export default function UsersManagementPage() {
         password_confirmation: pwConf || pw,
         phone: formPhone.trim() || undefined,
         department: formDepartment.trim() || undefined,
+        department_id: formDepartmentId ? Number(formDepartmentId) : undefined,
         city: formCity.trim() || undefined,
         country: formCountry.trim() || undefined,
         how_did_you_hear_about_us: formHow.trim() || undefined,
@@ -498,6 +534,7 @@ export default function UsersManagementPage() {
         role: formRole,
         phone: formPhone.trim() || undefined,
         department: formDepartment.trim() || undefined,
+        department_id: formDepartmentId ? Number(formDepartmentId) : undefined,
         city: formCity.trim() || undefined,
         country: formCountry.trim() || undefined,
         how_did_you_hear_about_us: formHow.trim() || undefined,
@@ -833,6 +870,33 @@ export default function UsersManagementPage() {
                           </select>
                         }
                       />
+                      {(formRole === 'department_manager' || formRole === 'department_member') && (
+                        <Labeled
+                          label="الإدارة التابع لها *"
+                          children={
+                            <select
+                              value={formDepartmentId}
+                              onChange={(e) => {
+                                const id = e.target.value
+                                setFormDepartmentId(id)
+                                const matched = departmentList.find((d) => String(d.id) === id)
+                                setFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
+                              }}
+                              className={cn(
+                                EMC_WIZARD_INPUT_BASE,
+                                !formDepartmentId && 'border-amber-400 bg-amber-50/30 text-amber-900',
+                              )}
+                            >
+                              <option value="">-- اختر الإدارة المعنية --</option>
+                              {departmentList.map((d) => (
+                                <option key={d.id} value={String(d.id)}>
+                                  {d.name_ar || d.name}
+                                </option>
+                              ))}
+                            </select>
+                          }
+                        />
+                      )}
                     </FormSectionCard>
                   : createWizardStep === 3 ?
                     <FormSectionCard title="البيانات الأمنية الأولية" eyebrow="الخطوة 3" icon={Shield}>
@@ -934,6 +998,9 @@ export default function UsersManagementPage() {
         lastLoginAt={editMeta.lastLoginAt}
         createdAt={editMeta.createdAt}
         roleOptions={roleOptionsEdit}
+        departmentList={departmentList}
+        formDepartmentId={formDepartmentId}
+        onFormDepartmentId={setFormDepartmentId}
         onClose={closeModal}
         onSubmit={submitEdit}
         onFormName={setFormName}

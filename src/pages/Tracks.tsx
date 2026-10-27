@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -55,11 +56,22 @@ function accentForIndex(i: number) {
 
 export default function Tracks() {
   const { t } = useTranslation()
+  const { hash } = useLocation()
+
+  useEffect(() => {
+    if (!hash) return
+    const id = hash.replace('#', '')
+    const target = document.getElementById(id)
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [hash])
+
   return (
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
       <PublicSeo
-        title="المحاور الاثنا عشر"
-        description="محاور EMC الاثنا عشر مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني، وكل محور يربطك مباشرة بكتالوج البرامج والدورات."
+        title="المجالات والمحاور المعرفية الاثنا عشر"
+        description="مجالات ومحاور EMC المعرفية الاثنا عشر: مصفوفة شاملة تجمع التعليم الأكاديمي والرقمي والمهني وتمكين المستقبل."
         path="/tracks"
       />
       <PageHeader
@@ -107,12 +119,13 @@ export default function Tracks() {
               return (
                 <motion.article
                   key={theme.id}
+                  id={theme.id}
                   variants={staggerItem}
                   whileHover={{
                     y: -6,
                     transition: { type: 'spring', stiffness: 420, damping: 28 },
                   }}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.065] bg-white text-right ring-1 ring-line transition-colors hover:border-customBlue/[0.18]"
+                  className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.065] bg-white text-right ring-1 ring-line transition-colors hover:border-customBlue/[0.18] scroll-mt-28"
                 >
                   <span
                     aria-hidden

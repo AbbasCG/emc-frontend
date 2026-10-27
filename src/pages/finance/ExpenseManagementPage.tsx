@@ -12,6 +12,7 @@ import {
   UploadCloud,
   CheckCircle2,
   X,
+  Wallet,
   DollarSign,
   Eye,
   Loader2,
@@ -31,6 +32,7 @@ import {
 import { openVoucherAttachment } from '@/api/voucherAttachmentApi'
 import { formatMoney } from '@/utils/financeFormatters'
 import { fetchAccountsList, type ChartOfAccountItem } from '@/api/chartOfAccountsApi'
+import { FINANCE_CURRENCIES } from '@/utils/financeFormatters'
 import apiClient from '@/api/axios'
 
 interface DepartmentOption {
@@ -44,6 +46,8 @@ export default function ExpenseManagementPage() {
   const [summary, setSummary] = useState<ExpensesSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showAdvancedPaymentAccount, setShowAdvancedPaymentAccount] = useState(false)
 
   // Accounts lists
   const [expenseAccounts, setExpenseAccounts] = useState<ChartOfAccountItem[]>([])
@@ -53,8 +57,8 @@ export default function ExpenseManagementPage() {
   // Filters state
   const [search, setSearch] = useState('')
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('')
-  const [dateFrom] = useState<string>('')
-  const [dateTo] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
 
   // Form states
   const [editingExpense, setEditingExpense] = useState<ManualExpenseItem | null>(null)
@@ -173,6 +177,7 @@ export default function ExpenseManagementPage() {
     setStatus('posted')
     setAttachment(null)
     setAttachmentPreview(null)
+    setShowAdvancedPaymentAccount(false)
 
     try {
       const nextNo = await suggestExpenseVoucherNo()
@@ -188,7 +193,7 @@ export default function ExpenseManagementPage() {
     setVoucherNo(expense.voucher_no)
     setDate(expense.date)
     setExpenseAccountId(String(expense.expense_account_id))
-    setPaymentAccountId(String(expense.payment_account_id))
+    setPaymentAccountId(expense.payment_account_id ? String(expense.payment_account_id) : '')
     setAmount(String(expense.amount))
     setCurrency(expense.currency || 'USD')
     setDepartmentId(expense.department_id ? String(expense.department_id) : '')
@@ -196,8 +201,9 @@ export default function ExpenseManagementPage() {
     setDescription(expense.description || '')
     setStatus(expense.status === 'cancelled' ? 'posted' : expense.status)
     setAttachment(null)
-    setAttachmentPreview(null)
-
+    setAttachmentPreview((expense as any).attachment_url || null)
+    setShowAdvancedPaymentAccount(!!expense.payment_account_id)
+    setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -207,10 +213,6 @@ export default function ExpenseManagementPage() {
 
     if (!expenseAccountId) {
       toast.error('يرجى اختيار بند المصروف')
-      return
-    }
-    if (!paymentAccountId) {
-      toast.error('يرجى اختيار طريقة الدفع (حساب الصرف)')
       return
     }
     if (!amount || Number(amount) <= 0) {
@@ -229,7 +231,9 @@ export default function ExpenseManagementPage() {
       formData.append('voucher_no', voucherNo)
       formData.append('date', date)
       formData.append('expense_account_id', expenseAccountId)
-      formData.append('payment_account_id', paymentAccountId)
+      if (paymentAccountId) {
+        formData.append('payment_account_id', paymentAccountId)
+      }
       formData.append('amount', amount)
       formData.append('currency', currency)
       if (departmentId) formData.append('department_id', departmentId)
@@ -248,6 +252,7 @@ export default function ExpenseManagementPage() {
         toast.success('تم تسجيل وسند الصرف بنجاح وتوليد القيد المحاسبي المزدوج')
       }
 
+      setIsModalOpen(false)
       await handleResetForm()
       await loadExpenses()
     } catch (err: any) {
@@ -308,6 +313,17 @@ export default function ExpenseManagementPage() {
           >
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             <span>تحديث البيانات</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleResetForm()
+              setIsModalOpen(true)
+            }}
+            className="flex items-center gap-2 rounded-xl bg-customOrange px-5 py-2.5 text-xs font-black text-white shadow-md shadow-orange-500/20 transition hover:bg-customOrange/90"
+          >
+            <Plus size={16} />
+            <span>سند صرف جديد</span>
           </button>
         </div>
       </div>
@@ -382,309 +398,312 @@ export default function ExpenseManagementPage() {
         </div>
       </div>
 
-      {/* ── Section 1: Expense Entry Form (نموذج تسجيل المصروف) ──────────────── */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-customBlue/10 text-customBlue font-bold">
-              {editingExpense ? <Pencil size={16} /> : <Plus size={18} />}
-            </div>
-            <h2 className="text-lg font-black text-deepBlue">
-              {editingExpense ? `تعديل سند الصرف (${editingExpense.voucher_no})` : 'نموذج تسجيل مصروف جديد'}
-            </h2>
-          </div>
-
-          {editingExpense && (
-            <button
-              type="button"
-              onClick={() => void handleResetForm()}
-              className="flex items-center gap-1 text-xs font-bold text-rose-600 hover:underline"
+      {/* ── Section 1: Expense Voucher Modal (نافذة إدخال وتعديل سند الصرف) ──────────────── */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-3xl my-8 overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-100"
             >
-              <X size={14} />
-              <span>إلغاء التعديل</span>
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {/* رقم السند */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                رقم السند (Voucher No) <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={voucherNo}
-                  onChange={(e) => setVoucherNo(e.target.value)}
-                  placeholder="PV-2026-0001"
-                  required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-latin text-sm font-bold text-deepBlue focus:border-customBlue focus:bg-white focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const no = await suggestExpenseVoucherNo()
-                    setVoucherNo(no)
-                  }}
-                  title="توليد رقم جديد تلقائياً"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                >
-                  <Sparkles size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* التاريخ */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                التاريخ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-              />
-            </div>
-
-            {/* بند المصروف (نوع الصرف - كود 3) */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                نوع الصرف / بند المصروف (حساب المصروف - مدين) <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={expenseAccountId}
-                onChange={(e) => setExpenseAccountId(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="">-- اختر بند المصروف من شجرة الحسابات --</option>
-                {expenseAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {/* طريقة الدفع / حساب الصرف (كود 11) */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                طريقة الدفع (حساب الصرف - دائن) <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={paymentAccountId}
-                onChange={(e) => setPaymentAccountId(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="">-- اختر حساب الدفع (البنك / المحفظة) --</option>
-                {paymentAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* المبلغ */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                المبلغ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-black text-deepBlue focus:border-customBlue focus:outline-none"
-              />
-            </div>
-
-            {/* العملة */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                العملة <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="YER">YER (ريال يمني)</option>
-                <option value="SAR">SAR (ريال سعودي)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {/* الإدارة / القسم المستفيد */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                الإدارة / القسم المستفيد
-              </label>
-              {departments.length > 0 ? (
-                <select
-                  value={departmentId}
-                  onChange={(e) => {
-                    setDepartmentId(e.target.value)
-                    const d = departments.find((dept) => String(dept.id) === e.target.value)
-                    if (d) setDepartmentName(d.name_ar || d.name || '')
-                  }}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-                >
-                  <option value="">-- اختر الإدارة المستفيدة --</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name_ar || dept.name}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  placeholder="مثال: إدارة التقنية والتشغيل"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-                />
-              )}
-            </div>
-
-            {/* حالة السند */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">حالة السند</label>
-              <div className="flex items-center gap-4 pt-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="posted"
-                    checked={status === 'posted'}
-                    onChange={() => setStatus('posted')}
-                    className="accent-customBlue"
-                  />
-                  <span className="text-emerald-700">مُعتمد ومرحّل تلقائياً</span>
-                </label>
-                <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="draft"
-                    checked={status === 'draft'}
-                    onChange={() => setStatus('draft')}
-                    className="accent-customBlue"
-                  />
-                  <span className="text-slate-600">مسودة (غير مرحّل)</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* البيان (الوصف) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              البيان / تفاصيل الصرف <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="مثال: تجديد اشتراك سيرفرات المنصة وحزمت النطاقات لشهر أكتوبر 2026"
-              required
-              className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-            />
-          </div>
-
-          {/* إرفاق سند الصرف (File Upload Dropzone) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              إرفاق سند الصرف / الفاتورة (PNG, JPG, PDF - أقصى 10MB)
-            </label>
-
-            <div className="relative rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition hover:border-customBlue/50 hover:bg-slate-50">
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,application/pdf"
-                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                className="absolute inset-0 z-10 opacity-0 cursor-pointer"
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-customBlue/10 text-customBlue">
-                    <UploadCloud size={20} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-customBlue/10 text-customBlue font-bold">
+                    {editingExpense ? <Pencil size={18} /> : <Plus size={20} />}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-deepBlue">
-                      {attachment ? attachment.name : 'انقر هنا أو اسحب الملف المرفق هنا'}
-                    </p>
-                    <p className="text-[11px] font-semibold text-slate-400">
-                      {attachment
-                        ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB`
-                        : 'يدعم الفواتير الإلكترونية وصور سندات القبض والدفع'}
+                    <h2 className="text-lg font-black text-deepBlue">
+                      {editingExpense ? `تعديل سند الصرف (${editingExpense.voucher_no})` : 'تسجيل سند صرف ومصروف جديد'}
+                    </h2>
+                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                      إثبات المصروفات التشغيلية وتوليد القيود المحاسبية المزدوجة آلياً
                     </p>
                   </div>
                 </div>
 
-                {attachmentPreview && (
-                  <div className="relative shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
-                    <img src={attachmentPreview} alt="المرفق" className="h-12 w-16 object-cover rounded" />
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-                {attachment && (
+              <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* رقم السند */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      رقم السند (Voucher No) <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={voucherNo}
+                        onChange={(e) => setVoucherNo(e.target.value)}
+                        placeholder="PV-2026-0001"
+                        required
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-latin text-sm font-bold text-deepBlue focus:border-customBlue focus:bg-white focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const no = await suggestExpenseVoucherNo()
+                          setVoucherNo(no)
+                        }}
+                        title="توليد رقم جديد تلقائياً"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                      >
+                        <Sparkles size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* التاريخ */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      التاريخ <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+
+                  {/* بند المصروف (نوع الصرف - كود 3) */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      نوع الصرف / بند المصروف (مدين) <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={expenseAccountId}
+                      onChange={(e) => setExpenseAccountId(e.target.value)}
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      <option value="">-- اختر بند المصروف من شجرة الحسابات --</option>
+                      {expenseAccounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* المبلغ */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      المبلغ <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-black text-deepBlue focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+
+                  {/* العملة */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      العملة <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      {FINANCE_CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} ({c.name} - {c.symbol})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* طريقة الدفع / حساب الصرف (توجيه آلي ذكي مع إمكانية التخصيص) */}
+                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3.5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Wallet size={16} className="text-customBlue" />
+                      <span className="text-xs font-black text-deepBlue">طريقة الدفع / حساب الصرف (دائن)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedPaymentAccount(!showAdvancedPaymentAccount)}
+                      className="text-[11px] font-bold text-customBlue hover:underline"
+                    >
+                      {showAdvancedPaymentAccount ? 'الاعتماد التلقائي على العملة' : 'تخصيص حساب يدوياً'}
+                    </button>
+                  </div>
+
+                  {showAdvancedPaymentAccount ? (
+                    <select
+                      value={paymentAccountId}
+                      onChange={(e) => setPaymentAccountId(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      <option value="">-- تلقائي (حسب العملة الافتراضية {currency}) --</option>
+                      {paymentAccounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
+                      <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                      <span>
+                        توجيه محاسبي آلي: سيتم الصرف آلياً من الحساب المعتمد لعملة <strong className="font-latin text-deepBlue">{currency}</strong> بشجرة الحسابات.
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* الإدارة / القسم المستفيد */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      الإدارة / القسم المستفيد (اختياري)
+                    </label>
+                    {departments.length > 0 ? (
+                      <select
+                        value={departmentId}
+                        onChange={(e) => {
+                          setDepartmentId(e.target.value)
+                          const d = departments.find((dept) => String(dept.id) === e.target.value)
+                          if (d) setDepartmentName(d.name_ar || d.name || '')
+                        }}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                      >
+                        <option value="">-- اختر القسم أو الإدارة --</option>
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name_ar || dept.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={departmentName}
+                        onChange={(e) => setDepartmentName(e.target.value)}
+                        placeholder="مثال: إدارة تقنية المعلومات، التسويق..."
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                      />
+                    )}
+                  </div>
+
+                  {/* البيان (الوصف) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      البيان / تفاصيل الصرف <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="مثال: تجديد اشتراك خوادم AWS لشهر يوليو، أو شراء معدات..."
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* إرفاق سند الصرف / الفاتورة (File Upload Dropzone) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    إرفاق سند الصرف / الفاتورة (PNG, JPG, PDF - أقصى 10MB)
+                  </label>
+
+                  <div className="relative rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition hover:border-customBlue/50 hover:bg-slate-50">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,application/pdf"
+                      onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                      className="absolute inset-0 z-10 opacity-0 cursor-pointer"
+                    />
+
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-customBlue/10 text-customBlue">
+                          <UploadCloud size={20} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-deepBlue">
+                            {attachment ? attachment.name : 'انقر هنا أو اسحب الملف المرفق هنا'}
+                          </p>
+                          <p className="text-[11px] font-semibold text-slate-400">
+                            {attachment
+                              ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB`
+                              : 'يدعم الفواتير الإلكترونية وصور سندات القبض والدفع'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {attachmentPreview && (
+                        <div className="relative shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+                          <img src={attachmentPreview} alt="المرفق" className="h-12 w-16 object-cover rounded" />
+                        </div>
+                      )}
+
+                      {attachment && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleFileChange(null)
+                          }}
+                          className="relative z-20 rounded-lg bg-rose-50 p-2 text-rose-600 hover:bg-rose-100"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* أزرار التحكم داخل المودال */}
+                <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleFileChange(null)
-                    }}
-                    className="relative z-20 rounded-lg bg-rose-50 p-2 text-rose-600 hover:bg-rose-100"
+                    onClick={() => setIsModalOpen(false)}
+                    className="rounded-xl px-5 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 transition"
                   >
-                    <X size={16} />
+                    إلغاء
                   </button>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* أزرار التحكم */}
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={() => void handleResetForm()}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-100"
-            >
-              <RefreshCw size={15} />
-              <span>مسح الحقول</span>
-            </button>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-customBlue px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-customBlue/20 transition hover:bg-deepBlue disabled:opacity-50"
-            >
-              {submitting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <CheckCircle2 size={16} />
-              )}
-              <span>{editingExpense ? 'حفظ التعديلات وتحديث القيد' : '💾 حفظ وترحيل السند'}</span>
-            </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 rounded-xl bg-customOrange px-6 py-2.5 text-xs font-black text-white shadow-md shadow-orange-500/20 transition hover:bg-customOrange/90 disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <CheckCircle2 size={16} />
+                    )}
+                    <span>{editingExpense ? 'حفظ التعديلات وتحديث القيد' : 'حفظ وترحيل السند'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </form>
-      </div>
+        )}
+      </AnimatePresence>
 
       {/* ── Section 2: Expenses Data Table (سجل المصروفات) ────────────────────── */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -723,6 +742,24 @@ export default function ExpenseManagementPage() {
                 ))}
               </select>
             )}
+
+            {/* Date Filters */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
+              <span>من:</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 focus:border-customBlue focus:outline-none"
+              />
+              <span>إلى:</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 focus:border-customBlue focus:outline-none"
+              />
+            </div>
           </div>
         </div>
 

@@ -9,6 +9,8 @@ type Props = {
   onOpen: (id: number) => void
   /** File the meeting's report. Offered only while the server says this viewer may. */
   onUploadReport?: (id: number) => void
+  /** Close meeting from the lounge (fast attendance & points). */
+  onCloseLounge?: (id: number) => void
   /** Record that the viewer joined (and open the link). Offered only while the server says they may. */
   onJoin?: (id: number) => void
   /** Record that the viewer attended (no link, or in person). */
@@ -30,7 +32,7 @@ const AUDIENCE_LABEL = {
  *  - none, may file      -> "رفع التقرير"
  *  - none, may not       -> a plain hint, no button
  */
-export default function MeetingCard({ m, onOpen, onUploadReport, onJoin, onConfirm, busyId = null }: Props) {
+export default function MeetingCard({ m, onOpen, onCloseLounge, onUploadReport, onJoin, onConfirm, busyId = null }: Props) {
   const caps = m.capabilities
   const busy = busyId === m.id
   const joined = m.my_attendance !== null && m.my_attendance.status !== 'invited'
@@ -124,14 +126,25 @@ export default function MeetingCard({ m, onOpen, onUploadReport, onJoin, onConfi
             </button>
           )}
 
+          {onCloseLounge && caps.can_manage && m.status !== 'completed' && m.status !== 'cancelled' && (
+            <button
+              type="button"
+              onClick={() => onCloseLounge(m.id)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-xs font-black text-white transition hover:bg-brand-600 shadow-sm"
+            >
+              <UserCheck size={14} aria-hidden="true" />
+              رصد الحضور والنتائج
+            </button>
+          )}
+
           {onUploadReport && !m.has_report && caps.can_upload_report && (
             <button
               type="button"
               onClick={() => onUploadReport(m.id)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-xs font-black text-white transition hover:bg-brand-600"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-200"
             >
               <FileText size={14} aria-hidden="true" />
-              رفع التقرير
+              تقرير يدوي
             </button>
           )}
         </div>

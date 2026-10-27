@@ -29,6 +29,9 @@ export type User = {
   is_department_leader?: boolean
   /** True when this instructor teaches at least one course with requires_placement_test=true. Populated from /auth/me. Gates English Institute UI. */
   has_english_courses?: boolean
+  department_name?: string | null
+  has_enrolled_courses?: boolean
+  impact_points_balance?: number
 }
 
 export type Course = {

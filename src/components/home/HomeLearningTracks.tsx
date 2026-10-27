@@ -236,6 +236,17 @@ export default function HomeLearningTracks() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* All Learning Paths Directory CTA */}
+        <div className="mt-14 text-center">
+          <Link
+            to="/learning-paths"
+            className="inline-flex items-center gap-2.5 rounded-2xl border border-deepBlue/20 bg-white px-8 py-4 text-sm font-black text-deepBlue shadow-sm transition hover:border-customOrange hover:text-customOrange hover:shadow-md"
+          >
+            <span>استعراض كافة المسارات المهنية والتأهيلية المتكاملة</span>
+            <ArrowLeftIcon size={16} />
+          </Link>
+        </div>
       </div>
     </section>
   )
