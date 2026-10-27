@@ -482,7 +482,7 @@ export default function CourseEnrollmentCard({
           }
 
           {/* §8 the launch promise and the guarantee, verbatim, in the purchase area. */}
-          {canEnroll && (
+          {canEnroll && course.type === 'paid' && (
             <div className="mt-4 border-t border-line pt-4 text-right">
               <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
               <p className="mt-2 text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>

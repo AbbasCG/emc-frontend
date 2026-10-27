@@ -384,8 +384,8 @@ export default function LearningPathDetail() {
   const enrollDisabled = enrolling || !path.enrollment_open
   // REGIONAL PRICING SEAM — the public path API exposes one price today, so this
   // is the single place the displayed number is decided (mirrors Checkout).
-  const priceText =
-    effectivePrice === 0 || effectivePrice == null ? 'مجاناً' : formatEuroInteger(effectivePrice, 'ar')
+  const isFree = effectivePrice === 0 || effectivePrice == null
+  const priceText = isFree ? 'مجاناً' : formatEuroInteger(effectivePrice, 'ar')
   // §11 — the price never stands bare: the struck reference value is one of the
   // sanctioned contexts (never a «خصم %» headline).
   const struckOriginal =
@@ -610,13 +610,15 @@ export default function LearningPathDetail() {
                 )}
 
                 {/* §8 the launch promise and the guarantee, verbatim from webSpec. */}
-                <div className="mt-5 border-t border-white/15 pt-4">
-                  <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
-                  <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
-                  {installment && (
-                    <p className="mt-2 text-[12px] leading-6 text-ice/80">{installment}</p>
-                  )}
-                </div>
+                {!isFree && (
+                  <div className="mt-5 border-t border-white/15 pt-4">
+                    <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
+                    <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
+                    {installment && (
+                      <p className="mt-2 text-[12px] leading-6 text-ice/80">{installment}</p>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
