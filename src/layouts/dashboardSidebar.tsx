@@ -536,6 +536,10 @@ export interface SidebarContext {
   hasEnrolledCourses?: boolean
   /** Department name if user belongs to or leads a department */
   departmentName?: string | null
+  /** Department slug if available */
+  departmentSlug?: string | null
+  /** Specialized role for department manager */
+  specializedRole?: string | null
   /** Impact points balance */
   impactPointsBalance?: number
 }
@@ -819,6 +823,71 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
   }
 
   if (n === 'department_manager') {
+    const DEPT_SLUG_MAP: Record<string, string> = {
+      finance: 'finance_manager',
+      'human-resources': 'hr_manager',
+      'marketing-media': 'marketing_manager',
+      'quality-governance': 'quality_manager',
+      'programs-tracks': 'programs_manager',
+      operations: 'operations_manager',
+      'ai-transformation': 'ai_manager',
+      'community-health': 'community_manager',
+      partnerships: 'partnerships_manager',
+      'strategy-planning': 'strategy_planning_manager',
+      'digital-ambassadors': 'digital_ambassadors_manager',
+      advisors: 'advisors_manager',
+      'executive-management': 'executive_admin',
+      technology: 'tech_admin',
+    }
+    const DEPT_NAME_MAP: Record<string, string> = {
+      'الإدارة المالية': 'finance_manager',
+      'إدارة الموارد البشرية والشؤون القانونية': 'hr_manager',
+      'إدارة الموارد البشرية': 'hr_manager',
+      'إدارة الإعلام والتسويق': 'marketing_manager',
+      'إدارة التسويق': 'marketing_manager',
+      'إدارة الجودة والحوكمة': 'quality_manager',
+      'إدارة الجودة': 'quality_manager',
+      'إدارة البرامج والمسارات': 'programs_manager',
+      'إدارة العمليات والتشغيل': 'operations_manager',
+      'إدارة الذكاء الاصطناعي والتحول الرقمي': 'ai_manager',
+      'إدارة الذكاء الاصطناعي': 'ai_manager',
+      'إدارة الصحة النفسية والوعي': 'community_manager',
+      'إدارة الشراكات والعلاقات العامة': 'partnerships_manager',
+      'إدارة الشراكات': 'partnerships_manager',
+      'إدارة الاستراتيجية والتخطيط المؤسسي': 'strategy_planning_manager',
+      'إدارة سفراء التحول الرقمي': 'digital_ambassadors_manager',
+      'إدارة الاستشارات والمستشارين': 'advisors_manager',
+      'الإدارة العليا': 'executive_admin',
+      'إدارة التقنية والدعم الفني': 'tech_admin',
+    }
+
+    const spec =
+      ctx?.specializedRole ||
+      (ctx?.departmentSlug ? DEPT_SLUG_MAP[ctx.departmentSlug] : null) ||
+      (ctx?.departmentName ? DEPT_NAME_MAP[ctx.departmentName] : null)
+
+    if (spec && spec !== 'department_manager') {
+      const specializedGroups = roleSidebar(spec, ctx)
+      const hasStructure = specializedGroups.some((g) =>
+        g.items.some((i) => i.href === '/dashboard/department/structure')
+      )
+      if (!hasStructure) {
+        const leadershipGroup: SidebarNavGroup = {
+          title: 'إدارة الفريق والهيكلة',
+          collapsible: true,
+          defaultOpen: false,
+          items: [
+            { label: 'الهيكلة والتسكين الإداري', href: '/dashboard/department/structure', icon: FolderTree },
+            { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
+            { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
+            membersNavItem(),
+          ],
+        }
+        return [specializedGroups[0], leadershipGroup, ...specializedGroups.slice(1)]
+      }
+      return specializedGroups
+    }
+
     const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
     return [
       { items: [{ label: deptTitle, href: '/dashboard/department', icon: Building2 }] },

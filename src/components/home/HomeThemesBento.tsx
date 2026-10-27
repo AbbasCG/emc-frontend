@@ -1,18 +1,20 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bot,
   ArrowLeft,
   Compass,
   Star,
   Layers,
+  ChevronDown,
 } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/utils/animations'
 
 import { THEMES_BENTO_DATA } from '@/data/themesBentoData'
 
 function HomeThemesBento() {
+  const [showAllThemes, setShowAllThemes] = useState(false)
   const aiTheme = THEMES_BENTO_DATA[0]
   const mediumThemes = THEMES_BENTO_DATA.slice(1, 5)
   const compactThemes = THEMES_BENTO_DATA.slice(5)
@@ -38,12 +40,12 @@ function HomeThemesBento() {
           </div>
 
           <h2 className="font-display text-2xl font-black tracking-tight text-deepBlue sm:text-4xl lg:text-5xl">
-            ١٢ محوراً معرفياً متكاملاً <span className="text-customBlue">تصنع أثرك المهني</span>
+            ١٢ مجالاً ومحوراً معرفياً <span className="text-customBlue">تصنع أثرك المهني</span>
           </h2>
 
           <p className="mt-4 text-sm font-semibold leading-relaxed text-ink-400 sm:text-base">
             تمت هندسة المنظومة المعرفية في مركز EMC وفق فلسفة التدرج من الأساس الأكاديمي حتى التمكين التقني والقيادي المتقدم.
-            استكشف المحاور واكتشف المسار المناسب لك بثوانٍ.
+            استكشف هذه المجالات وتعرّف على تفاصيل برامجها.
           </p>
         </div>
 
@@ -179,47 +181,84 @@ function HomeThemesBento() {
               </motion.div>
             )
           })}
-
-          {/* 3. Compact Interactive Cards (7 themes) */}
-          {compactThemes.map((theme) => {
-            const Icon = theme.icon
-            return (
-              <motion.div
-                key={theme.id}
-                variants={staggerItem}
-                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-[#FBFBFA] p-5 transition-all duration-200 hover:bg-white hover:border-customBlue/30 hover:shadow-md"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition group-hover:bg-customBlue/10 group-hover:text-customBlue">
-                      <Icon size={18} />
-                    </span>
-                    <span className="text-[10px] font-black uppercase text-slate-400">{theme.tag}</span>
-                  </div>
-
-                  <h4 className="font-display text-sm font-black text-deepBlue leading-snug mb-1.5 group-hover:text-customBlue transition">
-                    {theme.title}
-                  </h4>
-
-                  <p className="text-[11px] leading-relaxed text-slate-500 line-clamp-2">
-                    {theme.desc}
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-slate-400">محور #{theme.num}</span>
-                  <Link
-                    to={theme.link}
-                    className="font-black text-customBlue hover:text-customOrange inline-flex items-center gap-1 transition"
-                  >
-                    <span>استعراض</span>
-                    <ArrowLeft size={11} />
-                  </Link>
-                </div>
-              </motion.div>
-            )
-          })}
         </motion.div>
+
+        {/* 3. Expandable Section Toggle Button */}
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShowAllThemes((prev) => !prev)}
+            aria-expanded={showAllThemes}
+            className="inline-flex items-center gap-2.5 rounded-2xl border-2 border-deepBlue/15 bg-white px-7 py-3.5 text-xs sm:text-sm font-black text-deepBlue shadow-sm transition hover:border-customOrange hover:text-customOrange hover:shadow-md active:scale-[0.99]"
+          >
+            <Compass size={16} className="text-customOrange shrink-0" />
+            <span>
+              {showAllThemes
+                ? 'إخفاء باقي المحاور (عرض الـ ٥ محاور الأساسية)'
+                : 'عرض باقي المحاور المعرفية (١٢ محوراً متكاملاً)'}
+            </span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform duration-300 text-slate-400 ${
+                showAllThemes ? 'rotate-180 text-customOrange' : ''
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* 4. Compact Interactive Cards (7 remaining themes) */}
+        <AnimatePresence>
+          {showAllThemes && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="mt-6 overflow-hidden"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 pt-2 pb-1">
+                {compactThemes.map((theme) => {
+                  const Icon = theme.icon
+                  return (
+                    <motion.div
+                      key={theme.id}
+                      variants={staggerItem}
+                      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-[#FBFBFA] p-5 transition-all duration-200 hover:bg-white hover:border-customBlue/30 hover:shadow-md"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition group-hover:bg-customBlue/10 group-hover:text-customBlue">
+                            <Icon size={18} />
+                          </span>
+                          <span className="text-[10px] font-black uppercase text-slate-400">{theme.tag}</span>
+                        </div>
+
+                        <h4 className="font-display text-sm font-black text-deepBlue leading-snug mb-1.5 group-hover:text-customBlue transition">
+                          {theme.title}
+                        </h4>
+
+                        <p className="text-[11px] leading-relaxed text-slate-500 line-clamp-2">
+                          {theme.desc}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-slate-400">محور #{theme.num}</span>
+                        <Link
+                          to={theme.link}
+                          className="font-black text-customBlue hover:text-customOrange inline-flex items-center gap-1 transition"
+                        >
+                          <span>استعراض</span>
+                          <ArrowLeft size={11} />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Bottom Explorer Action Band */}
         <div className="mt-14 text-center">
@@ -228,7 +267,7 @@ function HomeThemesBento() {
             className="inline-flex items-center gap-2.5 rounded-2xl border border-deepBlue/20 bg-white px-7 py-4 text-sm font-black text-deepBlue shadow-sm transition hover:border-customOrange hover:text-customOrange hover:shadow-md"
           >
             <Layers size={17} className="text-customOrange" />
-            <span>عرض دليل المنظومة والكتالوج الأكاديمي الشامل</span>
+            <span>استعراض كافة المجالات والمحاور المعرفية الـ ١٢ بالتفصيل</span>
             <ArrowLeft size={16} />
           </Link>
         </div>

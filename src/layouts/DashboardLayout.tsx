@@ -242,6 +242,8 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       hasEnglishCourses: Boolean(user?.has_english_courses),
       hasEnrolledCourses: Boolean(user?.has_enrolled_courses),
       departmentName: user?.department_name || user?.department,
+      departmentSlug: (user as { department_slug?: string | null })?.department_slug,
+      specializedRole: (user as { specialized_role?: string | null })?.specialized_role,
       impactPointsBalance: user?.impact_points_balance,
     })
 

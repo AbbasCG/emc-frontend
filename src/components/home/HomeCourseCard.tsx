@@ -133,7 +133,10 @@ function HomeCourseCard({ course }: Props) {
   const outcomeHook = resolveOutcomeHook(course)
   const levelText = resolveLevelText(course, tier.label)
 
-  const seatsUrgency = isEnded ? null : seatsLine(resolveCourseSeatMetrics(course).remaining)
+  const seatMetrics = resolveCourseSeatMetrics(course)
+  const seatsUrgency = isEnded ? null : seatsLine(seatMetrics.remaining)
+  const isHighDemand = !isEnded && seatMetrics.remaining != null && seatMetrics.remaining <= 5 && seatMetrics.remaining > 0
+  const isFullCapacity = !isEnded && seatMetrics.remaining === 0
 
   return (
     <motion.article
@@ -223,11 +226,29 @@ function HomeCourseCard({ course }: Props) {
               </Link>
             </h3>
 
-            {seatsUrgency && (
+            {/* Dynamic Demand / Seats Indicator */}
+            {isHighDemand && seatsUrgency ? (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-black text-customOrange border border-amber-300/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-customOrange animate-ping" />
+                  <span>{seatsUrgency}</span>
+                </span>
+              </div>
+            ) : seatsUrgency ? (
               <p className="mt-1 text-[11px] font-black text-customOrange">
                 {seatsUrgency}
               </p>
-            )}
+            ) : isFullCapacity ? (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-black text-rose-700 border border-rose-200">
+                  اكتملت المقاعد
+                </span>
+              </div>
+            ) : seatMetrics.enrolled != null && seatMetrics.enrolled >= 5 ? (
+              <p className="mt-1 text-[11px] font-bold text-slate-500">
+                +{seatMetrics.enrolled} مسجل في الدفعة
+              </p>
+            ) : null}
           </div>
         </div>
 
