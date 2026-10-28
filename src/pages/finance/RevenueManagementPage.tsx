@@ -155,10 +155,12 @@ export default function RevenueManagementPage() {
   }, [search, dateFrom, dateTo])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadInitialOptions()
   }, [loadInitialOptions])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadRevenues()
   }, [loadRevenues])
 
@@ -354,8 +356,8 @@ export default function RevenueManagementPage() {
       setIsModalOpen(false)
       await handleResetForm()
       await loadRevenues()
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'تعذّر حفظ سند القبض'
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذّر حفظ سند القبض'
       toast.error(msg)
     } finally {
       setSubmitting(false)

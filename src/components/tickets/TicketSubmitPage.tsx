@@ -169,7 +169,9 @@ const TicketSubmitPage: React.FC = () => {
   // Release every outstanding preview URL when the page goes away. A ref keeps
   // the effect from re-running (and revoking live URLs) on every change.
   const attachmentsRef = useRef<TicketAttachment[]>([]);
-  attachmentsRef.current = attachments;
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
   useEffect(() => () => releasePreviews(attachmentsRef.current), []);
 
   const handleSubmit = async (e: React.FormEvent) => {

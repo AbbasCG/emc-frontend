@@ -140,6 +140,7 @@ const TicketDetailPage: React.FC = () => {
     }
   }, [id]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
   useEffect(() => { fetchTicket(); }, [fetchTicket]);
 
   const handleComment = async (e: React.FormEvent) => {

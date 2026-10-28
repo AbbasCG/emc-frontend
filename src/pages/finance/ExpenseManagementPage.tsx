@@ -132,10 +132,12 @@ export default function ExpenseManagementPage() {
   }, [search, dateFrom, dateTo, selectedDeptFilter])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadInitialOptions()
   }, [loadInitialOptions])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadExpenses()
   }, [loadExpenses])
 
@@ -256,8 +258,8 @@ export default function ExpenseManagementPage() {
       setIsModalOpen(false)
       await handleResetForm()
       await loadExpenses()
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'تعذّر حفظ سند الصرف'
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذّر حفظ سند الصرف'
       toast.error(msg)
     } finally {
       setSubmitting(false)

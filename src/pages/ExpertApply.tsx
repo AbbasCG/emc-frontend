@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router'
 import {
@@ -282,7 +282,14 @@ function OptionalBadge() {
   return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">اختياري</span>
 }
 
-function Field({ label, error, required, optional, hint, children }: any) {
+function Field({ label, error, required, optional, hint, children }: {
+  label: ReactNode
+  error?: string
+  required?: boolean
+  optional?: boolean
+  hint?: ReactNode
+  children: ReactNode
+}) {
   return (
     <div className="block text-right">
       <div className="mb-1.5 flex flex-row-reverse items-center justify-end gap-1.5">
@@ -299,7 +306,16 @@ function Field({ label, error, required, optional, hint, children }: any) {
   )
 }
 
-function Input({ id, value, onChange, placeholder, type = 'text', hasError, required, dir }: any) {
+function Input({ id, value, onChange, placeholder, type = 'text', hasError, required, dir }: {
+  id?: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  type?: string
+  hasError?: boolean
+  required?: boolean
+  dir?: 'rtl' | 'ltr'
+}) {
   return (
     <input
       id={id}
@@ -317,7 +333,14 @@ function Input({ id, value, onChange, placeholder, type = 'text', hasError, requ
   )
 }
 
-function Textarea({ id, value, onChange, placeholder, rows = 4, hasError }: any) {
+function Textarea({ id, value, onChange, placeholder, rows = 4, hasError }: {
+  id?: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  rows?: number
+  hasError?: boolean
+}) {
   return (
     <textarea
       id={id}
@@ -336,14 +359,19 @@ function Textarea({ id, value, onChange, placeholder, rows = 4, hasError }: any)
 
 
 
-function TagPicker({ options, selected, onChange, hasError }: any) {
+function TagPicker({ options, selected, onChange, hasError }: {
+  options: readonly string[]
+  selected: string[]
+  onChange: (selected: string[]) => void
+  hasError?: boolean
+}) {
   const toggle = (opt: string) =>
-    onChange(selected.includes(opt) ? selected.filter((s: string) => s !== opt) : [...selected, opt])
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt])
 
   return (
     <div className={`rounded-xl border p-4 ${hasError ? 'border-red-400' : 'border-slate-200'} bg-slate-50`}>
       <div className="flex flex-wrap gap-2">
-        {options.map((opt: string) => {
+        {options.map((opt) => {
           const active = selected.includes(opt)
           return (
             <button
@@ -366,10 +394,15 @@ function TagPicker({ options, selected, onChange, hasError }: any) {
   )
 }
 
-function RadioGroup({ options, selected, onChange, hasError }: any) {
+function RadioGroup({ options, selected, onChange, hasError }: {
+  options: readonly string[]
+  selected: string
+  onChange: (value: string) => void
+  hasError?: boolean
+}) {
   return (
     <div className={`grid grid-cols-1 gap-2.5 sm:grid-cols-2 ${hasError ? 'rounded-xl border border-red-400 p-2' : ''}`}>
-      {options.map((opt: string) => {
+      {options.map((opt) => {
         const active = selected === opt
         return (
           <button
@@ -486,7 +519,7 @@ export default function ExpertApply() {
     return err
   }
 
-  const set = useCallback((key: keyof ExpertApplicationPayload, val: any) => {
+  const set = useCallback(<K extends keyof ExpertApplicationPayload>(key: K, val: ExpertApplicationPayload[K]) => {
     setForm(prev => ({ ...prev, [key]: val }))
     setErrors(prev => ({ ...prev, [key]: undefined }))
   }, [])
@@ -554,7 +587,7 @@ export default function ExpertApply() {
   const currentStepData = STEPS.find(s => s.stepIndex === currentStep)
 
   return (
-    <main className="bg-[#f4f7fb] pt-20" ref={topRef}>
+    <main className="bg-detail-canvas pt-20" ref={topRef}>
       <PublicSeo
         title="انضم إلينا كخبير"
         description="الانضمام إلى مجتمع الخبراء والمرشدين والمحكمين والمتخصصين في EMC."

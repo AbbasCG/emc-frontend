@@ -59,6 +59,7 @@ export default function AdminExpertApplicationsPage() {
   }, [page, search, status])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void load()
   }, [load])
 

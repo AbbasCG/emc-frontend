@@ -1,5 +1,6 @@
 import apiClient from './axios'
 import type { ChartOfAccountItem } from './chartOfAccountsApi'
+import type { FinancePagination } from './expenseApi'
 
 export interface ManualRevenueItem {
   id: number
@@ -65,7 +66,7 @@ export async function fetchRevenuesList(params?: {
   program_id?: number
   page?: number
   per_page?: number
-}): Promise<{ items: ManualRevenueItem[]; pagination: any; summary: RevenuesSummary }> {
+}): Promise<{ items: ManualRevenueItem[]; pagination: FinancePagination; summary: RevenuesSummary }> {
   const { data } = await apiClient.get<RevenuesResponse>('/admin/finance/revenues', { params })
   return {
     items: data.data.data,
