@@ -105,7 +105,7 @@ function EventDrawer({
       dir="rtl"
     >
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <h2 className="max-w-[85%] truncate text-base font-black text-[#0C2A4B]">{event.title}</h2>
+        <h2 className="max-w-[85%] truncate text-base font-black text-navy">{event.title}</h2>
         <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
           <X size={18} />
         </button>
@@ -121,7 +121,7 @@ function EventDrawer({
         )}
 
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-xl bg-[#0077B6]/10 px-3 py-1 text-xs font-black text-[#0077B6]">
+          <span className="rounded-xl bg-customBlue/10 px-3 py-1 text-xs font-black text-customBlue">
             {typeLabel(event.type)}
           </span>
           {event.status && (
@@ -137,11 +137,11 @@ function EventDrawer({
 
         <div className="space-y-2 rounded-2xl bg-slate-50 p-4">
           <p className="flex items-start gap-3 text-sm text-slate-700">
-            <CalendarClock size={16} className="mt-0.5 shrink-0 text-[#0077B6]" />
+            <CalendarClock size={16} className="mt-0.5 shrink-0 text-customBlue" />
             <span className="font-bold">{formatCalendarDate(event.start_at)}</span>
           </p>
           <p className="flex items-start gap-3 text-sm text-slate-600">
-            <Clock size={16} className="mt-0.5 shrink-0 text-[#F28C00]" />
+            <Clock size={16} className="mt-0.5 shrink-0 text-customOrange" />
             <span>
               {formatCalendarTime(event.start_at)}
  {event.end_at ? ` ${formatCalendarTime(event.end_at)}`: ''}
@@ -155,27 +155,27 @@ function EventDrawer({
 
         {event.location && (
           <p className="flex items-center gap-3 text-sm text-slate-600">
-            <MapPin size={16} className="shrink-0 text-[#F28C00]" />
+            <MapPin size={16} className="shrink-0 text-customOrange" />
             {event.location}
           </p>
         )}
 
         {event.course && (
           <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
-            <BookOpen size={16} className="text-[#0077B6]" />
+            <BookOpen size={16} className="text-customBlue" />
             <div>
               <p className="text-[11px] text-slate-400">الدورة</p>
-              <p className="text-sm font-black text-[#0C2A4B]">{event.course.title}</p>
+              <p className="text-sm font-black text-navy">{event.course.title}</p>
             </div>
           </div>
         )}
 
         {event.department && (
           <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
-            <Users size={16} className="text-[#F28C00]" />
+            <Users size={16} className="text-customOrange" />
             <div>
               <p className="text-[11px] text-slate-400">الإدارة</p>
-              <p className="text-sm font-black text-[#0C2A4B]">{event.department.name_ar}</p>
+              <p className="text-sm font-black text-navy">{event.department.name_ar}</p>
             </div>
           </div>
         )}
@@ -195,7 +195,7 @@ function EventDrawer({
         {showProgramBtn && programHref && (
           <Link
             to={programHref}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-[#0C2A4B] px-4 py-3 text-sm font-black text-white shadow-md transition hover:opacity-90"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-navy px-4 py-3 text-sm font-black text-white shadow-md transition hover:opacity-90"
           >
             <BookOpen size={16} />
             عرض البرنامج
@@ -206,7 +206,7 @@ function EventDrawer({
         {event.details_url && (
           <Link
             to={event.details_url}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-[#0C2A4B] transition hover:bg-slate-50"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-navy transition hover:bg-slate-50"
           >
             تفاصيل الاجتماع
             <ExternalLink size={14} />
@@ -280,7 +280,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="font-black text-[#0C2A4B]">إنشاء حدث</h2>
+          <h2 className="font-black text-navy">إنشاء حدث</h2>
           <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
             <X size={18} />
           </button>
@@ -293,7 +293,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
               required
               value={form.title}
               onChange={(e) => set('title', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-customBlue focus:outline-none"
               placeholder="عنوان الحدث"
             />
           </div>
@@ -303,7 +303,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <select
               value={form.kind}
               onChange={(e) => set('kind', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-customBlue focus:outline-none"
             >
               <option value="meeting">اجتماع</option>
               <option value="event">حدث</option>
@@ -319,7 +319,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
                 type="datetime-local"
                 value={form.start_at}
                 onChange={(e) => set('start_at', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-customBlue focus:outline-none"
               />
             </div>
             <div>
@@ -328,7 +328,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
                 type="datetime-local"
                 value={form.end_at ?? ''}
                 onChange={(e) => set('end_at', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-customBlue focus:outline-none"
               />
             </div>
           </div>
@@ -339,7 +339,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
               type="url"
               value={form.meeting_url ?? ''}
               onChange={(e) => set('meeting_url', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-customBlue focus:outline-none"
               placeholder="https://meet.google.com/..."
               dir="ltr"
             />
@@ -350,7 +350,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <select
               value={form.visibility}
               onChange={(e) => set('visibility', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-customBlue focus:outline-none"
             >
               <option value="department">الإدارة فقط</option>
               <option value="all">الجميع</option>
@@ -364,7 +364,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
               value={form.description ?? ''}
               onChange={(e) => set('description', e.target.value)}
               rows={3}
-              className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-[#0077B6] focus:outline-none"
+              className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-customBlue focus:outline-none"
             />
           </div>
 
@@ -374,7 +374,7 @@ function CreateEventModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0077B6] py-3 text-sm font-black text-white shadow-md hover:opacity-90 disabled:opacity-60"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-customBlue py-3 text-sm font-black text-white shadow-md hover:opacity-90 disabled:opacity-60"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : null}
               حفظ الحدث
@@ -419,7 +419,7 @@ function DeleteConfirm({
         dir="rtl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="mb-2 text-base font-black text-[#0C2A4B]">حذف الحدث؟</p>
+        <p className="mb-2 text-base font-black text-navy">حذف الحدث؟</p>
         <p className="mb-6 text-sm text-slate-500">سيُحذف «{event.title}» نهائياً ولا يمكن التراجع.</p>
         <div className="flex gap-3">
           <button
@@ -550,21 +550,21 @@ export default function CalendarPage() {
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1c4567] to-[#162334] px-6 py-8 text-white sm:px-8"
+        className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-bl from-navy via-[#1c4567] to-[#162334] px-6 py-8 text-white sm:px-8"
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute -start-16 top-0 h-40 w-40 rounded-full bg-[#0077B6]/20 blur-3xl"
+          className="pointer-events-none absolute -start-16 top-0 h-40 w-40 rounded-full bg-customBlue/20 blur-3xl"
         />
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-[#F28C00]">Calendar</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Calendar</p>
             <h1 className="text-3xl font-black">التقويم</h1>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-white/70">
               الجلسات والورش والاجتماعات والمهام بيانات حية من حسابك.
             </p>
             {!loading && fetchOk && (
-              <p className="mt-3 text-sm font-bold text-[#F28C00]">
+              <p className="mt-3 text-sm font-bold text-customOrange">
                 {String(events.length)} حدث · {activeFilterLabel}
               </p>
             )}
@@ -584,7 +584,7 @@ export default function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setShowCreate(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#F28C00] px-4 py-2 text-xs font-black text-white shadow-md hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-md hover:opacity-90"
               >
                 <Plus size={14} />
                 حدث جديد
@@ -594,7 +594,7 @@ export default function CalendarPage() {
               type="button"
               onClick={() => void handleIcs()}
               disabled={icsLoading}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-[#0C2A4B] shadow-sm transition hover:shadow-md disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-navy shadow-sm transition hover:shadow-md disabled:opacity-60"
             >
               {icsLoading ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
               تحميل ICS
@@ -613,8 +613,8 @@ export default function CalendarPage() {
             className={[
               'rounded-xl px-4 py-2 text-xs font-black transition',
               filter === f.id
-                ? 'bg-[#0077B6] text-white shadow-md'
-                : 'bg-[#F6F8FB] text-slate-600 hover:text-[#0C2A4B]',
+                ? 'bg-customBlue text-white shadow-md'
+                : 'bg-[#F6F8FB] text-slate-600 hover:text-navy',
             ].join(' ')}
           >
             {f.label}
@@ -636,14 +636,14 @@ export default function CalendarPage() {
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
               <AlertCircle size={28} className="text-red-500" />
             </div>
-            <p className="text-base font-black text-[#0C2A4B]">تعذّر تحميل التقويم</p>
+            <p className="text-base font-black text-navy">تعذّر تحميل التقويم</p>
             <p className="mt-1 max-w-sm text-sm text-slate-500">
               تحقق من اتصالك وحاول مرة أخرى.
             </p>
             <button
               type="button"
               onClick={() => void load()}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0077B6] px-5 py-2.5 text-sm font-black text-white"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-sm font-black text-white"
             >
               <RefreshCw size={14} />
               إعادة المحاولة
