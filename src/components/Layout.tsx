@@ -3,11 +3,12 @@ import { motion } from 'framer-motion'
 import Footer from './Footer'
 import Navbar from './Navbar'
 import QuickJoinModal from './enrollment/QuickJoinModal'
+import MobileBottomNav from './navigation/MobileBottomNav'
 
 export default function Layout() {
   return (
     <motion.div
-      className="relative min-h-screen overflow-x-hidden bg-white font-sans text-deepBlue antialiased"
+      className="relative min-h-screen overflow-x-hidden bg-white font-sans text-deepBlue antialiased pb-16 sm:pb-0"
       dir="rtl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -45,6 +46,9 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+
+      {/* Mobile-first bottom navigation bar */}
+      <MobileBottomNav />
 
       {/* In-context join+enroll one host for every public enroll CTA; the modal
           body chunk loads only when a guest actually records an enroll intent. */}

@@ -27,6 +27,7 @@ export const EMC_DASHBOARD_ROLES = [
   'strategy_planning_manager',
   'digital_ambassadors_manager',
   'advisors_manager',
+  'department_member',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -58,6 +59,7 @@ const ROLE_HOME: Record<string, string> = {
   support_agent: '/dashboard/support',
   volunteer: '/dashboard/ops/volunteers',
   department_manager: '/dashboard/department',
+  department_member: '/dashboard/department/meeting-lounge',
   programs_manager: '/dashboard/programs-manager',
   operations_manager: '/dashboard/operations-manager',
   partnerships_manager: '/dashboard/partnerships-manager',
@@ -114,6 +116,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // the backend role:admin,super_admin,tech_admin,ai_manager gate and the
   // organizational_departments.ai_expert_applications page capability.
   { prefix: '/dashboard/admin/ai/expert-applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
+  { prefix: '/dashboard/admin/trainers/applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
@@ -235,9 +238,19 @@ export function normalizeRole(role?: string | null): string | null {
   return ROLE_ALIASES[t] ?? t
 }
 
-export function getDashboardPathByRole(role?: string | null): string {
+/** Roles that no department can confer: a specialised role reported for a department manager is never allowed to resolve to these homes. */
+const PRIVILEGED_ROLES = new Set(['super_admin', 'admin', 'tech_admin', 'executive_admin'])
+
+/**
+ * Landing page for a role. `specializedRole` is the role the SERVER reports for a department manager who leads a department
+ * (`specialized_role`). It is never derived from a department slug or name, and a privileged role is ignored.
+ */
+export function getDashboardPathByRole(role?: string | null, specializedRole?: string | null): string {
   const n = normalizeRole(role)
   if (!n) return '/dashboard/profile'
+  if (n === 'department_manager' && specializedRole && !PRIVILEGED_ROLES.has(specializedRole) && ROLE_HOME[specializedRole]) {
+    return ROLE_HOME[specializedRole]
+  }
   return ROLE_HOME[n] ?? '/dashboard/profile'
 }
 
@@ -285,7 +298,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
       'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
       'marketing', 'marketing_manager', 'quality', 'quality_manager',
       'support_agent', 'operations_manager', 'partnerships_manager',
-      'community_manager', 'volunteer', 'department_manager', 'ai_manager',
+      'community_manager', 'volunteer', 'department_manager', 'department_member', 'ai_manager',
       'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager',
     ]
   }

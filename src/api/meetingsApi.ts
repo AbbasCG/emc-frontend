@@ -112,6 +112,9 @@ export function normalizeMeeting(raw: unknown): OpsMeeting | null {
     end_time: hhmm(raw.end_time),
     department: ref(raw.department),
     organizer: ref(raw.organizer),
+    moderator: ref(raw.moderator),
+    top_interactive_user: ref(raw.top_interactive_user),
+    discipline_rate: num(raw.discipline_rate),
     meeting_url: str(raw.meeting_url),
     audience: pick(raw.audience, AUDIENCES, raw.department ? 'department' : 'general'),
     my_attendance: myAttendance(raw.my_attendance),
@@ -183,9 +186,12 @@ export function normalizeMeetingDetail(raw: unknown): OpsMeetingDetail | null {
     const id = num(p.user.id)
     const name = str(p.user.name)
     if (id === null || name === null) return []
+    const excuse_status = p.excuse_status === 'with_excuse' || p.excuse_status === 'without_excuse' ? p.excuse_status : null
     return [{
       user: { id, name, department: str(p.user.department) },
       status: pick(p.status, PARTICIPANT_STATUSES, 'invited'),
+      excuse_status,
+      excuse_reason: str(p.excuse_reason),
       joined_at: str(p.joined_at),
       confirmed_at: str(p.confirmed_at),
     }]
@@ -294,6 +300,7 @@ export type NewMeetingInput = {
   start_time: string
   end_time?: string
   meeting_url?: string
+  moderator_id?: number | null
   /** One agenda item per line. */
   agenda?: string
   /** Explicit invitees. Omit for a department-wide meeting. */
@@ -331,6 +338,8 @@ export async function fetchMeetingCandidates(departmentId?: number): Promise<Mee
 
 export type AttendanceCandidate = MeetingCandidate & {
   status: ParticipantStatus
+  excuse_status?: 'with_excuse' | 'without_excuse' | null
+  excuse_reason?: string | null
   joined_at: string | null
 }
 
@@ -341,7 +350,14 @@ export async function fetchMeetingParticipantPool(meetingId: number): Promise<{ 
   const rows = (Array.isArray(body.data) ? body.data : []).flatMap((r): AttendanceCandidate[] => {
     const c = normalizeCandidate(r)
     if (!c || !isRec(r)) return []
-    return [{ ...c, status: pick(r.status, PARTICIPANT_STATUSES, 'invited'), joined_at: str(r.joined_at) }]
+    const excuse_status = r.excuse_status === 'with_excuse' || r.excuse_status === 'without_excuse' ? r.excuse_status : null
+    return [{
+      ...c,
+      status: pick(r.status, PARTICIPANT_STATUSES, 'invited'),
+      excuse_status,
+      excuse_reason: str(r.excuse_reason),
+      joined_at: str(r.joined_at),
+    }]
   })
   return { rows, audience: pick(body.audience, AUDIENCES, 'general') }
 }
@@ -379,11 +395,33 @@ export type MeetingReportPayload = {
   top_interactive_member: string
   challenges: string
   executive_requests: string
-  next_month_goals: string
+  next_month_goals?: string
   improvement_suggestions: string
   notes: string
   decisions: Array<{ title: string; description?: string }>
   action_items: Array<{ title: string; assigned_to?: number; due_date?: string }>
+}
+
+/** Payload for closing the meeting directly from the Lounge */
+export type CloseMeetingLoungePayload = {
+  attendance: Array<{
+    user_id: number
+    attended: boolean
+    excuse_status?: 'with_excuse' | 'without_excuse' | null
+    excuse_reason?: string | null
+  }>
+  top_interactive_user_id?: number | null
+  minutes?: string
+  decisions?: Array<{ title: string; description?: string }>
+  action_items?: Array<{ title: string; assigned_to?: number; due_date?: string }>
+}
+
+/** Close meeting directly from the Lounge, awarding points and calculating discipline */
+export async function closeMeetingLounge(meetingId: number, payload: CloseMeetingLoungePayload): Promise<OpsMeetingDetail> {
+  const res = await apiClient.post<unknown>(`/department/meetings/${meetingId}/close-lounge`, payload)
+  const meeting = normalizeMeetingDetail(unwrapRow(res.data))
+  if (!meeting) throw new Error('تعذر إنهاء الاجتماع ورصد الحضور')
+  return meeting
 }
 
 /**

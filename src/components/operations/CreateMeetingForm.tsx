@@ -45,6 +45,7 @@ export default function CreateMeetingForm({ onClose, onSaved, initialType = 'gen
     title: '',
     type: initialType,
     department_id: departments && departments.length === 1 ? String(departments[0].id) : '',
+    moderator_id: '',
     meeting_date: '',
     start_time: '',
     end_time: '',
@@ -53,6 +54,7 @@ export default function CreateMeetingForm({ onClose, onSaved, initialType = 'gen
   })
   const [audience, setAudience] = useState<'all' | 'chosen'>('all')
   const [chosen, setChosen] = useState<number[]>([])
+  const [moderatorCandidates, setModeratorCandidates] = useState<MeetingCandidate[]>([])
   const [pool, setPool] = useState<Pool | null>(null)
   const [poolNonce, setPoolNonce] = useState(0)
   const [saving, setSaving] = useState(false)
@@ -91,15 +93,22 @@ export default function CreateMeetingForm({ onClose, onSaved, initialType = 'gen
   // The invitable people for the chosen department (or the viewer's scope), asked of the server.
   const deptId = form.department_id ? Number(form.department_id) : undefined
   const poolKey = `${deptId ?? 'scope'}:${poolNonce}`
+
   useEffect(() => {
-    if (audience !== 'chosen') return
     let alive = true
     void fetchMeetingCandidates(deptId)
       .then((rows) => {
-        if (alive) setPool({ key: poolKey, rows })
+        if (alive) {
+          setModeratorCandidates(rows)
+          if (audience === 'chosen') {
+            setPool({ key: poolKey, rows })
+          }
+        }
       })
       .catch(() => {
-        if (alive) setPool({ key: poolKey, error: 'تعذّر تحميل قائمة الأعضاء.' })
+        if (alive && audience === 'chosen') {
+          setPool({ key: poolKey, error: 'تعذّر تحميل قائمة الأعضاء.' })
+        }
       })
     return () => {
       alive = false
@@ -148,6 +157,7 @@ export default function CreateMeetingForm({ onClose, onSaved, initialType = 'gen
         meeting_date: form.meeting_date,
         start_time: form.start_time,
         ...(form.department_id ? { department_id: Number(form.department_id) } : {}),
+        ...(form.moderator_id ? { moderator_id: Number(form.moderator_id) } : {}),
         ...(form.end_time ? { end_time: form.end_time } : {}),
         ...(form.meeting_url.trim() ? { meeting_url: form.meeting_url.trim() } : {}),
         ...(form.agenda.trim() ? { agenda: form.agenda.trim() } : {}),
@@ -243,6 +253,24 @@ export default function CreateMeetingForm({ onClose, onSaved, initialType = 'gen
                 </label>
               )}
             </div>
+
+            <label className="grid gap-1.5 text-xs font-black text-ink-500">
+              مسؤول / ميسّر الاجتماع (اختياري)
+              <select
+                value={form.moderator_id}
+                onChange={(e) => setForm((f) => ({ ...f, moderator_id: e.target.value }))}
+                aria-invalid={Boolean(errors.moderator_id)}
+                className={`${field} ${bad('moderator_id')}`}
+              >
+                <option value="">أنا (منشئ الاجتماع) أو اختر مسؤولاً آخر…</option>
+                {moderatorCandidates.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.department ? `(${c.department})` : ''}
+                  </option>
+                ))}
+              </select>
+              {err('moderator_id')}
+            </label>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-1">

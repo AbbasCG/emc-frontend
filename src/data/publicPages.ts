@@ -430,9 +430,9 @@ export const siteContact = {
   hours: { ar: 'الأحد الخميس، 9:00 18:00 (بتوقيت أوروبا الوسطى)' },
   social: {
     website: 'https://edumc.nl',
-    linkedin: 'https://www.linkedin.com/company/edumc',
-    instagram: 'https://www.instagram.com/edumc.nl',
-    youtube: 'https://www.youtube.com/@edumc',
-    x: 'https://x.com/edumc_nl',
+    linkedin: 'https://www.linkedin.com/company/edumastarcentral/',
+    instagram: 'https://www.instagram.com/edumastarcentral',
+    youtube: 'https://youtube.com/@edumastarcentral',
+    x: 'https://x.com/edumastarcenter',
   },
 }

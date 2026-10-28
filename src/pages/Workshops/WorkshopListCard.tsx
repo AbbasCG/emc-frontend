@@ -4,7 +4,7 @@ import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { Link, useNavigate } from 'react-router'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
 import { formatEuroInteger } from '@/utils/currency'
-import { toLatinDigits } from '@/utils/publicDetailFormat'
+import { toLatinDigits, WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
@@ -13,6 +13,7 @@ import {
   gatePublicEnrollClick,
 } from '@/utils/publicEnrollAuth'
 import { rememberFunnelContact, trackFunnelEvent } from '@/lib/funnelEvents'
+import { useNow } from '@/hooks/useNow'
 
 type Props = {
   workshop: PublicWorkshop
@@ -41,6 +42,7 @@ function formatTime(t: string | null): string | null {
 export default function WorkshopListCard({ workshop, index = 0 }: Props) {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
+  const nowMs = useNow()
 
   const imgSrc =
     workshop.cover_image ?
@@ -76,6 +78,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
    * property names do not change.
    */
   function handleRegisterClick() {
+    if (isEnded) return
     const proceeded = gatePublicEnrollClick({
       isAuthenticated,
       redirectPath: buildWorkshopDetailEnrollHref(workshop.slug),
@@ -90,6 +93,12 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
     })
   }
 
+  const isEnded = Boolean(
+    workshop.is_ended ||
+    workshop.computed_status === 'ended' ||
+    (workshop.end_date && new Date(workshop.end_date).getTime() < nowMs)
+  )
+
   const seatsTotal = workshop.seats_total
   const seatsRemaining = workshop.seats_remaining
   const capacityRatio =
@@ -98,7 +107,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
     : null
   const lowSeats = capacityRatio != null && capacityRatio < 0.2
 
-  const soldOut = seatsRemaining === 0 || !workshop.registration_open
+  const soldOut = isEnded || seatsRemaining === 0 || !workshop.registration_open
 
   return (
     <motion.article
@@ -117,9 +126,16 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/65 via-navy/10 to-transparent" />
 
-        <span className="absolute start-3 top-3 rounded-md bg-navy/70 px-2 py-1 text-[10px] font-black text-white backdrop-blur">
-          {deliveryLabel}
-        </span>
+        <div className="absolute start-3 top-3 flex items-center gap-1.5">
+          <span className="rounded-md bg-navy/70 px-2 py-1 text-[10px] font-black text-white backdrop-blur">
+            {deliveryLabel}
+          </span>
+          {isEnded && (
+            <span className="rounded-md bg-rose-600/90 px-2 py-1 text-[10px] font-black text-white backdrop-blur">
+              الورشة منتهية
+            </span>
+          )}
+        </div>
         {workshop.is_free && (
           <span className="absolute bottom-3 start-3 rounded-md bg-white/95 px-2 py-1 text-[10px] font-black text-brand-700">
             مجاناً
@@ -157,6 +173,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
                 <span dir="ltr" className="tabular-nums">
                   {timeLabel}
                 </span>
+                <span className="font-semibold text-slate-500">{WORKSHOP_TZ_LABEL}</span>
               </>
             )}
           </span>
@@ -221,11 +238,16 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
               تفاصيل
               <ArrowLeftIcon size={14} />
             </Link>
-            {soldOut ?
+            {isEnded ? (
+              <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2.5 text-xs font-black text-slate-500">
+                الورشة منتهية
+              </span>
+            ) : soldOut ? (
               <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2.5 text-xs font-black text-slate-400">
                 اكتمل التسجيل
               </span>
-            : <button
+            ) : (
+              <button
                 type="button"
                 onClick={handleRegisterClick}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-customBlue px-3.5 py-2.5 text-xs font-black text-white transition-colors duration-200 hover:bg-brand-600"
@@ -233,7 +255,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
                 <BookOpen className="h-3.5 w-3.5" aria-hidden />
                 سجل في الورشة
               </button>
-            }
+            )}
           </div>
         </div>
       </div>

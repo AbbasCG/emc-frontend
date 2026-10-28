@@ -23,6 +23,7 @@ export const SlaCountdownTimer: React.FC<SlaCountdownTimerProps> = ({
 
   useEffect(() => {
     if (!expectedTime || ['RESOLVED', 'REJECTED_BY_ADMIN', 'UNRESOLVED'].includes(status)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the countdown as soon as the ticket no longer has a running SLA
       setTimeLeft(null);
       return;
     }

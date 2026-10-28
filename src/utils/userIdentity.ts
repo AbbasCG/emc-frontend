@@ -131,6 +131,17 @@ export function normalizeAuthUser(payload: unknown): User {
   const has_english_courses: boolean | undefined =
     typeof rawHasEnglish === 'boolean' ? rawHasEnglish : undefined
 
+  const rawEnrolled = outer.has_enrolled_courses ?? r.has_enrolled_courses
+  const has_enrolled_courses: boolean | undefined =
+    typeof rawEnrolled === 'boolean' ? rawEnrolled : undefined
+
+  const rawPoints = outer.impact_points_balance ?? r.impact_points_balance
+  const impact_points_balance: number | undefined =
+    rawPoints != null && !Number.isNaN(Number(rawPoints)) ? Number(rawPoints) : undefined
+
+  const department_id = r.department_id != null ? finiteId(r.department_id) : undefined
+  const department_name = trimStr(r.department_name ?? department) || undefined
+
   return {
     id: finiteId(r.id),
     name,
@@ -140,6 +151,8 @@ export function normalizeAuthUser(payload: unknown): User {
     country,
     gender: trimStr(r.gender ?? r.sex) || undefined,
     department,
+    department_id,
+    department_name,
     how_did_you_hear_about_us,
     avatar_url,
     email_verified_at,
@@ -151,6 +164,8 @@ export function normalizeAuthUser(payload: unknown): User {
     permissions,
     is_department_leader,
     has_english_courses,
+    has_enrolled_courses,
+    impact_points_balance,
   }
 }
 

@@ -57,6 +57,11 @@ interface DepartmentOption {
   name: string;
 }
 
+/** The message the backend put in an error response, if any (kept as sent: it is already user-facing Arabic). */
+function backendMessage(err: unknown): string | undefined {
+  return (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+}
+
 export default function DepartmentStructurePage() {
   const [department, setDepartment] = useState<Department | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
@@ -84,10 +89,6 @@ export default function DepartmentStructurePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchStructure();
-  }, [selectedDeptId]);
-
   const fetchStructure = async () => {
     setIsLoading(true);
     setError(null);
@@ -104,12 +105,17 @@ export default function DepartmentStructurePage() {
           setSelectedDeptId(res.data.department.id);
         }
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'حدث خطأ أثناء جلب الهيكلة الإدارية');
+    } catch (err: unknown) {
+      setError(backendMessage(err) || 'حدث خطأ أثناء جلب الهيكلة الإدارية');
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
+    void fetchStructure();
+  }, [selectedDeptId]);
 
   const handleOpenCreateSection = () => {
     setEditingSection(null);
@@ -152,8 +158,8 @@ export default function DepartmentStructurePage() {
       }
       setIsSectionModalOpen(false);
       fetchStructure();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'حدث خطأ أثناء حفظ التقسيم الإداري');
+    } catch (err: unknown) {
+      setError(backendMessage(err) || 'حدث خطأ أثناء حفظ التقسيم الإداري');
     } finally {
       setIsSubmitting(false);
     }
@@ -168,8 +174,8 @@ export default function DepartmentStructurePage() {
       await apiClient.delete(`/department/sections/${secId}`);
       setSuccessMsg('تم حذف التقسيم بنجاح');
       fetchStructure();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل في حذف التقسيم');
+    } catch (err: unknown) {
+      setError(backendMessage(err) || 'فشل في حذف التقسيم');
     }
   };
 
@@ -196,8 +202,8 @@ export default function DepartmentStructurePage() {
       setSuccessMsg('تم تحديث تسكين وتأطير العضو بنجاح');
       setIsAssignModalOpen(false);
       fetchStructure();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل في تحديث تسكين العضو');
+    } catch (err: unknown) {
+      setError(backendMessage(err) || 'فشل في تحديث تسكين العضو');
     } finally {
       setIsSubmitting(false);
     }

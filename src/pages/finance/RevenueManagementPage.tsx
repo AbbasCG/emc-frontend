@@ -12,11 +12,16 @@ import {
   UploadCloud,
   CheckCircle2,
   X,
+  Wallet,
   DollarSign,
   Eye,
   Loader2,
   Sparkles,
   Layers,
+  GraduationCap,
+  BookOpen,
+  Users,
+  AlertTriangle,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
@@ -25,12 +30,19 @@ import {
   createRevenue,
   updateRevenue,
   deleteRevenue,
+  fetchPaidCourses,
+  fetchCourseStudentsPendingPayment,
+  fetchCashboxBalance,
   type ManualRevenueItem,
   type RevenuesSummary,
+  type PaidCourse,
+  type CoursePendingStudent,
+  type CashboxBalance,
 } from '@/api/revenueApi'
 import { openVoucherAttachment } from '@/api/voucherAttachmentApi'
 import { formatMoney } from '@/utils/financeFormatters'
 import { fetchAccountsList, type ChartOfAccountItem } from '@/api/chartOfAccountsApi'
+import { FINANCE_CURRENCIES } from '@/utils/financeFormatters'
 import apiClient from '@/api/axios'
 
 interface ProgramOption {
@@ -45,16 +57,31 @@ export default function RevenueManagementPage() {
   const [summary, setSummary] = useState<RevenuesSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showAdvancedAccount, setShowAdvancedAccount] = useState(false)
 
   // Accounts & Programs lists
   const [revenueAccounts, setRevenueAccounts] = useState<ChartOfAccountItem[]>([])
   const [depositAccounts, setDepositAccounts] = useState<ChartOfAccountItem[]>([])
   const [programs, setPrograms] = useState<ProgramOption[]>([])
 
+  // ── Course Revenue Feature ─────────────────────────────────────────────────
+  const [isCourseRevenueMode, setIsCourseRevenueMode] = useState(false)
+  const [paidCourses, setPaidCourses] = useState<PaidCourse[]>([])
+  const [loadingCourses, setLoadingCourses] = useState(false)
+  const [selectedCourseForRevenue, setSelectedCourseForRevenue] = useState<PaidCourse | null>(null)
+  const [coursePendingStudents, setCoursePendingStudents] = useState<CoursePendingStudent[]>([])
+  const [loadingCourseStudents, setLoadingCourseStudents] = useState(false)
+  const [selectedStudentForRevenue, setSelectedStudentForRevenue] = useState<CoursePendingStudent | null>(null)
+
+  // Cashbox balance (for display & expense validation hint)
+  const [cashboxBalance, setCashboxBalance] = useState<CashboxBalance | null>(null)
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Filters state
   const [search, setSearch] = useState('')
-  const [dateFrom] = useState<string>('')
-  const [dateTo] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
 
   // Form states
   const [editingRevenue, setEditingRevenue] = useState<ManualRevenueItem | null>(null)
@@ -128,12 +155,77 @@ export default function RevenueManagementPage() {
   }, [search, dateFrom, dateTo])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadInitialOptions()
   }, [loadInitialOptions])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadRevenues()
   }, [loadRevenues])
+
+  // Load cashbox balance on mount
+  useEffect(() => {
+    void (async () => {
+      try {
+        const bal = await fetchCashboxBalance()
+        setCashboxBalance(bal)
+      } catch { /* non-blocking */ }
+    })()
+  }, [revenues]) // refresh when revenues list changes
+
+  // Load paid courses list (for course revenue modal)
+  async function loadPaidCourses() {
+    setLoadingCourses(true)
+    try {
+      const courses = await fetchPaidCourses()
+      setPaidCourses(courses)
+    } catch {
+      toast.error('تعذّر تحميل قائمة الدورات المدفوعة')
+    } finally {
+      setLoadingCourses(false)
+    }
+  }
+
+  // Handle course selection in course-revenue mode: load its pending students
+  async function handleCourseSelect(course: PaidCourse) {
+    setSelectedCourseForRevenue(course)
+    setSelectedStudentForRevenue(null)
+    setCoursePendingStudents([])
+    setLoadingCourseStudents(true)
+    try {
+      const result = await fetchCourseStudentsPendingPayment(course.id)
+      setCoursePendingStudents(result.students)
+      if (result.students.length === 0) {
+        toast.warning('لا يوجد طلاب بدفعات معلقة في هذه الدورة')
+      }
+    } catch {
+      toast.error('تعذّر تحميل قائمة الطلاب')
+    } finally {
+      setLoadingCourseStudents(false)
+    }
+  }
+
+  // When student is selected, auto-fill the form
+  function handleStudentSelect(student: CoursePendingStudent) {
+    setSelectedStudentForRevenue(student)
+    setPayerName(student.full_name)
+    setAmount(String(student.course_price))
+    setCurrency(student.currency || 'USD')
+    if (selectedCourseForRevenue) {
+      setProgramId(String(selectedCourseForRevenue.id))
+      setProgramName(selectedCourseForRevenue.title)
+      setDescription(`رسوم تسجيل الطالب ${student.full_name} في دورة: ${selectedCourseForRevenue.title}`)
+    }
+  }
+
+  // Open course revenue modal (load paid courses first)
+  function openCourseRevenueModal() {
+    void handleResetForm()
+    setIsCourseRevenueMode(true)
+    setIsModalOpen(true)
+    void loadPaidCourses()
+  }
 
   // Handle file selection
   function handleFileChange(file: File | null) {
@@ -174,6 +266,12 @@ export default function RevenueManagementPage() {
     setStatus('posted')
     setAttachment(null)
     setAttachmentPreview(null)
+    setShowAdvancedAccount(false)
+    // Reset course revenue states
+    setIsCourseRevenueMode(false)
+    setSelectedCourseForRevenue(null)
+    setCoursePendingStudents([])
+    setSelectedStudentForRevenue(null)
 
     try {
       const nextNo = await suggestRevenueReceiptNo()
@@ -189,7 +287,7 @@ export default function RevenueManagementPage() {
     setReceiptNo(revenue.receipt_no)
     setDate(revenue.date)
     setRevenueAccountId(String(revenue.revenue_account_id))
-    setDepositAccountId(String(revenue.deposit_account_id))
+    setDepositAccountId(revenue.deposit_account_id ? String(revenue.deposit_account_id) : '')
     setAmount(String(revenue.amount))
     setCurrency(revenue.currency || 'USD')
     setPayerName(revenue.payer_name || '')
@@ -198,8 +296,10 @@ export default function RevenueManagementPage() {
     setDescription(revenue.description || '')
     setStatus(revenue.status === 'cancelled' ? 'posted' : revenue.status)
     setAttachment(null)
+    // Voucher attachments are private documents served by an authenticated endpoint: never previewed from a row field.
     setAttachmentPreview(null)
-
+    setShowAdvancedAccount(!!revenue.deposit_account_id)
+    setIsModalOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -209,10 +309,6 @@ export default function RevenueManagementPage() {
 
     if (!revenueAccountId) {
       toast.error('يرجى اختيار نوع الإيراد')
-      return
-    }
-    if (!depositAccountId) {
-      toast.error('يرجى اختيار حساب الإيداع / طريقة الاستلام')
       return
     }
     if (!amount || Number(amount) <= 0) {
@@ -235,7 +331,9 @@ export default function RevenueManagementPage() {
       formData.append('receipt_no', receiptNo)
       formData.append('date', date)
       formData.append('revenue_account_id', revenueAccountId)
-      formData.append('deposit_account_id', depositAccountId)
+      if (depositAccountId) {
+        formData.append('deposit_account_id', depositAccountId)
+      }
       formData.append('amount', amount)
       formData.append('currency', currency)
       formData.append('payer_name', payerName)
@@ -255,10 +353,11 @@ export default function RevenueManagementPage() {
         toast.success('تم تسجيل سند القبض بنجاح وتوليد القيد المحاسبي آلياً')
       }
 
+      setIsModalOpen(false)
       await handleResetForm()
       await loadRevenues()
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'تعذّر حفظ سند القبض'
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذّر حفظ سند القبض'
       toast.error(msg)
     } finally {
       setSubmitting(false)
@@ -316,10 +415,74 @@ export default function RevenueManagementPage() {
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             <span>تحديث البيانات</span>
           </button>
+          {/* Course Revenue Button */}
+          <button
+            type="button"
+            onClick={openCourseRevenueModal}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 text-xs font-black text-white shadow-md shadow-violet-600/20 transition hover:from-violet-500 hover:to-purple-500"
+          >
+            <GraduationCap size={16} />
+            <span>إيراد دورة</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleResetForm()
+              setIsModalOpen(true)
+            }}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-600/20 transition hover:from-emerald-500 hover:to-teal-500"
+          >
+            <Plus size={16} />
+            <span>سند قبض جديد</span>
+          </button>
         </div>
       </div>
 
-      {/* ── Summary KPI Cards ─────────────────────────────────────────────────── */}
+      {/* ── Cashbox Balance Banner ─────────────────────────────────────────────── */}
+      {cashboxBalance !== null && (
+        <div className={`flex items-center justify-between rounded-2xl border px-5 py-3 ${
+          cashboxBalance.balance >= 0
+            ? 'border-emerald-200 bg-emerald-50/60'
+            : 'border-rose-200 bg-rose-50/60'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+              cashboxBalance.balance >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+            }`}>
+              <Wallet size={18} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-600">رصيد الصندوق الفعلي (الإيرادات - المصروفات)</p>
+              <p className="text-[11px] font-semibold text-slate-400">يُستخدم للتحقق من إمكانية الصرف</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 text-xs font-semibold">
+            <div className="text-center">
+              <p className="text-slate-400">إجمالي الإيرادات</p>
+              <p className="font-latin font-black text-emerald-700">
+                +${cashboxBalance.total_revenues.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-slate-400">إجمالي المصروفات</p>
+              <p className="font-latin font-black text-rose-600">
+                -${cashboxBalance.total_expenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className={`text-center rounded-xl px-4 py-2 ${
+              cashboxBalance.balance >= 0 ? 'bg-emerald-100' : 'bg-rose-100'
+            }`}>
+              <p className="text-slate-500">الرصيد المتاح</p>
+              <p className={`font-latin font-black text-base ${
+                cashboxBalance.balance >= 0 ? 'text-emerald-800' : 'text-rose-700'
+              }`}>
+                ${cashboxBalance.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
           <div className="flex items-center justify-between">
@@ -389,295 +552,446 @@ export default function RevenueManagementPage() {
         </div>
       </div>
 
-      {/* ── Section 1: Receipt Voucher Form (نموذج تسجيل الإيراد) ──────────────── */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 font-bold">
-              {editingRevenue ? <Pencil size={16} /> : <Plus size={18} />}
-            </div>
-            <h2 className="text-lg font-black text-deepBlue">
-              {editingRevenue ? `تعديل سند القبض (${editingRevenue.receipt_no})` : 'نموذج تسجيل سند قبض وإيراد جديد'}
-            </h2>
-          </div>
-
-          {editingRevenue && (
-            <button
-              type="button"
-              onClick={() => void handleResetForm()}
-              className="flex items-center gap-1 text-xs font-bold text-rose-600 hover:underline"
+      {/* ── Section 1: Receipt Voucher Modal (نافذة إدخال وتعديل سند القبض) ──────────────── */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-3xl my-8 overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-100"
             >
-              <X size={14} />
-              <span>إلغاء التعديل</span>
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {/* رقم سند القبض */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                رقم سند القبض (Receipt No) <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={receiptNo}
-                  onChange={(e) => setReceiptNo(e.target.value)}
-                  placeholder="RV-2026-0001"
-                  required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-latin text-sm font-bold text-deepBlue focus:border-customBlue focus:bg-white focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const no = await suggestRevenueReceiptNo()
-                    setReceiptNo(no)
-                  }}
-                  title="توليد رقم جديد تلقائياً"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                >
-                  <Sparkles size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* التاريخ */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                التاريخ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-              />
-            </div>
-
-            {/* نوع الإيراد (بند التحصيل - كود 4) */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                نوع الإيراد (بند التحصيل - دائن) <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={revenueAccountId}
-                onChange={(e) => setRevenueAccountId(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="">-- اختر نوع الإيراد من شجرة الحسابات --</option>
-                {revenueAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {/* حساب الإيداع / طريقة الاستلام (كود 11 - مدين) */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                حساب الإيداع / طريقة الاستلام (مدين) <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={depositAccountId}
-                onChange={(e) => setDepositAccountId(e.target.value)}
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="">-- اختر حساب الإيداع (البنك / المحفظة) --</option>
-                {depositAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* المبلغ */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                المبلغ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-black text-emerald-800 focus:border-customBlue focus:outline-none"
-              />
-            </div>
-
-            {/* العملة */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                العملة <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="YER">YER (ريال يمني)</option>
-                <option value="SAR">SAR (ريال سعودي)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {/* المودع / الجهة الدافعة */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                المودع / الجهة الدافعة <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={payerName}
-                onChange={(e) => setPayerName(e.target.value)}
-                placeholder="اسم الطالب، أو الشركة الراعية، أو الجهة المانحة..."
-                required
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-              />
-            </div>
-
-            {/* البرنامج / المسار المرتبط (اختياري) */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                البرنامج / المسار المرتبط (اختياري)
-              </label>
-              {programs.length > 0 ? (
-                <select
-                  value={programId}
-                  onChange={(e) => {
-                    setProgramId(e.target.value)
-                    const p = programs.find((prog) => String(prog.id) === e.target.value)
-                    if (p) setProgramName(p.title_ar || p.title || p.name || '')
-                  }}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-                >
-                  <option value="">-- اختر البرنامج أو المعسكر إن وجد --</option>
-                  {programs.map((prog) => (
-                    <option key={prog.id} value={prog.id}>
-                      {prog.title_ar || prog.title || prog.name}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={programName}
-                  onChange={(e) => setProgramName(e.target.value)}
-                  placeholder="مثال: مسار الذكاء الاصطناعي، المعسكر المهني..."
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* البيان (الوصف) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              البيان / تفاصيل التحصيل <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="مثال: رسوم اشتراك الطالب أحمد علي في مسار بايثون أو دفعة رعاية شركة X للهاكاثون"
-              required
-              className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-            />
-          </div>
-
-          {/* إرفاق إشعار / سند التحصيل (File Upload Dropzone) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              إرفاق إشعار / سند التحصيل (إشعار البنك، سكرينشوت المحفظة، إيصال السداد)
-            </label>
-
-            <div className="relative rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition hover:border-emerald-500/50 hover:bg-slate-50">
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,application/pdf"
-                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                className="absolute inset-0 z-10 opacity-0 cursor-pointer"
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                    <UploadCloud size={20} />
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold ${
+                    isCourseRevenueMode
+                      ? 'bg-violet-50 text-violet-600'
+                      : 'bg-emerald-50 text-emerald-600'
+                  }`}>
+                    {editingRevenue ? <Pencil size={18} /> : isCourseRevenueMode ? <GraduationCap size={20} /> : <Plus size={20} />}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-deepBlue">
-                      {attachment ? attachment.name : 'انقر هنا أو اسحب إشعار التحويل البنكي / الإيداع هنا'}
-                    </p>
-                    <p className="text-[11px] font-semibold text-slate-400">
-                      {attachment
-                        ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB`
-                        : 'يدعم صور الحوالات، السكرينشوت، وإشعارات PDF بحد أقصى 10MB'}
+                    <h2 className="text-lg font-black text-deepBlue">
+                      {editingRevenue
+                        ? `تعديل سند القبض (${editingRevenue.receipt_no})`
+                        : isCourseRevenueMode
+                        ? 'تسجيل إيراد دورة تدريبية'
+                        : 'تسجيل سند قبض وإيراد جديد'}
+                    </h2>
+                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                      {isCourseRevenueMode
+                        ? 'اختر الدورة ثم الطالب لتحصيل رسوم التسجيل وإيداعها في الصندوق'
+                        : 'إثبات الإيرادات والمقبوضات وتوليد القيود المحاسبية المزدوجة آلياً'}
                     </p>
                   </div>
                 </div>
 
-                {attachmentPreview && (
-                  <div className="relative shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
-                    <img src={attachmentPreview} alt="المرفق" className="h-12 w-16 object-cover rounded" />
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-                {attachment && (
+              {/* ── Course Revenue: Course & Student Selector Panel ─────────────── */}
+              {isCourseRevenueMode && !editingRevenue && (
+                <div className="mt-5 rounded-2xl border border-violet-200 bg-violet-50/40 p-4 space-y-4">
+                  {/* Step 1: Choose Course */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-600 text-white text-[10px] font-black">1</div>
+                      <span className="text-xs font-black text-violet-800">اختر الدورة التدريبية</span>
+                    </div>
+                    {loadingCourses ? (
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 py-3 justify-center">
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>جارٍ تحميل الدورات المدفوعة...</span>
+                      </div>
+                    ) : paidCourses.length === 0 ? (
+                      <p className="text-xs font-semibold text-slate-400 text-center py-2">لا توجد دورات مدفوعة مسجلة.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-40 overflow-y-auto">
+                        {paidCourses.map((course) => (
+                          <button
+                            key={course.id}
+                            type="button"
+                            onClick={() => void handleCourseSelect(course)}
+                            className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-right transition ${
+                              selectedCourseForRevenue?.id === course.id
+                                ? 'border-violet-400 bg-violet-100 text-violet-800'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <BookOpen size={13} className="shrink-0 text-violet-500" />
+                              <span className="text-[11px] font-bold truncate">{course.title}</span>
+                            </div>
+                            <span className="font-latin text-[11px] font-black text-emerald-700 shrink-0 mr-2">
+                              {course.price} {course.currency}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 2: Choose Student (appears after course selection) */}
+                  {selectedCourseForRevenue && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-600 text-white text-[10px] font-black">2</div>
+                        <span className="text-xs font-black text-violet-800">
+                          اختر الطالب (دفعات معلقة في: <strong>{selectedCourseForRevenue.title}</strong>)
+                        </span>
+                      </div>
+                      {loadingCourseStudents ? (
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 py-3 justify-center">
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>جارٍ تحميل الطلاب...</span>
+                        </div>
+                      ) : coursePendingStudents.length === 0 ? (
+                        <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-3">
+                          <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+                          <p className="text-xs font-semibold text-amber-800">
+                            لا يوجد طلاب بدفعات معلقة في هذه الدورة. جميع الطلاب أتمّوا دفعاتهم.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-48 overflow-y-auto">
+                          {coursePendingStudents.map((student) => (
+                            <button
+                              key={student.registration_id}
+                              type="button"
+                              onClick={() => handleStudentSelect(student)}
+                              className={`flex flex-col rounded-xl border px-3 py-2.5 text-right transition ${
+                                selectedStudentForRevenue?.registration_id === student.registration_id
+                                  ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Users size={13} className="text-slate-400 shrink-0" />
+                                  <span className="text-[11px] font-black truncate">{student.full_name}</span>
+                                </div>
+                                <span className="font-latin text-[11px] font-black text-emerald-700">
+                                  {student.course_price} {student.currency}
+                                </span>
+                              </div>
+                              {student.email && (
+                                <p className="text-[10px] font-semibold text-slate-400 mt-0.5 truncate font-latin">
+                                  {student.email}
+                                </p>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Selected student confirmation chip */}
+                  {selectedStudentForRevenue && (
+                    <div className="flex items-center gap-2 rounded-xl bg-emerald-100 border border-emerald-300 px-3 py-2">
+                      <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                      <p className="text-xs font-bold text-emerald-800">
+                        تم اختيار الطالب: <strong>{selectedStudentForRevenue.full_name}</strong> — سيتم ملء البيانات أدناه تلقائياً
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* رقم سند القبض */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      رقم سند القبض (Receipt No) <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={receiptNo}
+                        onChange={(e) => setReceiptNo(e.target.value)}
+                        placeholder="RV-2026-0001"
+                        required
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-latin text-sm font-bold text-deepBlue focus:border-customBlue focus:bg-white focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const no = await suggestRevenueReceiptNo()
+                          setReceiptNo(no)
+                        }}
+                        title="توليد رقم جديد تلقائياً"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                      >
+                        <Sparkles size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* التاريخ */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      التاريخ <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+
+                  {/* نوع الإيراد (بند التحصيل - كود 4) */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      نوع الإيراد (بند التحصيل - دائن) <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={revenueAccountId}
+                      onChange={(e) => setRevenueAccountId(e.target.value)}
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      <option value="">-- اختر نوع الإيراد من شجرة الحسابات --</option>
+                      {revenueAccounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* المبلغ */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      المبلغ <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-black text-emerald-800 focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+
+                  {/* العملة */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      العملة <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-latin text-sm font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      {FINANCE_CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} ({c.name} - {c.symbol})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* حساب الإيداع / طريقة الاستلام (توجيه آلي ذكي مع إمكانية التخصيص) */}
+                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3.5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Wallet size={16} className="text-emerald-600" />
+                      <span className="text-xs font-black text-deepBlue">حساب الإيداع / طريقة الاستلام (مدين)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedAccount(!showAdvancedAccount)}
+                      className="text-[11px] font-bold text-customBlue hover:underline"
+                    >
+                      {showAdvancedAccount ? 'الاعتماد التلقائي على العملة' : 'تخصيص حساب يدوياً'}
+                    </button>
+                  </div>
+
+                  {showAdvancedAccount ? (
+                    <select
+                      value={depositAccountId}
+                      onChange={(e) => setDepositAccountId(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 focus:border-customBlue focus:outline-none"
+                    >
+                      <option value="">-- تلقائي (حسب العملة الافتراضية {currency}) --</option>
+                      {depositAccounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          [{acc.code}] {acc.name_ar} {acc.name_en ? `(${acc.name_en})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1.5">
+                      <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                      <span>
+                        توجيه محاسبي آلي: سيتم إيداع المبلغ تلقائياً في الحساب المعتمد لعملة <strong className="font-latin text-emerald-900">{currency}</strong> بشجرة الحسابات.
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* المودع / الجهة الدافعة */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      المودع / الجهة الدافعة <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={payerName}
+                      onChange={(e) => setPayerName(e.target.value)}
+                      placeholder="اسم الطالب، أو الشركة الراعية، أو الجهة المانحة..."
+                      required
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                    />
+                  </div>
+
+                  {/* البرنامج / المسار المرتبط (اختياري) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      البرنامج / المسار المرتبط (اختياري)
+                    </label>
+                    {programs.length > 0 ? (
+                      <select
+                        value={programId}
+                        onChange={(e) => {
+                          setProgramId(e.target.value)
+                          const p = programs.find((prog) => String(prog.id) === e.target.value)
+                          if (p) setProgramName(p.title_ar || p.title || p.name || '')
+                        }}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                      >
+                        <option value="">-- اختر البرنامج أو المعسكر إن وجد --</option>
+                        {programs.map((prog) => (
+                          <option key={prog.id} value={prog.id}>
+                            {prog.title_ar || prog.title || prog.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={programName}
+                        onChange={(e) => setProgramName(e.target.value)}
+                        placeholder="مثال: مسار الذكاء الاصطناعي، المعسكر المهني..."
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* البيان (الوصف) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    البيان / تفاصيل التحصيل <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="مثال: رسوم اشتراك الطالب أحمد علي في مسار بايثون أو دفعة رعاية شركة X للهاكاثون"
+                    required
+                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                  />
+                </div>
+
+                {/* إرفاق إشعار / سند التحصيل (File Upload Dropzone) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    إرفاق إشعار / سند التحصيل (إشعار البنك، سكرينشوت المحفظة، إيصال السداد)
+                  </label>
+
+                  <div className="relative rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition hover:border-emerald-500/50 hover:bg-slate-50">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,application/pdf"
+                      onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                      className="absolute inset-0 z-10 opacity-0 cursor-pointer"
+                    />
+
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                          <UploadCloud size={20} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-deepBlue">
+                            {attachment ? attachment.name : 'انقر هنا أو اسحب إشعار التحويل البنكي / الإيداع هنا'}
+                          </p>
+                          <p className="text-[11px] font-semibold text-slate-400">
+                            {attachment
+                              ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB`
+                              : 'يدعم صور الحوالات، السكرينشوت، وإشعارات PDF بحد أقصى 10MB'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {attachmentPreview && (
+                        <div className="relative shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+                          <img src={attachmentPreview} alt="المرفق" className="h-12 w-16 object-cover rounded" />
+                        </div>
+                      )}
+
+                      {attachment && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleFileChange(null)
+                          }}
+                          className="relative z-20 rounded-lg bg-rose-50 p-2 text-rose-600 hover:bg-rose-100"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* أزرار التحكم داخل المودال */}
+                <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleFileChange(null)
-                    }}
-                    className="relative z-20 rounded-lg bg-rose-50 p-2 text-rose-600 hover:bg-rose-100"
+                    onClick={() => setIsModalOpen(false)}
+                    className="rounded-xl px-5 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 transition"
                   >
-                    <X size={16} />
+                    إلغاء
                   </button>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* أزرار التحكم */}
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={() => void handleResetForm()}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-100"
-            >
-              <RefreshCw size={15} />
-              <span>مسح الحقول</span>
-            </button>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {submitting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <CheckCircle2 size={16} />
-              )}
-              <span>{editingRevenue ? 'حفظ التعديلات وتحديث القيد' : '💾 حفظ وترحيل سند القبض'}</span>
-            </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-600/20 transition hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <CheckCircle2 size={16} />
+                    )}
+                    <span>{editingRevenue ? 'حفظ التعديلات وتحديث القيد' : 'حفظ وترحيل سند القبض'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </form>
-      </div>
+        )}
+      </AnimatePresence>
 
       {/* ── Section 2: Revenues Data Table (سجل الإيرادات) ────────────────────── */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -688,15 +1002,35 @@ export default function RevenueManagementPage() {
           </div>
 
           {/* Search */}
-          <div className="relative min-w-[240px]">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="بحث برقم السند، المودع أو البيان..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-9 pl-3 text-xs font-semibold text-slate-800 focus:border-customBlue focus:bg-white focus:outline-none"
-            />
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[240px]">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="بحث برقم السند، المودع أو البيان..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-9 pl-3 text-xs font-semibold text-slate-800 focus:border-customBlue focus:bg-white focus:outline-none"
+              />
+              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            </div>
+
+            {/* Date Filters */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
+              <span>من:</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 focus:border-customBlue focus:outline-none"
+              />
+              <span>إلى:</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 focus:border-customBlue focus:outline-none"
+              />
+            </div>
           </div>
         </div>
 

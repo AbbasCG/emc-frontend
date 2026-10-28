@@ -61,6 +61,7 @@ const AmbassadorApply             = lazy(() => import('./pages/AmbassadorApply')
 const AmbassadorApplicationSuccess = lazy(() => import('./pages/AmbassadorApplicationSuccess'))
 const ExpertApply                 = lazy(() => import('./pages/ExpertApply'))
 const ExpertApplicationSuccess    = lazy(() => import('./pages/ExpertApplicationSuccess'))
+const TrainerApply                = lazy(() => import('./pages/TrainerApply'))
 const LegalPage          = lazy(() => import('./pages/legal/LegalPage'))
 const Checkout           = lazy(() => import('./pages/Checkout'))
 const Verify             = lazy(() => import('./pages/Verify'))
@@ -177,6 +178,8 @@ const TrackLandingPage              = lazy(() => import('./pages/TrackLandingPag
 const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
+const OpsFormTemplatesPage          = lazy(() => import('./pages/operations/admin/OpsFormTemplatesPage'))
+const OpsFormsAnalyticsPage         = lazy(() => import('./pages/operations/admin/OpsFormsAnalyticsPage'))
 const OpsFormDetailPage             = lazy(() => import('./pages/operations/admin/OpsFormDetailPage'))
 const OpsVolunteersPage             = lazy(() => import('./pages/operations/admin/OpsVolunteersPage'))
 const AcceptedVolunteersPage        = lazy(() => import('./pages/admin/AcceptedVolunteersPage'))
@@ -244,6 +247,7 @@ const AdminApiTokensPage        = lazy(() => import('./pages/platform/admin/deve
 const AdminMobileReadinessPage  = lazy(() => import('./pages/platform/admin/AdminMobileReadinessPage'))
 const AdminAiCommandCenterPage  = lazy(() => import('./pages/platform/admin/ai/AdminAiCommandCenterPage'))
 const AdminExpertApplicationsPage = lazy(() => import('./pages/platform/admin/ai/AdminExpertApplicationsPage'))
+const AdminTrainerApplicationsPage = lazy(() => import('./pages/platform/admin/trainers/AdminTrainerApplicationsPage'))
 const AdminAiAutomationsPage    = lazy(() => import('./pages/platform/admin/ai/AdminAiAutomationsPage'))
 const AdminAiInsightsPage       = lazy(() => import('./pages/platform/admin/ai/AdminAiInsightsPage'))
 const AdminAiUsagePage          = lazy(() => import('./pages/platform/admin/ai/AdminAiUsagePage'))
@@ -462,6 +466,7 @@ function App() {
               <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
               <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
               <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
+              <Route path="/join-trainer"           element={<Suspense fallback={<RouteFallback />}><TrainerApply /></Suspense>} />
               <Route path="/join-expert"            element={<Suspense fallback={<RouteFallback />}><ExpertApply /></Suspense>} />
               <Route path="/join-expert/success" element={<Suspense fallback={<RouteFallback />}><ExpertApplicationSuccess /></Suspense>} />
               <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
@@ -787,6 +792,8 @@ function App() {
                   <Route path="/dashboard/admin/meetings/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/admin/forms" element={<OpsFormsPage />} />
                   <Route path="/dashboard/admin/forms/create" element={<OpsFormCreatePage />} />
+                  <Route path="/dashboard/admin/forms/templates" element={<OpsFormTemplatesPage />} />
+                  <Route path="/dashboard/admin/forms/analytics" element={<OpsFormsAnalyticsPage />} />
                   <Route path="/dashboard/admin/forms/:id" element={<OpsFormDetailPage />} />
                   <Route path="/dashboard/admin/volunteers" element={<OpsVolunteersPage />} />
                   <Route path="/dashboard/admin/volunteers/:id" element={<OpsVolunteerDetailPage />} />
@@ -855,6 +862,7 @@ function App() {
                   <Route path="/dashboard/admin/mobile-readiness" element={<AdminMobileReadinessPage />} />
                   <Route path="/dashboard/admin/ai" element={<AdminAiCommandCenterPage />} />
                   <Route path="/dashboard/admin/ai/expert-applications" element={<AdminExpertApplicationsPage />} />
+                  <Route path="/dashboard/admin/trainers/applications" element={<AdminTrainerApplicationsPage />} />
                   <Route path="/dashboard/admin/ai/automations" element={<AdminAiAutomationsPage />} />
                   <Route path="/dashboard/admin/ai/insights" element={<AdminAiInsightsPage />} />
                   <Route path="/dashboard/admin/ai/usage" element={<AdminAiUsagePage />} />

@@ -5,7 +5,8 @@ import type { CourseDetailDerived } from '@/utils/courseDetailDerived'
 import type { CourseFaqItem, CourseReviewItem } from '@/utils/courseDetailPageData'
 import type { CurriculumGroup } from '@/components/public/detail/PublicCurriculumSection'
 import { cn } from '@/lib/utils'
-import { formatPublicDate, formatPublicText, formatPublicTime } from '@/utils/publicDetailFormat'
+import { formatPublicDate, formatPublicText, formatPublicTime, formatStudyTime } from '@/utils/publicDetailFormat'
+import { sessionFormatLabelAr } from '@/utils/courseDuration'
 import { safeTrimUnknown } from '@/utils/publicCourseNormalize'
 
 const PLACEHOLDER =
@@ -327,10 +328,10 @@ export function ScheduleTabPanel({ course, derived }: { course: Course; derived:
     rows.push({ label: 'أيام الدراسة', value: formatPublicText(safeTrimUnknown(course.study_days ?? x.study_days)!) })
   }
   if (safeTrimUnknown(course.study_time ?? x.study_time)) {
-    rows.push({ label: 'وقت الدراسة', value: formatPublicText(safeTrimUnknown(course.study_time ?? x.study_time)!) })
+    rows.push({ label: 'وقت الدراسة', value: formatStudyTime(safeTrimUnknown(course.study_time ?? x.study_time)) })
   }
   if (safeTrimUnknown(course.session_format ?? x.session_format)) {
-    rows.push({ label: 'صيغة الجلسات', value: safeTrimUnknown(course.session_format ?? x.session_format)! })
+    rows.push({ label: 'صيغة الجلسات', value: sessionFormatLabelAr(safeTrimUnknown(course.session_format ?? x.session_format)) })
   }
   if (derived.deliveryAr) rows.push({ label: 'طريقة التقديم', value: derived.deliveryAr })
   if (derived.locationLabel) rows.push({ label: 'المدينة / المكان', value: derived.locationLabel })

@@ -381,7 +381,6 @@ export default function MeetingReportModal({ meetingId, meetingTitle, agenda = [
                 </div>
 
                 {label('الأعمال المطلوبة من الإدارة العليا', <textarea rows={3} className={input} value={form.executive_requests} onChange={(e) => setForm({ ...form, executive_requests: e.target.value })} />)}
-                {label('الأهداف التشغيلية للشهر القادم', <textarea rows={3} className={input} value={form.next_month_goals} onChange={(e) => setForm({ ...form, next_month_goals: e.target.value })} />)}
                 {label('مقترحات تطوير آلية العمل', <textarea rows={3} className={input} value={form.improvement_suggestions} onChange={(e) => setForm({ ...form, improvement_suggestions: e.target.value })} />)}
               </section>
             )}

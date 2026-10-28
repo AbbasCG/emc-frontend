@@ -17,7 +17,7 @@ export default function ExpertApplicationSuccess() {
   if (!result) return null
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb]" dir="rtl">
+    <div className="min-h-screen bg-detail-canvas" dir="rtl">
       <PublicSeo
         title="تم استلام طلبك"
         description="تأكيد استلام طلب الانضمام لمجتمع المدربين والخبراء."

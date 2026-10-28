@@ -234,7 +234,7 @@ async function fillSchedule(dialog: HTMLElement, title = 'اجتماع الإط�
 
 async function openReportForm(title: string) {
   const card = (await screen.findByText(title)).closest('li')!
-  await userEvent.click(within(card).getByRole('button', { name: 'رفع التقرير' }))
+  await userEvent.click(within(card).getByRole('button', { name: 'تقرير يدوي' }))
   return screen.findByRole('dialog', { name: 'رفع تقرير الاجتماع' })
 }
 
@@ -634,12 +634,12 @@ describe('meeting lounge', () => {
     expect(screen.queryByRole('button', { name: /اجتماع داخلي للإدارة/ })).not.toBeInTheDocument()
   })
 
-  it('a meeting without a report offers "رفع التقرير"', async () => {
+  it('a meeting without a report offers the manual report action ("تقرير يدوي")', async () => {
     setServer([row({ display_status: 'awaiting_report' })])
     lounge()
 
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
-    expect(within(card).getByRole('button', { name: 'رفع التقرير' })).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'تقرير يدوي' })).toBeInTheDocument()
     expect(within(card).getByText('بانتظار رفع التقرير')).toBeInTheDocument()
   })
 
@@ -650,7 +650,7 @@ describe('meeting lounge', () => {
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
     expect(within(card).getByText('تم رفع التقرير')).toBeInTheDocument()
     expect(within(card).getByRole('button', { name: 'عرض التقرير' })).toBeInTheDocument()
-    expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument()
   })
 
   it('a viewer who may not file sees a hint, never a button', async () => {
@@ -658,7 +658,7 @@ describe('meeting lounge', () => {
     lounge()
 
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
-    expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument()
     expect(within(card).getByText('يرفع التقرير مسؤول الاجتماع أو قائد الإدارة')).toBeInTheDocument()
   })
 
@@ -667,7 +667,28 @@ describe('meeting lounge', () => {
     lounge()
 
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
-    expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument()
+  })
+
+  it('only someone who manages an open meeting is offered attendance and results', async () => {
+    setServer([row({ display_status: 'awaiting_report' })])
+    lounge()
+    const open = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
+    expect(within(open).getByRole('button', { name: 'رصد الحضور والنتائج' })).toBeInTheDocument()
+  })
+
+  it('a participant who cannot manage the meeting never sees the attendance-and-results action', async () => {
+    setServer([row({ display_status: 'awaiting_report', capabilities: { can_manage: false, can_upload_report: false, can_view_report: false } })])
+    lounge()
+    const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
+    expect(within(card).queryByRole('button', { name: 'رصد الحضور والنتائج' })).not.toBeInTheDocument()
+  })
+
+  it('a cancelled meeting is not offered attendance and results', async () => {
+    setServer([row({ display_status: 'cancelled', status: 'cancelled', capabilities: { can_manage: true, can_upload_report: false, can_view_report: false } })])
+    lounge()
+    const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
+    expect(within(card).queryByRole('button', { name: 'رصد الحضور والنتائج' })).not.toBeInTheDocument()
   })
 })
 
@@ -782,7 +803,7 @@ describe('meeting report form — sections, not a wizard', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
     await waitFor(() => expect(within(card).getByText('تم رفع التقرير')).toBeInTheDocument())
-    expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument()
     expect(within(card).getByRole('button', { name: 'عرض التقرير' })).toBeInTheDocument()
   })
 
@@ -858,7 +879,7 @@ describe('meeting report form — sections, not a wizard', () => {
     await waitFor(() => expect(listCalls().length).toBeGreaterThan(before))
     await userEvent.click(within(dialog).getAllByRole('button', { name: 'إغلاق' }).at(-1)!)
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
-    await waitFor(() => expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument())
+    await waitFor(() => expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument())
     expect(within(card).getByText('تم رفع التقرير')).toBeInTheDocument()
   })
 
@@ -947,7 +968,7 @@ describe('joining a meeting from the lounge', () => {
     lounge()
 
     const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('li')!
-    expect(within(card).queryByRole('button', { name: 'رفع التقرير' })).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'تقرير يدوي' })).not.toBeInTheDocument()
     expect(within(card).queryByRole('button', { name: 'عرض التقرير' })).not.toBeInTheDocument()
     expect(within(card).getByRole('button', { name: 'انضمام' })).toBeInTheDocument()
   })

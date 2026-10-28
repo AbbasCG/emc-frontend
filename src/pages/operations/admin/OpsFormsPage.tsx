@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ChevronLeft, FilePlus2 } from 'lucide-react'
+import { BarChart3, ChevronLeft, FilePlus2, LayoutTemplate } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { fetchFormDefinitions } from '@/api/formsApi'
@@ -60,20 +60,36 @@ export default function OpsFormsPage() {
           <h1 className="text-xl font-black text-deepBlue">محرك النماذج</h1>
           <p className="mt-1 text-xs font-semibold text-slate-500">إنشاء نماذج تشغيل ذكية ومتوافقة مع العربية</p>
         </div>
-        <Link
-          to="/dashboard/admin/forms/create"
-          className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-xs font-black text-white shadow-md"
-        >
-          <FilePlus2 size={16} />
-          نموذج جديد
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/dashboard/admin/forms/analytics"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-black text-deepBlue shadow-sm ring-1 ring-deepBlue/10"
+          >
+            <BarChart3 size={16} />
+            التحليلات
+          </Link>
+          <Link
+            to="/dashboard/admin/forms/templates"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-black text-deepBlue shadow-sm ring-1 ring-deepBlue/10"
+          >
+            <LayoutTemplate size={16} />
+            ابدأ من قالب
+          </Link>
+          <Link
+            to="/dashboard/admin/forms/create"
+            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-xs font-black text-white shadow-md"
+          >
+            <FilePlus2 size={16} />
+            نموذج جديد
+          </Link>
+        </div>
       </header>
 
       {forms.length === 0 ? (
         <EmptyState
           title="لا نماذج بعد"
-          description="ابدأ بنموذج تقييم أو تسجيل."
-          action={{ label: 'إنشاء', href: '/dashboard/admin/forms/create' }}
+          description="ابدأ بنموذج فارغ، أو اختر قالباً جاهزاً من مكتبة القوالب."
+          action={{ label: 'تصفح القوالب', href: '/dashboard/admin/forms/templates' }}
         />
       ) : (
         <motion.ul layout className="grid gap-4 md:grid-cols-2">

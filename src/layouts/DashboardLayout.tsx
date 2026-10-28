@@ -146,6 +146,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/meetings': 'الاجتماعات',
   '/dashboard/admin/forms': 'النماذج',
   '/dashboard/admin/forms/create': 'إنشاء نموذج',
+  '/dashboard/admin/forms/templates': 'قوالب النماذج',
+  '/dashboard/admin/forms/analytics': 'تحليلات النماذج',
   '/dashboard/admin/volunteers': 'المتطوعون',
   '/dashboard/admin/partners': 'الشركاء',
   '/dashboard/admin/partnership-requests': 'طلبات الشراكة',
@@ -199,6 +201,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/mobile-readiness': 'جاهزية الجوال',
   '/dashboard/admin/ai': 'AI Command Center',
   '/dashboard/admin/ai/expert-applications': 'طلبات انضمام الخبراء',
+  '/dashboard/admin/trainers/applications': 'طلبات انضمام المدربين',
   '/dashboard/admin/ai/automations': 'AI Automations',
   '/dashboard/admin/ai/insights': 'AI Insights',
   '/dashboard/admin/ai/usage': 'AI Usage',
@@ -237,7 +240,14 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const { pages: accessPages, status: accessStatus, refresh: refreshAccess } = usePageAccess()
 
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
-    const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
+    const base = getSidebarByRole(user?.role, {
+      hasEnglishCourses: Boolean(user?.has_english_courses),
+      hasEnrolledCourses: Boolean(user?.has_enrolled_courses),
+      departmentName: user?.department_name || user?.department,
+      departmentSlug: (user as { department_slug?: string | null })?.department_slug,
+      specializedRole: (user as { specialized_role?: string | null })?.specialized_role,
+      impactPointsBalance: user?.impact_points_balance,
+    })
 
     // «التشغيل والتقارير» — مجموعة مشتركة بارزة (غير مطوية) لكل أدوار الفريق:
     // لوحة التشغيل المرئية للجميع، تقارير الاجتماعات، تقرير الإثنين، ونقاط الأثر.

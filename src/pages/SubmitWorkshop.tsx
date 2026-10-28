@@ -28,6 +28,7 @@ import AppRadioGroup from '../components/ui/AppRadioGroup'
 import AppTextarea from '../components/ui/AppTextarea'
 import EmcDatePicker from '../components/ui/EmcDatePicker'
 import EmcTimePicker from '../components/ui/EmcTimePicker'
+import { WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 
 type ValidationErrors = Record<string, string[]>
 
@@ -801,6 +802,9 @@ export default function SubmitWorkshop() {
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.04] px-4 py-3">
                           <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#0077B6]">
                             المواعيد المقترحة موعد واحد مطلوب والخياران الآخران اختياريان
+                          </p>
+                          <p className="w-full text-[11px] font-bold text-muted-500">
+                            جميع الأوقات {WORKSHOP_TZ_LABEL}
                           </p>
                           {(form.proposed_date_1 || form.proposed_start_time_1) && (
                             <button

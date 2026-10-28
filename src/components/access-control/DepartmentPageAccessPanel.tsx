@@ -79,6 +79,7 @@ export function DepartmentPageAccessPanel({
   }, [departmentId])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void load()
   }, [load])
 
@@ -236,7 +237,7 @@ export function DepartmentPageAccessPanel({
               type="button"
               onClick={() => void onSave()}
               disabled={!dirty || saving}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[11px] font-black text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-navy px-4 py-2 text-[11px] font-black text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Save className="h-3.5 w-3.5" aria-hidden />
               {saving ? 'جارٍ الحفظ…' : 'حفظ الاثنين معاً'}

@@ -11,6 +11,7 @@ describe('normalizeMeeting', () => {
       id: 3, title: 'اجتماع بلا عنوان', type: 'general', status: 'scheduled', display_status: 'scheduled', meeting_date: null,
       start_time: null, end_time: null, department: null, organizer: null, has_report: false, report_id: null,
       meeting_url: null, audience: 'general', my_attendance: null, participants_count: null,
+      moderator: null, top_interactive_user: null, discipline_rate: null,
       capabilities: {
         can_view: true, can_join: false, can_confirm_attendance: false, can_manage: false, can_upload_report: false,
         can_view_report: false, can_view_attendance: false, can_view_quality_data: false,

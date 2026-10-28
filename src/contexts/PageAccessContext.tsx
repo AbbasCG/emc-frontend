@@ -91,6 +91,7 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated) {
       requestRef.current++
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- drops the cached pages when the user signs out
       setPages([])
       setStatus('idle')
       return
@@ -146,6 +147,7 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
   return <PageAccessContext.Provider value={value}>{children}</PageAccessContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- the hook lives beside its provider; 23 modules and 11 test mocks import it from this path
 export function usePageAccess(): PageAccessContextValue {
   const ctx = useContext(PageAccessContext)
 

@@ -48,6 +48,7 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the unit and user lists when the modal inputs change
     setUnitsLoading(true);
     ticketService.getMeta({ department_id: departmentId })
       .then((meta) => { if (!cancelled) setUnits(meta.tech_units ?? []); })
@@ -58,6 +59,7 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
 
   useEffect(() => {
     if (!unitId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the unit and user lists when the modal inputs change
       setUsers([]);
       return;
     }

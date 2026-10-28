@@ -56,10 +56,6 @@ export function RiskBadge({ riskLevel, className }: { riskLevel: PageAccessRiskL
   )
 }
 
-export function riskLabelAr(riskLevel: PageAccessRiskLevel): string {
-  return (RISK_META[riskLevel] ?? RISK_META.ADMIN_ONLY).labelAr
-}
-
 /**
  * Provenance badge — WHY a user has (or does not have) a page.
  *
@@ -68,7 +64,7 @@ export function riskLabelAr(riskLevel: PageAccessRiskLevel): string {
  * fallback, so provenance is never recomputed client-side.
  */
 const SOURCE_STYLE: Record<PageAccessSource, { cls: string; fallbackAr: string }> = {
-  root_authority:    { cls: 'bg-[#0C2A4B] text-white ring-[#0C2A4B]/30', fallbackAr: 'صلاحية النظام الكاملة' },
+  root_authority:    { cls: 'bg-navy text-white ring-navy/30', fallbackAr: 'صلاحية النظام الكاملة' },
   system_protected:  { cls: 'bg-rose-50 text-rose-700 ring-rose-200', fallbackAr: 'محمية من النظام' },
   user_deny:         { cls: 'bg-rose-100 text-rose-800 ring-rose-300', fallbackAr: 'محجوبة بشكل خاص' },
   user_allow:        { cls: 'bg-violet-50 text-violet-700 ring-violet-200', fallbackAr: 'إضافة خاصة' },

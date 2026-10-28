@@ -37,6 +37,9 @@ export type AdminManagedUser = {
   /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
   phone?: string | null
   department?: string | null
+  /** Canonical department id / display name, present when the backend serialises them. */
+  department_id?: number | null
+  department_name?: string | null
   city?: string | null
   country?: string | null
   gender?: string | null
@@ -180,6 +183,9 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
 
   const related = relateNotesFromRaw(raw)
 
+  const deptIdNum = raw.department_id != null && raw.department_id !== '' ? Number(raw.department_id) : NaN
+  const deptNameRaw = raw.department_name
+
   const deletedRaw = raw.deleted_at ?? raw.deletedAt
   const deleted_at =
     deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
@@ -202,6 +208,8 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     deleted_at,
     phone,
     department,
+    ...(Number.isFinite(deptIdNum) ? { department_id: Math.trunc(deptIdNum) } : {}),
+    ...(typeof deptNameRaw === 'string' && deptNameRaw.trim() !== '' ? { department_name: deptNameRaw.trim() } : {}),
     city,
     country,
     gender,
@@ -481,6 +489,7 @@ export type CreateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -497,6 +506,7 @@ export async function createAdminUser(input: CreateAdminUserInput): Promise<Admi
   if (input.phone != null && String(input.phone).trim() !== '') body.phone = String(input.phone).trim()
   if (input.department != null && String(input.department).trim() !== '')
     body.department = String(input.department).trim()
+  if (input.department_id != null) body.department_id = input.department_id
   if (input.city != null && String(input.city).trim() !== '') body.city = String(input.city).trim()
   if (input.country != null && String(input.country).trim() !== '') body.country = String(input.country).trim()
   if (input.how_did_you_hear_about_us != null && String(input.how_did_you_hear_about_us).trim() !== '')
@@ -519,6 +529,7 @@ export type UpdateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -549,6 +560,7 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
   if (patch.phone != null && String(patch.phone).trim() !== '') commonPairs.phone = String(patch.phone).trim()
   if (patch.department != null && String(patch.department).trim() !== '')
     commonPairs.department = String(patch.department).trim()
+  if (patch.department_id != null) commonPairs.department_id = String(patch.department_id)
   if (patch.city != null && String(patch.city).trim() !== '') commonPairs.city = String(patch.city).trim()
   if (patch.country != null && String(patch.country).trim() !== '') commonPairs.country = String(patch.country).trim()
   if (patch.how_did_you_hear_about_us != null && String(patch.how_did_you_hear_about_us).trim() !== '')

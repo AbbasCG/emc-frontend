@@ -16,34 +16,39 @@ import { cn } from '@/lib/utils'
  * «التحقق من الشهادات» (/verify) belong to the FOOTER only — they are never
  * promoted into the five-item main menu.
  */
-const NAV_MAIN = [
-  { key: 'home', href: '/' },
-  { key: 'about', href: '/about' },
-  { key: 'business', href: '/business' },
-  { key: 'verify', href: '/verify' },
-  { key: 'tracks', href: '/tracks' },
-  { key: 'team', href: '/ar/team' },
-  { key: 'impact', href: '/impact' },
-  { key: 'partnerships', href: '/partnerships' },
-  { key: 'volunteer', href: '/volunteer' },
-  { key: 'volunteerOpportunities', href: '/volunteer-opportunities' },
-  { key: 'consultants', href: '/consultants' },
-  { key: 'ambassador', href: '/ambassador' },
-  { key: 'departments', href: '/departments' },
-  { key: 'contact', href: '/contact' },
+const NAV_PROGRAMS = [
+  { key: 'courses', href: '/courses', fallback: 'الدورات التدريبية' },
+  { key: 'learningPaths', href: '/learning-paths', fallback: 'المسارات المتكاملة' },
+  { key: 'workshops', href: '/workshops', fallback: 'ورش العمل والندوات' },
+  { key: 'fellowship', href: '/fellowship', fallback: 'برنامج الزمالة' },
+  { key: 'programs', href: '/programs', fallback: 'الكتالوج الأكاديمي' },
+  { key: 'tracks', href: '/tracks', fallback: 'المحاور المعرفية' },
 ] as const
 
-const NAV_PROGRAMS = [
-  { key: 'courses', href: '/courses' },
-  { key: 'learningPaths', href: '/learning-paths' },
-  { key: 'fellowship', href: '/fellowship' },
-  { key: 'workshops', href: '/workshops' },
-  { key: 'programs', href: '/programs' },
-  { key: 'instructors', href: '/instructors' },
-  { key: 'platform', href: '/platform' },
-  { key: 'submitWorkshop', href: '/submit-workshop' },
-  { key: 'support', href: '/support' },
-  { key: 'knowledge', href: '/knowledge' },
+const NAV_ABOUT = [
+  { key: 'about', href: '/about', fallback: 'عن مركز EMC' },
+  { key: 'business', href: '/business', fallback: 'حلول المؤسسات والشركات' },
+  { key: 'verify', href: '/verify', fallback: 'التحقق من الشهادات' },
+  { key: 'team', href: '/ar/team', fallback: 'فريق العمل والخبراء' },
+  { key: 'impact', href: '/impact', fallback: 'الأثر والإحصائيات' },
+  { key: 'departments', href: '/departments', fallback: 'الأقسام والإدارات' },
+] as const
+
+const NAV_COMMUNITY = [
+  { key: 'partnerships', href: '/partnerships', fallback: 'الشراكات المؤسسية' },
+  { key: 'ambassador', href: '/ambassador', fallback: 'برنامج السفراء' },
+  { key: 'volunteer', href: '/volunteer', fallback: 'التطوع والمساهمة' },
+  { key: 'volunteerOpportunities', href: '/volunteer-opportunities', fallback: 'فرص التطوع' },
+  { key: 'consultants', href: '/consultants', fallback: 'هيئة المستشارين' },
+  { key: 'instructors', href: '/instructors', fallback: 'انضم كمدرب' },
+] as const
+
+const NAV_PLATFORM = [
+  { key: 'platform', href: '/platform', fallback: 'منصة التدريب الذكية' },
+  { key: 'submitWorkshop', href: '/submit-workshop', fallback: 'تقديم مقترح ورشة' },
+  { key: 'knowledge', href: '/knowledge', fallback: 'قاعدة المعرفة' },
+  { key: 'support', href: '/support', fallback: 'مركز الدعم والمساعدة' },
+  { key: 'contact', href: '/contact', fallback: 'اتصل بنا' },
 ] as const
 
 const BOTTOM_LEGAL = [
@@ -91,29 +96,30 @@ function FooterAccordion({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="border-b border-white/[0.08] md:border-0">
+    <div className="border-b border-white/[0.08] sm:border-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between py-3 text-right md:hidden"
+        className="flex w-full items-center justify-between py-3.5 text-right sm:hidden"
       >
-        {/* §1: orange is spent on the primary action only section eyebrows stay
-            in the sea family. */}
-        <span className="text-[11px] font-black tracking-[0.12em] text-ice">{title}</span>
-        <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
+        <span className="text-xs font-black tracking-wider text-ice">{title}</span>
+        <ChevronDown
+          className={cn('h-4 w-4 text-white/50 transition-transform duration-200', open && 'rotate-180 text-customOrange')}
+          aria-hidden
+        />
       </button>
-      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-ice md:block">{title}</h3>
-      <div className={cn(open ? 'block pb-3' : 'hidden', 'md:block md:pb-0')}>{children}</div>
+      <h3 className="mb-3 hidden text-[11px] font-black uppercase tracking-[0.14em] text-ice sm:block">{title}</h3>
+      <div className={cn(open ? 'block pb-3.5' : 'hidden', 'sm:block sm:pb-0')}>{children}</div>
     </div>
   )
 }
 
 function NavLinks({ links }: { links: ReadonlyArray<{ label: string; href: string }> }) {
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-2">
       {links.map((l) => (
         <li key={`${l.href}-${l.label}`}>
-          <Link to={l.href} className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white">
+          <Link to={l.href} className="text-xs font-semibold text-white/60 transition-colors hover:text-white">
             {l.label}
           </Link>
         </li>
@@ -127,8 +133,16 @@ export default function Footer() {
   const { dir } = useLanguage()
   const cookieConsent = useCookieConsentOptional()
 
-  const mainLinks = NAV_MAIN.map((l) => ({ href: l.href, label: t(`footer.nav.main.${l.key}`) }))
-  const programLinks = NAV_PROGRAMS.map((l) => ({ href: l.href, label: t(`footer.nav.programs.${l.key}`) }))
+  const programLinks = NAV_PROGRAMS.map((l) => ({ href: l.href, label: t(`footer.nav.programs.${l.key}`, l.fallback) }))
+  const aboutLinks = NAV_ABOUT.map((l) => ({ href: l.href, label: t(`footer.nav.main.${l.key}`, l.fallback) }))
+  const communityLinks = NAV_COMMUNITY.map((l) => ({
+    href: l.href,
+    label: t(`footer.nav.main.${l.key}`, t(`footer.nav.programs.${l.key}`, l.fallback)),
+  }))
+  const platformLinks = NAV_PLATFORM.map((l) => ({
+    href: l.href,
+    label: t(`footer.nav.programs.${l.key}`, t(`footer.nav.main.${l.key}`, l.fallback)),
+  }))
 
   return (
     <footer className="relative isolate overflow-hidden bg-navy text-white" dir={dir}>
@@ -140,11 +154,10 @@ export default function Footer() {
         <span className="flex-1 bg-white/20" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-6">
-          <div className="text-right md:col-span-2 lg:col-span-1">
-            {/* §1: the logo appears ONCE site-wide in the header. The footer
-                carries the wordmark as type, never a second lockup. */}
+      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 lg:gap-8">
+          {/* 1. Identity & Wordmark */}
+          <div className="text-right sm:col-span-2 md:col-span-1 lg:col-span-1">
             <Link
               to="/"
               aria-label={t('nav.aria.homeLink')}
@@ -152,34 +165,42 @@ export default function Footer() {
             >
               EMC
             </Link>
-            <p className="mt-3 max-w-xs text-[12px] font-medium leading-6 text-white/50">
+            <p className="mt-3 max-w-xs text-[12px] font-medium leading-6 text-white/60">
               {t('footer.tagline')}
             </p>
-            <p className="emc-tridot mt-3 inline-flex items-center text-[12.5px] font-bold tracking-wide text-white/75">
+            <p className="emc-tridot mt-3 inline-flex items-center text-[12.5px] font-bold tracking-wide text-white/80">
               {t('footer.motto')}
             </p>
-            <Link
-              to="/contact"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-customBlue px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-110"
-            >
-              {t('footer.contactCta')}
-              <ArrowLeftIcon size={14} className="shrink-0 opacity-90" />
-            </Link>
+            <div className="mt-4">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-md shadow-customOrange/20 transition hover:bg-customOrange/90"
+              >
+                {t('footer.contactCta')}
+                <ArrowLeftIcon size={14} className="shrink-0 opacity-90" />
+              </Link>
+            </div>
           </div>
 
-          <FooterAccordion title={t('footer.headings.main')}>
-            <NavLinks links={mainLinks} />
-          </FooterAccordion>
-
-          <FooterAccordion title={t('footer.headings.programs')}>
+          {/* 2. Academic Programs */}
+          <FooterAccordion title={t('footer.headings.programs', 'البرامج والمسارات')}>
             <NavLinks links={programLinks} />
           </FooterAccordion>
 
-          <FooterAccordion title={t('footer.headings.contact')} defaultOpen>
-            <ul className="space-y-2 text-[12px] font-semibold text-white/55">
-              {/* Phone row intentionally removed: siteContact.phone is an unconfirmed
-                  placeholder (see src/data/publicPages.ts). Restore the row once a
-                  real number is confirmed. */}
+          {/* 3. About EMC */}
+          <FooterAccordion title={t('footer.headings.main', 'عن المركز')}>
+            <NavLinks links={aboutLinks} />
+          </FooterAccordion>
+
+          {/* 4. Community & Partnerships */}
+          <FooterAccordion title="المجتمع والشراكات">
+            <NavLinks links={communityLinks} />
+          </FooterAccordion>
+
+          {/* 5. Platform, Support & Contact */}
+          <FooterAccordion title={t('footer.headings.contact', 'المنصة والتواصل')} defaultOpen>
+            <NavLinks links={platformLinks} />
+            <ul className="mt-4 pt-3 border-t border-white/10 space-y-2 text-[12px] font-semibold text-white/55">
               <li>
                 <a
                   href={`mailto:${siteContact.email}`}
