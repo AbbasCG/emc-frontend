@@ -54,7 +54,6 @@ const TicketSubmitPage: React.FC = () => {
       setMetaLoading(true);
       try {
         const meta = await ticketService.getMeta();
-        console.log('Ticket API Meta Response:', meta);
         const depts = meta?.departments || [];
         setDepartments(depts);
         if (depts.length > 0) {
@@ -64,7 +63,7 @@ const TicketSubmitPage: React.FC = () => {
           setDepartmentId(String(tech ? tech.id : depts[0].id));
         }
       } catch (err) {
-        console.error('Failed to fetch departments:', err);
+        if (import.meta.env.DEV) console.error('Failed to fetch departments:', err);
         toast.error('تعذّر تحميل بيانات الإدارات');
       } finally {
         setMetaLoading(false);
