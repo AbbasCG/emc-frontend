@@ -460,7 +460,7 @@ export function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQu
         (uDept && qDept.includes(uDept))
 
       const specRole = getSpecializedRoleForDepartment(q.department)
-      const matchRole = specRole && normalizeRole(u.role) === specRole
+      const matchRole = Boolean(specRole && normalizeRole(u.role) === specRole.role)
 
       if (!matchDept && !matchRole) return false
     }

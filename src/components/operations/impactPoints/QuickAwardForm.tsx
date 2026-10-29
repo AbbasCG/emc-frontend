@@ -36,7 +36,7 @@ type Props = {
 
 export default function QuickAwardForm({
   monthlyCap,
-  scope = 'organization',
+  scope: _scope = 'organization',
   preselectUserId,
   onAwarded,
 }: Props) {
