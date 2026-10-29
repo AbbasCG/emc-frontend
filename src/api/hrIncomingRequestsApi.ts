@@ -19,7 +19,11 @@ export type IncomingRequest = {
   requestType: string
   department: { id: number; name: string } | null
   requester: { id: number; name: string } | null
+  employmentType?: string | null
+  jobTitle?: string | null
   requiredCount: number
+  qualification?: string | null
+  responsibilities?: string | null
   skillsAndSpecs: string
   skills: string[]
   notes: string | null
@@ -150,7 +154,11 @@ export function normalizeIncomingRequest(raw: unknown): IncomingRequest {
     requestType: str(r.request_type),
     department: dept.id != null ? { id: num(dept.id), name: str(dept.name) } : null,
     requester: req.id != null ? { id: num(req.id), name: str(req.name) } : null,
+    employmentType: strOrNull(r.employment_type),
+    jobTitle: strOrNull(r.job_title),
     requiredCount: Math.max(1, num(r.required_count) || 1),
+    qualification: strOrNull(r.qualification),
+    responsibilities: strOrNull(r.responsibilities),
     skillsAndSpecs: str(r.skills_and_specs),
     skills: strList(r.skills),
     notes: strOrNull(r.notes),
@@ -349,4 +357,3 @@ export function incomingErrorMessage(err: unknown, fallback: string): string {
   }
   return fallback
 }
-

@@ -82,12 +82,21 @@ export function RequestDetailsModal({
           <dl className="space-y-2.5 rounded-2xl border border-deepBlue/[0.07] bg-white p-4">
             <Row label="القسم الطالب">{request.department?.name ?? '—'}</Row>
             <Row label="مقدّم الطلب">{request.requester?.name ?? '—'}</Row>
-            <Row label="نوع الطلب">{request.requestType || '—'}</Row>
+            <Row label="نوع التوظيف">{request.employmentType ?? '—'}</Row>
+            <Row label="المسمى الوظيفي">{request.jobTitle ?? (request.requestType || '—')}</Row>
             <Row label="العدد المطلوب">{request.requiredCount}</Row>
+            <Row label="المؤهل">{request.qualification ?? '—'}</Row>
             <Row label="موجّه إلى">{request.targetAudienceLabel ?? '—'}</Row>
             <Row label="تاريخ الطلب">{formatDateTime(request.createdAt)}</Row>
             <Row label="آخر تحديث">{formatDateTime(request.updatedAt)}</Row>
           </dl>
+
+          {request.responsibilities ?
+            <section aria-label="المهام والمسؤوليات" className="space-y-2">
+              <h3 className="text-sm font-black text-deepBlue">المهام والمسؤوليات</h3>
+              <p className="whitespace-pre-line rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-relaxed text-deepBlue/75">{request.responsibilities}</p>
+            </section>
+          : null}
 
           <section aria-label="المهارات والمواصفات" className="space-y-2">
             <h3 className="text-sm font-black text-deepBlue">المهارات والمواصفات المطلوبة</h3>
@@ -97,7 +106,7 @@ export function RequestDetailsModal({
             <p className="whitespace-pre-line rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-relaxed text-deepBlue/75">{request.skillsAndSpecs || 'لم تُذكر مواصفات.'}</p>
             {request.notes ?
               <div className="space-y-1">
-                <h4 className="text-xs font-black text-deepBlue/60">ملاحظات / المهام</h4>
+                <h4 className="text-xs font-black text-deepBlue/60">ملاحظات</h4>
                 <p className="whitespace-pre-line rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-relaxed text-deepBlue/75">{request.notes}</p>
               </div>
             : null}
