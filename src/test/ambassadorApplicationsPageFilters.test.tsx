@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
+import { MemoryRouter, Route, RouterProvider, Routes, createMemoryRouter, useLocation } from 'react-router'
 import AmbassadorApplicationsPage from '@/pages/super-admin/AmbassadorApplicationsPage'
 import type { AmbassadorApplication } from '@/api/ambassadorApplicationApi'
 
@@ -91,22 +91,14 @@ function renderPage(initial = '/dashboard/super-admin/ambassador-applications') 
   return render(
     <MemoryRouter initialEntries={[initial]}>
       <Routes>
+        {/* One route with an optional id, as in the app: the list stays mounted behind the detail window. */}
         <Route
-          path="/dashboard/super-admin/ambassador-applications"
+          path="/dashboard/super-admin/ambassador-applications/:id?"
           element={
             <>
               <AmbassadorApplicationsPage />
               <LocationProbe />
             </>
-          }
-        />
-        <Route
-          path="/dashboard/super-admin/ambassador-applications/:id"
-          element={
-            <div>
-              <h1>Detail page</h1>
-              <LocationProbe />
-            </div>
           }
         />
       </Routes>
@@ -228,14 +220,50 @@ describe('AmbassadorApplicationsPage — backend-driven search & filters', () =>
     })
   })
 
-  it('returning from detail keeps list query state in history', async () => {
+  it('opens the application in a centered window over the list, keeping the list URL state; closing returns to it', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderPage('/dashboard/super-admin/ambassador-applications?search=هولندا&page=2')
     await screen.findByText('أحمد محمد')
 
     await user.click(screen.getByText('أحمد محمد'))
-    expect(await screen.findByText('Detail page')).toBeInTheDocument()
-    expect(screen.getByTestId('location').textContent).toBe('/dashboard/super-admin/ambassador-applications/11')
+
+    const dlg = await screen.findByTestId('ambassador-application-modal')
+    expect(dlg.parentElement).toHaveClass('items-end', 'sm:items-center')
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+    expect(screen.getByTestId('location').textContent).toBe(`/dashboard/super-admin/ambassador-applications/11?search=${encodeURIComponent('هولندا')}&page=2`)
+    // The list is still on screen behind it (no separate page, no new tab).
+    expect(screen.getAllByText('أحمد محمد').length).toBeGreaterThan(1)
+
+    await user.click(screen.getByLabelText('إغلاق'))
+    await waitFor(() => expect(screen.queryByTestId('ambassador-application-modal')).toBeNull())
+    expect(screen.getByTestId('location').textContent).toBe('/dashboard/super-admin/ambassador-applications?search=هولندا&page=2')
+  })
+
+  it('browser Back closes the window and Forward reopens it, with the list state untouched', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = createMemoryRouter(
+      [{ path: '/dashboard/super-admin/ambassador-applications/:id?', element: <><AmbassadorApplicationsPage /><LocationProbe /></> }],
+      { initialEntries: ['/dashboard/super-admin/ambassador-applications?status=new'] },
+    )
+    render(<RouterProvider router={router} />)
+    await screen.findByText('أحمد محمد')
+    await user.click(screen.getByText('أحمد محمد'))
+    await screen.findByTestId('ambassador-application-modal')
+
+    await act(async () => { await router.navigate(-1) })
+    await waitFor(() => expect(screen.queryByTestId('ambassador-application-modal')).toBeNull())
+    expect(screen.getByTestId('location').textContent).toBe('/dashboard/super-admin/ambassador-applications?status=new')
+
+    await act(async () => { await router.navigate(1) })
+    expect(await screen.findByTestId('ambassador-application-modal')).toBeInTheDocument()
+    expect(screen.getByTestId('location').textContent).toBe('/dashboard/super-admin/ambassador-applications/11?status=new')
+  })
+
+  it('a direct link to the detail URL opens the same window over the list', async () => {
+    renderPage('/dashboard/super-admin/ambassador-applications/11')
+
+    expect(await screen.findByTestId('ambassador-application-modal')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toHaveAccessibleName(/أحمد محمد/)
   })
 
   it('shows filtered empty state with clear action', async () => {

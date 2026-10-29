@@ -289,6 +289,13 @@ a {
     @apply inline-flex items-center gap-2 rounded-full border border-customBlue/20 bg-customBlue/[0.07] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-customBlue;
     font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   }
+  /* Arabic eyebrows: Arabic has no letter case, and letter-spacing breaks its joined letterforms, so the
+     Latin treatment (uppercase + wide tracking in IBM Plex) is switched off and the brand face is used. */
+  .emc-eyebrow.emc-eyebrow-ar {
+    @apply text-[12px] normal-case tracking-normal;
+    font-family: "Thmanyah", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+  }
   .emc-eyebrow-accent {
     @apply inline-flex items-center gap-2 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-accent-700;
     font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;

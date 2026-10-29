@@ -52,6 +52,45 @@ export async function fetchHrVolunteerProfile(id: number): Promise<VolunteerHrPr
   return res.data.data
 }
 
+/** What HR may change in a volunteer's profile (the server ignores anything else). */
+export type HrVolunteerProfilePatch = Partial<{
+  full_name: string
+  email: string
+  phone: string
+  phone_country_code: string | null
+  country: string | null
+  country_code: string | null
+  city: string | null
+  date_of_birth: string | null
+  gender: string | null
+  nationality: string | null
+  department_id: number
+  job_title: string
+  employment_type: string | null
+  join_date: string
+  availability: string | null
+  weekly_hours: number | null
+  skills: string | null
+  languages: string[]
+  education: string | null
+  university_specialization: string | null
+  experience: string | null
+  professional_bio: string | null
+  linkedin_url: string | null
+  portfolio_url: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+}>
+
+/**
+ * Saves HR's edit. `expectedUpdatedAt` is the profile's `updated_at` as loaded: if someone saved in between, the server answers
+ * 409 (`profile_conflict`) with the current profile instead of overwriting it.
+ */
+export async function updateHrVolunteerProfile(id: number, patch: HrVolunteerProfilePatch, expectedUpdatedAt?: string | null): Promise<VolunteerHrProfile> {
+  const res = await api.put(`/hr/volunteer-hr-profiles/${id}`, expectedUpdatedAt ? { ...patch, expected_updated_at: expectedUpdatedAt } : patch, { skipErrorToast: true })
+  return res.data.data
+}
+
 export async function startVolunteerProfileReview(id: number): Promise<VolunteerHrProfile> {
   const res = await api.patch(`/hr/volunteer-hr-profiles/${id}/review`)
   return res.data.data

@@ -37,12 +37,19 @@ export type AdminManagedUser = {
   /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
   phone?: string | null
   department?: string | null
+  /** Canonical department id / display name, present when the backend serialises them. */
+  department_id?: number | null
+  department_name?: string | null
   city?: string | null
   country?: string | null
   gender?: string | null
   how_did_you_hear_about_us?: string | null
   avatar_url?: string | null
   email_verified_at?: string | null
+  /** Explicit flag from the backend; falls back to `email_verified_at` when absent. */
+  email_verified?: boolean
+  /** True only where a resend would be accepted (unverified, active, not deleted). */
+  can_resend_verification?: boolean
   last_login_at?: string | null
   /** One-line summaries when backend nests learner/teacher payloads. */
   related_student_note?: string | null
@@ -122,9 +129,12 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     if (typeof n === 'string' && n.trim() !== '') department = n.trim()
   }
 
-  const ev = raw.email_verified_at ?? raw.emailVerifiedAt ?? raw.email_verified
+  // Legacy payloads sometimes sent the timestamp under `email_verified`; a boolean there is the flag, never a date.
+  const ev = raw.email_verified_at ?? raw.emailVerifiedAt ?? (typeof raw.email_verified === 'string' ? raw.email_verified : null)
   let email_verified_at: string | null = null
   if (ev !== null && ev !== undefined && String(ev).trim() !== '') email_verified_at = String(ev)
+  const email_verified = typeof raw.email_verified === 'boolean' ? raw.email_verified : email_verified_at !== null
+  const can_resend_verification = raw.can_resend_verification === true
 
   const loginRaw =
     raw.last_login_at ??
@@ -173,6 +183,9 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
 
   const related = relateNotesFromRaw(raw)
 
+  const deptIdNum = raw.department_id != null && raw.department_id !== '' ? Number(raw.department_id) : NaN
+  const deptNameRaw = raw.department_name
+
   const deletedRaw = raw.deleted_at ?? raw.deletedAt
   const deleted_at =
     deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
@@ -195,12 +208,16 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
     deleted_at,
     phone,
     department,
+    ...(Number.isFinite(deptIdNum) ? { department_id: Math.trunc(deptIdNum) } : {}),
+    ...(typeof deptNameRaw === 'string' && deptNameRaw.trim() !== '' ? { department_name: deptNameRaw.trim() } : {}),
     city,
     country,
     gender,
     how_did_you_hear_about_us: how,
     avatar_url,
     email_verified_at,
+    email_verified,
+    can_resend_verification,
     last_login_at,
     related_student_note: related.student,
     related_instructor_note: related.instructor,
@@ -472,6 +489,7 @@ export type CreateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -488,6 +506,7 @@ export async function createAdminUser(input: CreateAdminUserInput): Promise<Admi
   if (input.phone != null && String(input.phone).trim() !== '') body.phone = String(input.phone).trim()
   if (input.department != null && String(input.department).trim() !== '')
     body.department = String(input.department).trim()
+  if (input.department_id != null) body.department_id = input.department_id
   if (input.city != null && String(input.city).trim() !== '') body.city = String(input.city).trim()
   if (input.country != null && String(input.country).trim() !== '') body.country = String(input.country).trim()
   if (input.how_did_you_hear_about_us != null && String(input.how_did_you_hear_about_us).trim() !== '')
@@ -510,6 +529,7 @@ export type UpdateAdminUserInput = {
   role: string
   phone?: string | null
   department?: string | null
+  department_id?: number | string | null
   city?: string | null
   country?: string | null
   how_did_you_hear_about_us?: string | null
@@ -540,6 +560,7 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
   if (patch.phone != null && String(patch.phone).trim() !== '') commonPairs.phone = String(patch.phone).trim()
   if (patch.department != null && String(patch.department).trim() !== '')
     commonPairs.department = String(patch.department).trim()
+  if (patch.department_id != null) commonPairs.department_id = String(patch.department_id)
   if (patch.city != null && String(patch.city).trim() !== '') commonPairs.city = String(patch.city).trim()
   if (patch.country != null && String(patch.country).trim() !== '') commonPairs.country = String(patch.country).trim()
   if (patch.how_did_you_hear_about_us != null && String(patch.how_did_you_hear_about_us).trim() !== '')
@@ -589,6 +610,32 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
   const innerFallback: Record<string, unknown> = { ...body }
   innerFallback.id = id
   return mergedRecord(res.data, innerFallback)
+}
+
+export type ResendVerificationResult = { message: string }
+
+export const VERIFICATION_RESENT_AR = 'تم إرسال رسالة توثيق البريد الإلكتروني.'
+
+/**
+ * Ask the backend to send a fresh verification email. Only offered for unverified, active
+ * users; the backend re-checks authorization, state and the per-user rate limit.
+ */
+export async function resendUserVerification(id: number): Promise<ResendVerificationResult> {
+  const res = await apiClient.post<{ message?: unknown }>(`${BASE}/${id}/resend-verification`, {}, silent)
+  const msg = res.data && typeof res.data.message === 'string' && res.data.message.trim() ? res.data.message : VERIFICATION_RESENT_AR
+  return { message: msg }
+}
+
+/** 409 already verified / 422 inactive / 429 wait — all carry an Arabic `message`; 403 uses the generic copy. */
+export function getResendVerificationErrorMessage(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status
+    const body = err.response?.data as { message?: unknown } | undefined
+    const msg = body && typeof body.message === 'string' && body.message.trim() ? body.message : null
+    if (msg && (status === 409 || status === 422 || status === 429 || status === 403)) return msg
+    if (status === 404) return 'المستخدم غير موجود.'
+  }
+  return 'تعذّر إرسال رسالة التوثيق. حاول مرة أخرى.'
 }
 
 export async function deleteAdminUser(id: number): Promise<void> {

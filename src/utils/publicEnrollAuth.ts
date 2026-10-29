@@ -1,20 +1,16 @@
 import type { NavigateFunction } from 'react-router'
-import toast from '@/lib/toast'
-import { normalizeRole } from '@/utils/dashboardAccess'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import { hasEnrollIntentHost, setEnrollIntent, type EnrollIntent } from '@/lib/enrollIntent'
 
 // Re-exported so enroll call sites build their intent from the same module they gate with.
 export type { EnrollIntent } from '@/lib/enrollIntent'
 
-export const PUBLIC_ENROLL_STUDENT_ONLY_MSG =
-  'يجب تسجيل الدخول كطالب للالتحاق بهذا البرنامج'
-
-export type PublicEnrollGate = 'guest' | 'student' | 'non_student'
-
-export function isStudentUser(role: string | undefined | null): boolean {
-  return normalizeRole(role) === 'student'
-}
+/**
+ * Who may enroll: every signed-in account, whatever its organizational role. Learning is not a role, so nothing here looks at
+ * one. The only refusals come from the server, which knows the facts a browser cannot (the account teaches this program, it is
+ * already enrolled, registration is closed) and answers with an Arabic message the enroll surfaces show as they are.
+ */
+export type PublicEnrollGate = 'guest' | 'learner'
 
 export function buildPublicLoginHref(redirectPath: string): string {
   const safe = safeEnrollmentRedirect(redirectPath) ?? '/dashboard'
@@ -29,17 +25,12 @@ export function buildWorkshopDetailEnrollHref(slug: string): string {
   return `/workshops/${slug}#enroll`
 }
 
-export function resolvePublicEnrollGate(
-  isAuthenticated: boolean,
-  role: string | undefined | null,
-): PublicEnrollGate {
-  if (!isAuthenticated) return 'guest'
-  if (isStudentUser(role)) return 'student'
-  return 'non_student'
+export function resolvePublicEnrollGate(isAuthenticated: boolean): PublicEnrollGate {
+  return isAuthenticated ? 'learner' : 'guest'
 }
 
 /**
- * Returns true when the student action may proceed.
+ * Returns true when the enroll action may proceed (the visitor is signed in).
  *
  * Minimal-friction path: when the caller provides an `intent` and the
  * QuickJoinModal host is mounted (public Layout), guests join + enroll in
@@ -49,14 +40,14 @@ export function resolvePublicEnrollGate(
  */
 export function gatePublicEnrollClick(options: {
   isAuthenticated: boolean
-  role: string | undefined | null
   redirectPath: string
   navigate: NavigateFunction
   /** In-context join+enroll payload — opens the QuickJoinModal instead of navigating away. */
   intent?: EnrollIntent
-  onStudent?: () => void
+  /** Runs for a signed-in visitor, of any role. */
+  onLearner?: () => void
 }): boolean {
-  const gate = resolvePublicEnrollGate(options.isAuthenticated, options.role)
+  const gate = resolvePublicEnrollGate(options.isAuthenticated)
   if (gate === 'guest') {
     if (options.intent && hasEnrollIntentHost()) {
       setEnrollIntent(options.intent)
@@ -65,16 +56,6 @@ export function gatePublicEnrollClick(options: {
     options.navigate(buildPublicLoginHref(options.redirectPath))
     return false
   }
-  if (gate === 'non_student') {
-    if (options.intent && hasEnrollIntentHost()) {
-      // Modal opens in its info state («هذا الحساب ليس حساب طالب») and offers a
-      // student-account path — replaces the dead-end toast wherever it can.
-      setEnrollIntent(options.intent)
-      return false
-    }
-    toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-    return false
-  }
-  options.onStudent?.()
+  options.onLearner?.()
   return true
 }

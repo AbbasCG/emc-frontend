@@ -27,20 +27,21 @@ export default function AdminPermissionConfigTree() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
   const fetchRoles = async () => {
     try {
       const response = await apiClient.get('/admin/permissions/roles');
       if (response.data.success) {
         setRoles(response.data.roles);
       }
-    } catch (err: any) {
+    } catch {
       setError('فشل في جلب قائمة الأدوار');
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
+    void fetchRoles();
+  }, []);
 
   const fetchTree = async (role: Role) => {
     setIsLoading(true);
@@ -50,7 +51,7 @@ export default function AdminPermissionConfigTree() {
       if (response.data.success) {
         setTree(response.data.tree);
       }
-    } catch (err: any) {
+    } catch {
       setError('فشل في جلب إعدادات التفويض للدور');
     } finally {
       setIsLoading(false);
@@ -70,7 +71,7 @@ export default function AdminPermissionConfigTree() {
         permission_name: node.permission_name,
         is_delegatable: newValue
       });
-    } catch (err: any) {
+    } catch {
       // Revert on error
       setTree(prev => prev.map(n => n.id === node.id ? { ...n, is_delegatable: !newValue } : n));
       setError('حدث خطأ أثناء تعديل إعدادات التفويض');

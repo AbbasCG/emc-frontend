@@ -1,11 +1,9 @@
 import { Link } from 'react-router'
 import { BadgeCheck, ExternalLink, GraduationCap } from 'lucide-react'
-import toast from '@/lib/toast'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
 import {
   buildCourseDetailEnrollHref,
   buildPublicLoginHref,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
 
 type Props = {
@@ -13,7 +11,6 @@ type Props = {
   registrationOpen: boolean
   alreadyEnrolled: boolean
   isAuthenticated: boolean
-  isStudent: boolean
   redirectPath: string
   externalUrl: string | null
   compact?: boolean
@@ -24,7 +21,6 @@ export default function PublicWorkshopRegistrationCard({
   registrationOpen,
   alreadyEnrolled,
   isAuthenticated,
-  isStudent,
   redirectPath,
   externalUrl,
   compact = false,
@@ -72,18 +68,6 @@ export default function PublicWorkshopRegistrationCard({
           <GraduationCap size={18} />
           سجّل الدخول لإكمال التسجيل
         </Link>
-      )
-    }
-    if (!isStudent) {
-      return (
-        <button
-          type="button"
-          onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
-          className={`${cls} bg-customOrange`}
-        >
-          <GraduationCap size={18} />
-          سجّل في الورشة
-        </button>
       )
     }
     if (workshop.course_slug) {

@@ -8,6 +8,7 @@ import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketM
 import { RejectTaskModal } from '@/components/tickets/modals/RejectTaskModal';
 import { CompleteTaskModal } from '@/components/tickets/modals/CompleteTaskModal';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
+import { NestedLayer } from '@/components/ui/NestedLayer';
 import toast from '@/lib/toast';
 
 type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | null;
@@ -145,6 +146,8 @@ export function TicketActionCenter({ ticket, onChanged }: TicketActionCenterProp
         )}
       </div>
 
+      {modal !== null ?
+      <NestedLayer>
       {modal === 'approve' && (
         <ApproveTicketModal
           ticketId={ticket.id}
@@ -171,6 +174,8 @@ export function TicketActionCenter({ ticket, onChanged }: TicketActionCenterProp
       {modal === 'complete_task' && (
         <CompleteTaskModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} />
       )}
+      </NestedLayer>
+      : null}
 
       <ConfirmDialog
         open={acceptConfirmOpen}

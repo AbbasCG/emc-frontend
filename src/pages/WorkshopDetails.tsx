@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { UNDER_REVIEW_LABEL } from '@/utils/publicCourseDetailCta'
 import { motion } from 'framer-motion'
 import {
   BadgeCheck,
@@ -23,18 +24,17 @@ import { useAuth } from '@/contexts/AuthContext'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
 import { formatPublicDate, formatPublicTime, toLatinDigits, WORKSHOP_TZ_LABEL } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
-import { normalizeRole } from '@/utils/dashboardAccess'
 import {
   buildPublicLoginHref,
   buildWorkshopDetailEnrollHref,
   gatePublicEnrollClick,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
 import { resolveCertificateAvailability } from '@/utils/programCertificateAvailability'
 import { formatEuroInteger } from '@/utils/currency'
 import PremiumSnapshot from '@/components/public/course-detail/premium/PremiumSnapshot'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
 import type { MetricWidget } from '@/components/public/course-detail/CourseDetailMetricsDashboard'
+import { useNow } from '@/hooks/useNow'
 
 const PAGE_TOP = 'pt-[calc(4rem+1rem)] sm:pt-[calc(4.25rem+1.25rem)]'
 const STICKY_TOP = 'lg:top-[calc(4.25rem+0.75rem)]'
@@ -94,8 +94,9 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
 export default function WorkshopDetailsPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
   const enrollRef = useRef<HTMLDivElement>(null)
+  const nowMs = useNow()
 
   const [workshop, setWorkshop] = useState<PublicWorkshop | null>(null)
   // Seeded from the initial slug so the "missing slug" case is already settled on the
@@ -104,6 +105,8 @@ export default function WorkshopDetailsPage() {
   const [notFound, setNotFound] = useState(() => !slug)
   const [loadError, setLoadError] = useState(false)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
+  // The payment arrived but the enrollment awaits a financial review (server-authoritative): never "complete payment".
+  const [paymentUnderReview, setPaymentUnderReview] = useState(false)
 
   // Re-arm the load state during render when the slug changes (react.dev "adjusting
   // state when a prop changes") instead of from the fetch effect below.
@@ -146,7 +149,10 @@ export default function WorkshopDetailsPage() {
     seenEnrollment.enrolledCourseId !== enrolledCourseId
   ) {
     setSeenEnrollment({ isAuthenticated, enrolledCourseId })
-    if (!isAuthenticated || !enrolledCourseId) setAlreadyEnrolled(false)
+    if (!isAuthenticated || !enrolledCourseId) {
+      setAlreadyEnrolled(false)
+      setPaymentUnderReview(false)
+    }
   }
 
   useEffect(() => {
@@ -155,6 +161,7 @@ export default function WorkshopDetailsPage() {
     void fetchStudentRegistrations().then((regs) => {
       if (!alive) return
       setAlreadyEnrolled(regs.some((r) => r.course_id === enrolledCourseId))
+      setPaymentUnderReview(regs.some((r) => r.course_id === enrolledCourseId && r.access?.payment_under_review === true))
     })
     return () => { alive = false }
   }, [isAuthenticated, enrolledCourseId])
@@ -165,9 +172,13 @@ export default function WorkshopDetailsPage() {
   )
 
   const redirectPath = slug ? `/workshops/${slug}` : '/workshops'
-  const isStudent = normalizeRole(user?.role) === 'student'
   const externalUrl = workshop?.external_registration_url ?? null
-  const registrationOpen = workshop?.registration_open !== false
+  const isEnded = Boolean(
+    workshop?.is_ended ||
+    workshop?.computed_status === 'ended' ||
+    (workshop?.end_date && new Date(workshop.end_date).getTime() < nowMs)
+  )
+  const registrationOpen = !isEnded && workshop?.registration_open !== false
   const seatsFull = (workshop?.seats_remaining ?? 1) <= 0 && (workshop?.seats_total ?? 0) > 0
 
   const metrics = useMemo(() => (workshop ? buildMetrics(workshop) : []), [workshop])
@@ -191,12 +202,12 @@ export default function WorkshopDetailsPage() {
   }
 
   function scrollToEnroll() {
+    if (isEnded) return
     gatePublicEnrollClick({
       isAuthenticated,
-      role: user?.role,
       redirectPath,
       navigate,
-      onStudent: () => enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      onLearner: () => enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
     })
   }
 
@@ -207,6 +218,13 @@ export default function WorkshopDetailsPage() {
       sm ? 'px-5 py-2.5 text-sm' : 'px-7 py-3.5 text-sm'
     }`
 
+    if (isEnded) {
+      return (
+        <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500`}>
+          الورشة منتهية
+        </span>
+      )
+    }
     if (!registrationOpen || seatsFull) {
       return (
         <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500`}>
@@ -222,6 +240,13 @@ export default function WorkshopDetailsPage() {
         </a>
       )
     }
+    if (paymentUnderReview) {
+      return (
+        <span role="status" data-testid="workshop-payment-under-review" className={`${base} cursor-default bg-slate-500`}>
+          {UNDER_REVIEW_LABEL}
+        </span>
+      )
+    }
     if (alreadyEnrolled) {
       return (
         <Link to="/dashboard/student/courses" className={`${base} bg-emerald-600`}>
@@ -235,14 +260,6 @@ export default function WorkshopDetailsPage() {
           <GraduationCap size={18} />
           سجّل الدخول للتسجيل
         </Link>
-      )
-    }
-    if (!isStudent) {
-      return (
-        <button type="button" onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)} className={`${base} bg-[#F28C00]`}>
-          <GraduationCap size={18} />
-          سجّل في الورشة
-        </button>
       )
     }
     if (workshop?.course_slug) {
@@ -302,11 +319,13 @@ export default function WorkshopDetailsPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-base font-black text-navy">سجّل في الورشة</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
-            !registrationOpen || seatsFull
+            isEnded
+              ? 'bg-slate-100 text-slate-700 ring-slate-200'
+              : !registrationOpen || seatsFull
               ? 'bg-orange-50 text-orange-800 ring-orange-100'
               : 'bg-emerald-50 text-emerald-800 ring-emerald-100'
           }`}>
-            {seatsFull ? 'اكتمل العدد' : registrationOpen ? 'متاح للتسجيل' : 'مغلق'}
+            {isEnded ? 'الورشة منتهية' : seatsFull ? 'اكتمل العدد' : registrationOpen ? 'متاح للتسجيل' : 'مغلق'}
           </span>
         </div>
       </div>
@@ -394,12 +413,16 @@ export default function WorkshopDetailsPage() {
                   {certificateAvailability.badgeLabel}
                 </span>
               )}
-              {registrationOpen && !seatsFull && (
+              {isEnded ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/45 bg-rose-500/22 px-3 py-1 text-[11px] font-black text-white">
+                  الورشة منتهية
+                </span>
+              ) : registrationOpen && !seatsFull ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-100" />
                   التسجيل مفتوح
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* Title */}
@@ -527,11 +550,13 @@ export default function WorkshopDetailsPage() {
         actionLabel={
           !isAuthenticated
             ? 'تسجيل الدخول للالتحاق'
-            : alreadyEnrolled
-              ? 'عرض تسجيلي'
+            : paymentUnderReview
+              ? UNDER_REVIEW_LABEL
+              : alreadyEnrolled
+                ? 'عرض تسجيلي'
               : 'سجّل في الورشة'
         }
-        disabled={!registrationOpen || seatsFull}
+        disabled={!registrationOpen || seatsFull || paymentUnderReview}
         onAction={scrollToEnroll}
         extra={
           !isAuthenticated ? (

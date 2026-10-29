@@ -65,7 +65,7 @@ const CAP_ICONS: Record<string, React.ElementType> = {
 const ROLE_GROUPS_DEF = [
   { id: 'leadership', titleAr: 'القيادة والحوكمة', slugs: ['super_admin', 'executive_admin', 'admin'] },
   { id: 'education',  titleAr: 'التعليم والجودة',  slugs: ['instructor', 'student', 'quality_manager'] },
-  { id: 'operations', titleAr: 'التشغيل المؤسسي',  slugs: ['finance_manager', 'hr_manager', 'department_manager'] },
+  { id: 'operations', titleAr: 'التشغيل المؤسسي',  slugs: ['finance_manager', 'hr_manager', 'department_manager', 'department_member'] },
   { id: 'growth',     titleAr: 'النمو والشراكة',    slugs: ['marketing_manager', 'support_agent', 'partner', 'volunteer'] },
 ] as const
 

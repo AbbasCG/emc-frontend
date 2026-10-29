@@ -36,7 +36,7 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { usePageAccess } from '@/contexts/PageAccessContext'
-import { filterSidebarGroupsByAccess } from '@/utils/sidebarAccessFilter'
+import { resolveSidebarNavigation } from '@/utils/sidebarAccessFilter'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import ImpactSparkWidget from '@/components/operations/ImpactSparkWidget'
 
@@ -146,6 +146,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/meetings': 'الاجتماعات',
   '/dashboard/admin/forms': 'النماذج',
   '/dashboard/admin/forms/create': 'إنشاء نموذج',
+  '/dashboard/admin/forms/templates': 'قوالب النماذج',
+  '/dashboard/admin/forms/analytics': 'تحليلات النماذج',
   '/dashboard/admin/volunteers': 'المتطوعون',
   '/dashboard/admin/partners': 'الشركاء',
   '/dashboard/admin/partnership-requests': 'طلبات الشراكة',
@@ -199,6 +201,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/mobile-readiness': 'جاهزية الجوال',
   '/dashboard/admin/ai': 'AI Command Center',
   '/dashboard/admin/ai/expert-applications': 'طلبات انضمام الخبراء',
+  '/dashboard/admin/trainers/applications': 'طلبات انضمام المدربين',
   '/dashboard/admin/ai/automations': 'AI Automations',
   '/dashboard/admin/ai/insights': 'AI Insights',
   '/dashboard/admin/ai/usage': 'AI Usage',
@@ -234,10 +237,17 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   // Sidebar visibility derives from the backend manifest; the sidebar module
   // itself stays a navigation catalog of labels, icons and hrefs.
-  const { pages: accessPages } = usePageAccess()
+  const { pages: accessPages, status: accessStatus, refresh: refreshAccess } = usePageAccess()
 
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
-    const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
+    const base = getSidebarByRole(user?.role, {
+      hasEnglishCourses: Boolean(user?.has_english_courses),
+      hasEnrolledCourses: Boolean(user?.has_enrolled_courses),
+      departmentName: user?.department_name || user?.department,
+      departmentSlug: (user as { department_slug?: string | null })?.department_slug,
+      specializedRole: (user as { specialized_role?: string | null })?.specialized_role,
+      impactPointsBalance: user?.impact_points_balance,
+    })
 
     // «التشغيل والتقارير» — مجموعة مشتركة بارزة (غير مطوية) لكل أدوار الفريق:
     // لوحة التشغيل المرئية للجميع، تقارير الاجتماعات، تقرير الإثنين، ونقاط الأثر.
@@ -280,10 +290,15 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     return withOps(base)
   }, [user?.role, canCreate, user?.has_english_courses])
 
-  const accessibleGroups = useMemo(
-    () => filterSidebarGroupsByAccess(groups, accessPages),
-    [groups, accessPages],
+  // One decision for the menu and the route guard: the backend manifest. While it is loading
+  // nothing is shown (a static menu could flash pages the user may not have), and if it fails
+  // the menu fails closed. Pages the manifest allows but the role's static menu does not list
+  // are added; nothing here looks at a role name.
+  const resolvedNav = useMemo(
+    () => resolveSidebarNavigation({ groups, pages: accessPages, status: accessStatus, permissions: user?.permissions }),
+    [groups, accessPages, accessStatus, user?.permissions],
   )
+  const accessibleGroups = resolvedNav.groups
 
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
@@ -447,7 +462,22 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         : null}
 
         {/* ── Navigation ── */}
-        <nav className="relative flex-1 overflow-y-auto emc-scroll px-3 py-4" aria-label="قائمة لوحة التحكم">
+        <nav className="relative flex-1 overflow-y-auto emc-scroll px-3 py-4" aria-label="قائمة لوحة التحكم" aria-busy={resolvedNav.state === 'loading'}>
+          {resolvedNav.state === 'loading' ?
+            <div className="space-y-2.5 px-1" role="status" aria-label="جارٍ تحميل القائمة">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-9 animate-pulse rounded-xl bg-white/[0.07]" />
+              ))}
+            </div>
+          : null}
+          {resolvedNav.state === 'error' ?
+            <div role="alert" className="mb-3 rounded-xl border border-customOrange/30 bg-customOrange/10 p-3 text-[12px] font-semibold leading-relaxed text-white/85">
+              تعذّر تحميل صلاحيات القائمة، لذلك أُخفيت عناصرها مؤقتًا.
+              <button type="button" onClick={() => void refreshAccess()} className="mt-2 block rounded-lg bg-white/10 px-3 py-1.5 text-[12px] font-black text-white transition hover:bg-white/20">
+                إعادة المحاولة
+              </button>
+            </div>
+          : null}
           {sidebarSearching && navGroups.length === 0 ?
             <p className="px-2 py-8 text-center text-[12px] font-semibold text-white/45">لا توجد نتائج</p>
           : navGroups.map((group, gi) => {

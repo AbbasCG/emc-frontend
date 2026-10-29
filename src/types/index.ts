@@ -29,6 +29,9 @@ export type User = {
   is_department_leader?: boolean
   /** True when this instructor teaches at least one course with requires_placement_test=true. Populated from /auth/me. Gates English Institute UI. */
   has_english_courses?: boolean
+  department_name?: string | null
+  has_enrolled_courses?: boolean
+  impact_points_balance?: number
 }
 
 export type Course = {
@@ -45,6 +48,12 @@ export type Course = {
   start_date?: string | null
   end_date?: string | null
   capacity?: number | null
+  /** Canonical seat count from the backend: registrations that grant access plus pending-payment reservations (cancelled excluded). */
+  seats_taken?: number | null
+  /** `capacity - seats_taken` (never negative); null when the program has no capacity limit. */
+  seats_remaining?: number | null
+  /** Same rule enrollment enforces. Prefer this over comparing raw registration counts. */
+  is_full?: boolean
   status?: string
 
   duration?: string | null

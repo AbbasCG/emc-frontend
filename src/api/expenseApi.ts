@@ -42,6 +42,14 @@ export interface ExpensesSummary {
   by_currency: Array<{ currency: string; total: number | string; count: number }>
 }
 
+/** Page counters returned alongside a finance voucher list. */
+export interface FinancePagination {
+  current_page: number
+  last_page: number
+  total: number
+  per_page: number
+}
+
 export interface ExpensesResponse {
   success: boolean
   data: {
@@ -64,7 +72,7 @@ export async function fetchExpensesList(params?: {
   department_id?: number
   page?: number
   per_page?: number
-}): Promise<{ items: ManualExpenseItem[]; pagination: any; summary: ExpensesSummary }> {
+}): Promise<{ items: ManualExpenseItem[]; pagination: FinancePagination; summary: ExpensesSummary }> {
   const { data } = await apiClient.get<ExpensesResponse>('/admin/finance/expenses', { params })
   return {
     items: data.data.data,

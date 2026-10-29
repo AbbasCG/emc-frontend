@@ -43,8 +43,8 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       } else {
         set({ error: 'Failed to fetch access manifest', isLoading: false });
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Error fetching access manifest', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: (err instanceof Error && err.message) || 'Error fetching access manifest', isLoading: false });
     }
   },
 

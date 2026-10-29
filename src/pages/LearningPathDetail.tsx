@@ -16,13 +16,10 @@ import {
   CalendarDays,
   MessageCircle,
 } from 'lucide-react'
-import toast from '@/lib/toast'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
 import { resolvePriceZone, trackFunnelEvent } from '@/lib/funnelEvents'
 import {
   buildPublicLoginHref,
-  isStudentUser,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
 import {
   fetchPublicLearningPath,
@@ -40,6 +37,7 @@ import TrackMonthTimeline from '@/components/tracks/TrackMonthTimeline'
 import TrackOutcomesGrid from '@/components/tracks/TrackOutcomesGrid'
 import ValueBreakdown from '@/components/tracks/ValueBreakdown'
 import { formatPathDuration } from '@/pages/LearningPaths/learningPathDisplay'
+import { UNDER_REVIEW_LABEL, UNDER_REVIEW_NOTICE } from '@/utils/publicCourseDetailCta'
 import {
   formatNumberEn,
   formatSessionDurationArabic,
@@ -289,13 +287,13 @@ export default function LearningPathDetail() {
 
   /** Imperative re-check after enrolling — called from an event handler. */
   const refreshEnrollStatus = useCallback(async () => {
-    if (!slug || !user || user.role !== 'student') return
+    if (!slug || !user) return
     const status = await fetchEnrollmentStatus(slug)
     setEnrollStatus(status)
   }, [slug, user])
 
   useEffect(() => {
-    if (!slug || !user || user.role !== 'student') return
+    if (!slug || !user) return
     let alive = true
     void (async () => {
       const status = await fetchEnrollmentStatus(slug)
@@ -323,10 +321,6 @@ export default function LearningPathDetail() {
         return
       }
       navigate(buildPublicLoginHref(location.pathname))
-      return
-    }
-    if (!isStudentUser(user.role)) {
-      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       return
     }
     setEnrolling(true)
@@ -392,6 +386,7 @@ export default function LearningPathDetail() {
   // is the single place the displayed number is decided (mirrors Checkout).
   const priceText =
     effectivePrice === 0 || effectivePrice == null ? 'مجاناً' : formatEuroInteger(effectivePrice, 'ar')
+  const isPaid = (effectivePrice ?? 0) > 0
   // §11 — the price never stands bare: the struck reference value is one of the
   // sanctioned contexts (never a «خصم %» headline).
   const struckOriginal =
@@ -425,7 +420,12 @@ export default function LearningPathDetail() {
     className = '',
     guestLabel = idleLabel,
   ) =>
-    enrollStatus.enrolled ?
+    enrollStatus.payment_under_review ?
+      <div role="status" data-testid="path-payment-under-review" className={`rounded-xl border-2 border-dashed border-white/40 bg-white/10 px-5 py-3 text-center ${className}`}>
+        <p className="text-sm font-black">{UNDER_REVIEW_LABEL}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 opacity-90">{UNDER_REVIEW_NOTICE}</p>
+      </div>
+    : enrollStatus.enrolled ?
       <Link
         to={enrolledHref}
         className={`inline-flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-3.5 text-center font-black text-white transition duration-200 hover:brightness-[1.06] ${className}`}
@@ -610,14 +610,16 @@ export default function LearningPathDetail() {
                   <p className="mt-2 text-center text-xs text-accent-300">{enrollMsg}</p>
                 )}
 
-                {/* §8 the launch promise and the guarantee, verbatim from webSpec. */}
-                <div className="mt-5 border-t border-white/15 pt-4">
-                  <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
-                  <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
-                  {installment && (
-                    <p className="mt-2 text-[12px] leading-6 text-ice/80">{installment}</p>
-                  )}
-                </div>
+                {/* §8 the launch promise and the guarantee, verbatim from webSpec. Rendered only for paid paths */}
+                {isPaid && (
+                  <div className="mt-5 border-t border-white/15 pt-4">
+                    <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
+                    <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
+                    {installment && (
+                      <p className="mt-2 text-[12px] leading-6 text-ice/80">{installment}</p>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

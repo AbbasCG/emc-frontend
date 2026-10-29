@@ -189,10 +189,12 @@ export default function WeeklyReportsPage() {
   const [ready, setReady] = useState(false)
   useEffect(() => {
     if (!due) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- latches once the first due week is known; the list load depends on it
     setReady(true)
   }, [due])
   useEffect(() => {
     if (!ready) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- latches once the first due week is known; the list load depends on it
     void load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, weekFilter, departmentFilter, page])

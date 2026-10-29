@@ -14,7 +14,7 @@ import {
   updateAdminUser,
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
-import { getAssignableRoleOptions, adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
+import { getAssignableRoleOptions, adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS, type DepartmentOption } from '@/pages/super-admin/users/assignableRoles'
 import { canOfferSuperAdminRoleOption } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SuperAdminCrudHeader } from '@/pages/super-admin/SuperAdminCrudHeader'
@@ -36,7 +36,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [department, setDepartment] = useState<string>('')
-  const [departments, setDepartments] = useState<{ id: number; name_ar: string }[]>([])
+  const [departments, setDepartments] = useState<DepartmentOption[]>(DEFAULT_EMC_DEPARTMENTS)
   const [saving, setSaving] = useState(false)
 
   const baseOptions = useMemo(() => getAssignableRoleOptions(includeSuperAdmin), [includeSuperAdmin])
@@ -59,15 +59,16 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
         
         if (cancelled) return
         
-        const deps = unwrapData<any>(depsRes.data)
+        const deps = unwrapData<unknown>(depsRes.data)
         if (Array.isArray(deps)) {
-          setDepartments(deps)
+          setDepartments(deps as DepartmentOption[])
         }
         
         setName(u.name)
         setEmail(u.email)
         setRole((u.role && String(u.role)) || 'student')
-        if (u.department) setDepartment(String(u.department))
+        if (u.department_id) setDepartment(String(u.department_id))
+        else if (u.department) setDepartment(String(u.department))
       } catch (e) {
         if (cancelled) return
         if (axios.isAxiosError(e) && e.response?.status === 403) {
@@ -88,8 +89,8 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
       let cancelled = false
       apiClient.get('/departments/options').then(res => {
         if (cancelled) return
-        const deps = unwrapData<any>(res.data)
-        if (Array.isArray(deps)) setDepartments(deps)
+        const deps = unwrapData<unknown>(res.data)
+        if (Array.isArray(deps)) setDepartments(deps as DepartmentOption[])
       }).catch(() => {})
       return () => { cancelled = true }
     }
@@ -100,6 +101,13 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
     void (async () => {
       setSaving(true)
       try {
+        const isDeptRole = role === 'department_manager' || role === 'department_member'
+        if (isDeptRole && !department) {
+          toast.warning(role === 'department_manager' ? 'يرجى اختيار الإدارة التي يديرها المستخدم' : 'يرجى اختيار الإدارة التابع لها العضو')
+          setSaving(false)
+          return
+        }
+
         if (variant === 'create') {
           if (!password.trim()) {
             toast.warning('كلمة المرور مطلوبة عند الإنشاء')
@@ -116,6 +124,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
             password,
             password_confirmation: passwordConfirmation || password,
             department: department || null,
+            department_id: department ? Number(department) : null,
           })
           toast.success('تم إنشاء المستخدم')
           navigate(`/dashboard/super-admin/crud/users/${created.id}`)
@@ -126,7 +135,13 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
             toast.warning('تأكيد كلمة المرور غير متطابق')
             return
           }
-          const patch: UpdateAdminUserInput = { name, email, role, department: department || null }
+          const patch: UpdateAdminUserInput = {
+            name,
+            email,
+            role,
+            department: department || null,
+            department_id: department ? Number(department) : null,
+          }
           if (pw) {
             patch.password = pw
             patch.password_confirmation = pwc || pw
@@ -215,21 +230,40 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">
-          الإدارة (اختياري)
-          <select
-            value={department}
-            onChange={(x) => setDepartment(x.target.value)}
-            className="rounded-2xl border border-deepBlue/[0.1] px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
-          >
-            <option value="">-- بدون إدارة --</option>
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>
-                {d.name_ar}
-              </option>
-            ))}
-          </select>
-        </label>
+        {(() => {
+          const isDeptRole = role === 'department_manager' || role === 'department_member'
+          return (
+            <label className={`flex flex-col gap-2 text-right text-[12px] font-black ${isDeptRole ? 'text-customBlue' : 'text-deepBlue'}`}>
+              <div className="flex items-center justify-between">
+                <span>
+                  {role === 'department_manager' ? 'الإدارة التي يديرها *' : role === 'department_member' ? 'الإدارة التابع لها *' : 'الإدارة (اختياري)'}
+                </span>
+                {isDeptRole && (
+                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    مطلوبة للتسكين ولوحة التحكم
+                  </span>
+                )}
+              </div>
+              <select
+                value={department}
+                required={isDeptRole}
+                onChange={(x) => setDepartment(x.target.value)}
+                className={`rounded-2xl border px-4 py-2.5 text-[13px] font-semibold outline-none focus:ring-2 ${
+                  isDeptRole && !department
+                    ? 'border-amber-400 bg-amber-50/30 focus:border-amber-500 focus:ring-amber-200'
+                    : 'border-deepBlue/[0.1] focus:border-customBlue focus:ring-customBlue/20'
+                }`}
+              >
+                <option value="">{isDeptRole ? '-- اختر الإدارة المعنية --' : '-- بدون إدارة --'}</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={String(d.id)}>
+                    {d.name_ar || d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )
+        })()}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">

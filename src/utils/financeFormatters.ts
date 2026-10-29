@@ -28,6 +28,15 @@ export const FINANCE_CURRENCY_LOCALE = 'nl-NL' as const
 const EURO_SYMBOL = '€'
 const SAR_SIGN = '⃁'
 
+export const FINANCE_CURRENCIES = [
+  { code: 'USD', name: 'دولار أمريكي', symbol: '$' },
+  { code: 'EUR', name: 'يورو', symbol: '€' },
+  { code: 'YER', name: 'ريال يمني', symbol: 'ر.ي' },
+  { code: 'SAR', name: 'ريال سعودي', symbol: 'ر.س' },
+  { code: 'TRY', name: 'ليرة تركية', symbol: '₺' },
+  { code: 'GBP', name: 'جنيه إسترليني', symbol: '£' },
+] as const
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: EURO_SYMBOL,
   USD: '$',

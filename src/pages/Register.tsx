@@ -17,15 +17,12 @@ import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   buildPublicLoginHref,
-  isStudentUser,
-  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
-import toast from '@/lib/toast'
 
 export default function Register() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, user, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const [searchParams] = useSearchParams()
   const accountRedirect = safeEnrollmentRedirect(searchParams.get('redirect'))
 
@@ -51,11 +48,7 @@ export default function Register() {
       navigate(buildPublicLoginHref(`/courses/${slug}`), { replace: true })
       return
     }
-    if (!isStudentUser(user?.role)) {
-      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-      navigate(`/courses/${slug}`, { replace: true })
-    }
-  }, [authLoading, slug, isAuthenticated, user?.role, navigate, accountRedirect])
+  }, [authLoading, slug, isAuthenticated, navigate, accountRedirect])
 
   useEffect(() => {
     if (accountRedirect && !slug) return

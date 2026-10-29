@@ -13,7 +13,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { getApiErrorMessage, getLaravelFieldErrors, withArabicValidationMessages } from '@/api/apiErrors'
+import { getApiErrorMessage, getInstructorConflictMessage, getLaravelFieldErrors, withArabicValidationMessages } from '@/api/apiErrors'
 import { checkoutLearningPath, enrollInLearningPath } from '@/api/learningPathsApi'
 import { submitCourseRegistration } from '@/api/registrationsApi'
 import CountrySelector, { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
@@ -26,8 +26,7 @@ import type { EnrollIntent } from '@/lib/enrollIntent'
 import { trackFunnelEvent } from '@/lib/funnelEvents'
 import toast from '@/lib/toast'
 import type { User } from '@/types'
-import { normalizeRole } from '@/utils/dashboardAccess'
-import { buildCourseDetailEnrollHref, isStudentUser } from '@/utils/publicEnrollAuth'
+import { buildCourseDetailEnrollHref } from '@/utils/publicEnrollAuth'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 
 type Props = {
@@ -43,10 +42,10 @@ type Props = {
  *
  * `partial` = account is ready but the enrollment itself needs one more step on
  * the program page (e.g. profile fields the registration endpoint demands).
- * `non_student` = an authenticated non-student account clicked enroll — info
- * state that offers creating a student account instead of a dead-end toast.
+ * `conflict` = the server refused because the signed-in account teaches this program (an instructor cannot learn what they
+ * teach) — an info state that says so in the server's own words. No account type is ever a reason to refuse: learning is not a role.
  */
-type Phase = 'register' | 'login' | 'executing' | 'success' | 'partial' | 'non_student'
+type Phase = 'register' | 'login' | 'executing' | 'success' | 'partial' | 'conflict'
 
 const inputCls = (err?: string) =>
   `emc-focus-ring h-12 w-full rounded-xl border bg-paper2 px-4 text-start font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${
@@ -64,9 +63,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
   const { t } = useTranslation()
   const { user, isAuthenticated, login, registerAccount } = useAuth()
 
-  const [phase, setPhase] = useState<Phase>(() =>
-    isAuthenticated && !isStudentUser(user?.role) ? 'non_student' : 'register',
-  )
+  const [phase, setPhase] = useState<Phase>('register')
 
   // Three-field core.
   const [name, setName] = useState('')
@@ -84,7 +81,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [partialHref, setPartialHref] = useState<string | null>(null)
-  const [blockedRole, setBlockedRole] = useState<string | null>(null)
+  const [conflictMessage, setConflictMessage] = useState('')
 
   const panelRef = useRef<HTMLDivElement | null>(null)
   const busy = submitting || phase === 'executing'
@@ -97,10 +94,10 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     },
   })
 
-  // A signed-in student never needs this modal — the gate lets students straight
-  // through, so an intent landing here in that state is stale: dismiss it.
+  // A signed-in account never needs this modal — the gate lets it straight through,
+  // so an intent landing here in that state is stale: dismiss it.
   useEffect(() => {
-    if (isAuthenticated && user && isStudentUser(user.role)) onClose()
+    if (isAuthenticated && user) onClose()
     // Mount-only guard: after in-modal auth succeeds the flow owns its own phases.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -108,7 +105,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
   // Async phase switches replace the focused control (submit button unmounts) —
   // pull focus back inside so the trap and screen readers stay anchored.
   useEffect(() => {
-    if (phase !== 'success' && phase !== 'partial' && phase !== 'non_student') return
+    if (phase !== 'success' && phase !== 'partial' && phase !== 'conflict') return
     const panel = panelRef.current
     if (!panel || panel.contains(document.activeElement)) return
     const target = panel.querySelector<HTMLElement>('a[href], button:not([disabled])')
@@ -186,6 +183,12 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
           markSuccess()
           return
         }
+        const conflict = getInstructorConflictMessage(err)
+        if (conflict) {
+          setConflictMessage(conflict)
+          setPhase('conflict')
+          return
+        }
         // Account is created; the course page's own form owns whatever is missing
         // (registration code, extra profile fields, …).
         setPartialHref(`/courses/${intent.slug}/register`)
@@ -213,7 +216,13 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
       }
       setPartialHref(`/learning-paths/${intent.slug}`)
       setPhase('partial')
-    } catch {
+    } catch (err) {
+      const conflict = getInstructorConflictMessage(err)
+      if (conflict) {
+        setConflictMessage(conflict)
+        setPhase('conflict')
+        return
+      }
       setPartialHref(`/learning-paths/${intent.slug}`)
       setPhase('partial')
     }
@@ -309,11 +318,6 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     setSubmitting(true)
     try {
       const { user: authedUser } = await login(email.trim(), password)
-      if (!isStudentUser(authedUser.role)) {
-        setBlockedRole(typeof authedUser.role === 'string' ? authedUser.role : null)
-        setPhase('non_student')
-        return
-      }
       await executeIntent(authedUser)
     } catch (err) {
       setFormError(getApiErrorMessage(err))
@@ -321,20 +325,6 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
       setSubmitting(false)
     }
   }
-
-  function switchToStudentSignup() {
-    // Fresh student account with a different email — keep the intent alive.
-    setEmail('')
-    setPassword('')
-    setFieldErrors({})
-    setFormError('')
-    setPhase('register')
-  }
-
-  const roleRaw = blockedRole ?? (typeof user?.role === 'string' ? user.role : '')
-  const roleLabel = roleRaw
-    ? t(`quickJoin.roles.${normalizeRole(roleRaw) ?? ''}`, { defaultValue: roleRaw })
-    : ''
 
   const startHref =
     intent.kind === 'course'
@@ -754,24 +744,17 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
             </div>
           )}
 
-          {phase === 'non_student' && (
-            <div className="space-y-5 py-2">
+          {phase === 'conflict' && (
+            <div className="space-y-5 py-2" role="alert">
               <div>
                 <p className="font-display text-lg font-black tracking-tight text-deepBlue">
-                  {t('quickJoin.nonStudent.title', { role: roleLabel ? ` (${roleLabel})` : '' })}
+                  {t('quickJoin.conflict.title')}
                 </p>
-                <p className="mt-2 text-sm font-bold leading-7 text-muted-500">
-                  {t('quickJoin.nonStudent.body')}
-                </p>
+                <p className="mt-2 text-sm font-bold leading-7 text-muted-500">{conflictMessage}</p>
               </div>
-              <button type="button" onClick={switchToStudentSignup} className={PRIMARY_BTN_CLS}>
-                {t('quickJoin.nonStudent.createStudent')}
+              <button type="button" onClick={onClose} className={PRIMARY_BTN_CLS}>
+                {t('quickJoin.conflict.close')}
               </button>
-              <p className="text-center">
-                <button type="button" onClick={onClose} className="emc-cta-line emc-focus-ring text-sm">
-                  {t('quickJoin.nonStudent.stay')}
-                </button>
-              </p>
             </div>
           )}
         </div>

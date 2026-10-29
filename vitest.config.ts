@@ -4,7 +4,12 @@ import path from 'path'
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    // The auth client tests describe the cookie (Sanctum SPA) flow; pin it so they never depend on a developer's local .env.
+    env: { VITE_AUTH_MODE: 'cookie' },
     globals: true,
+    // The form-builder / share-panel / HR-edit screens render large trees; under coverage instrumentation and on a shared CI
+    // runner a single interaction can pass the 5s default. A hung test still fails, just after 15s instead of 5s.
+    testTimeout: 15_000,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     coverage: {

@@ -1,6 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { DEPARTMENTS_GUIDE } from '@/data/departmentsGuide'
-import type { ChangeEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router'
 import {
@@ -8,13 +7,13 @@ import {
   ArrowLeft,
   CheckCircle2,
   ChevronDown,
-  Paperclip,
-  Upload,
   User,
   Sparkles,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
+import { CvFileField } from '@/components/ui/CvFileField'
+import { AVAILABILITY_OPTIONS, EXPERIENCE_LEVELS, GENDER_OPTIONS as SHARED_GENDER_OPTIONS } from '@/components/volunteerOpportunities/volunteerFormSpec'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
 import { countryFromPhone } from '@/lib/countryFromPhone'
 import { submitVolunteerApplication } from '@/api/volunteerApplicationApi'
@@ -26,19 +25,7 @@ import toast from '@/lib/toast'
 // المسميات الرسمية الموحّدة للإدارات الـ13 — من دليل الإدارات المعتمد.
 const DEPARTMENTS = [...DEPARTMENTS_GUIDE.map((d) => d.name), 'غير محدد']
 
-const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
-
-const AVAILABILITY_OPTIONS = [
-  'أقل من 3 ساعات أسبوعيًا',
-  '3-5 ساعات أسبوعيًا',
-  '5-10 ساعات أسبوعيًا',
-  'أكثر من 10 ساعات أسبوعيًا',
-]
-
-const GENDER_OPTIONS = [
-  { value: 'male', label: 'ذكر' },
-  { value: 'female', label: 'أنثى' },
-]
+const GENDER_OPTIONS = SHARED_GENDER_OPTIONS.map((g) => ({ ...g }))
 
 const STEPS = [
   { id: 1, label: 'البيانات والمجال', icon: User },
@@ -264,7 +251,6 @@ export default function VolunteerApply() {
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const fileRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState<FormData>({
     full_name: '',
@@ -446,7 +432,7 @@ export default function VolunteerApply() {
             >
               <CheckCircle2 className="h-10 w-10 text-white" strokeWidth={2.5} />
             </motion.div>
-            <h2 className="font-display text-2xl font-black tracking-tight text-deepBlue">تم إرسال طلب التطوع بنجاح</h2>
+            <h2 className="font-display text-2xl font-black text-deepBlue">تم إرسال طلب التطوع بنجاح</h2>
             <p className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-foreground/65">
               شكرًا لرغبتك في الانضمام إلى فريق EMC. سنراجع طلبك ونتواصل معك قريبًا.
             </p>
@@ -515,7 +501,7 @@ export default function VolunteerApply() {
 
           <div className="overflow-hidden rounded-3xl bg-white shadow-emc-lg ring-1 ring-line">
             <div className="border-b border-line px-8 py-7">
-              <h1 className="font-display text-xl font-black tracking-tight text-deepBlue">
+              <h1 className="font-display text-xl font-black text-deepBlue">
                 {STEPS[step - 1]?.label}
               </h1>
               <p className="mt-1.5 text-[13px] font-semibold text-foreground/55">
@@ -691,49 +677,7 @@ export default function VolunteerApply() {
                       />
                     </Field>
 
-                    <Field label="السيرة الذاتية" error={fieldErrors.cv_file}>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <input
-                          ref={fileRef}
-                          type="file"
-                          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                          className="sr-only"
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                            set('cv_file', e.target.files?.[0] ?? null)
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => fileRef.current?.click()}
-                          className={`inline-flex items-center gap-2 rounded-xl border border-dashed px-5 py-3 text-sm font-bold transition duration-250 ease-emc ${
-                            form.cv_file
-                              ? 'border-customBlue/50 bg-brand-50 text-customBlue'
-                              : 'border-muted-300 bg-paper2 text-foreground/70 hover:border-customBlue/50 hover:bg-brand-50 hover:text-customBlue'
-                          }`}
-                        >
-                          {form.cv_file ? (
-                            <>
-                              <Paperclip size={16} />
-                              <span className="max-w-[240px] truncate">{form.cv_file.name}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Upload size={16} />
-                              رفع السيرة الذاتية (PDF / DOC / DOCX)
-                            </>
-                          )}
-                        </button>
-                        {form.cv_file && (
-                          <button
-                            type="button"
-                            onClick={() => set('cv_file', null)}
-                            className="text-[11px] font-bold text-red-500 hover:text-red-700"
-                          >
-                            حذف
-                          </button>
-                        )}
-                      </div>
-                    </Field>
+                    <CvFileField file={form.cv_file} onChange={(f) => set('cv_file', f)} error={fieldErrors.cv_file} />
 
                     <Field label="ملاحظات إضافية">
                       <Textarea

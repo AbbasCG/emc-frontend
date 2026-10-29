@@ -309,7 +309,7 @@ export default function VolunteerRequestsPage() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
               <HeartHandshake className="h-4 w-4 text-[#F28C00]" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-white/80">إدارة الموارد البشرية</span>
+              <span className="text-[11px] font-black tracking-normal text-white/80">إدارة الموارد البشرية</span>
             </div>
             <h1 className="text-[24px] font-black text-white">طلبات التطوع</h1>
             <p className="mt-1.5 text-[13px] font-semibold text-white/60">
@@ -442,7 +442,7 @@ export default function VolunteerRequestsPage() {
                 <thead>
                   <tr className="border-b border-slate-100 bg-gradient-to-l from-slate-50 to-slate-50/50">
                     {['#', 'الاسم', 'البريد', 'الجوال', 'القسم', 'التوفر', 'الحالة', 'تاريخ التقديم'].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-[#0C2A4B]/40">
+                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black tracking-normal text-[#0C2A4B]/40">
                         {h}
                       </th>
                     ))}

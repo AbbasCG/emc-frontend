@@ -16,8 +16,8 @@ const QuickJoinModalBody = lazy(() => import('./QuickJoinModalBody'))
  * Host for the in-context join+enroll modal — mounted ONCE in the public Layout.
  *
  * Listens to the enroll-intent store (`src/lib/enrollIntent.ts`); whenever
- * `gatePublicEnrollClick` records an intent for a guest or a non-student
- * account, the body chunk loads and opens over the current page. Clearing the
+ * `gatePublicEnrollClick` records an intent for a guest (a signed-in account of
+ * any role goes straight through), the body chunk loads and opens over the current page. Clearing the
  * intent (escape / backdrop / success navigation) unmounts it again.
  */
 export default function QuickJoinModal() {

@@ -1,0 +1,3729 @@
+[
+ {
+  "name": "no rules: everything is visible",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "section"
+   },
+   {
+    "id": 4,
+    "type": "text"
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "1": true,
+   "2": true,
+   "3": true,
+   "4": true
+  }
+ },
+ {
+  "name": "text equals: matching answer shows the block",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "نعم"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "نعم"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "text equals: other answer keeps it hidden",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "نعم"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "لا"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text equals: unanswered keeps a show-equals rule hidden",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "نعم"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text equals: text is trimmed before comparing",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "نعم"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "  نعم  "
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "text equals: equals is exact, not a prefix",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "نعم"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "نعم نعم"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text equals is case sensitive",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "Yes"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "yes"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "hide when equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "x"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "hide when equals: not met shows it",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "y"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "hide when equals: unanswered shows it",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "not_equals: unanswered counts as not equal",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "not_equals: different answer",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "y"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "not_equals: same answer",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "x"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text contains",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "عمل"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "أبحث عن عمل جديد"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "text contains: absent",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "عمل"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "دراسة"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text contains: unanswered is false",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "عمل"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "text not_contains: unanswered is true",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_contains",
+       "value": "عمل"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "text not_contains: present",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_contains",
+       "value": "عمل"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "عمل"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "is_empty when unanswered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "is_empty when answered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "is_not_empty when answered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "whitespace only is unanswered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "   "
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "zero is an answer",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "0"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "empty string is unanswered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": ""
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number gt 18 with 19",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "19"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number gt 18 with 18",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "18"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number gte 18 with 18",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gte",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "18"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number gte 18 with 17.9",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gte",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "17.9"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number lt 18 with 17",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "17"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number lt 18 with 18",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "18"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number lte 18 with 18",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lte",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "18"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number lte 18 with 18.1",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lte",
+       "value": 18
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "18.1"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number equals 5 with 5.0",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "5.0"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number equals 5 with 5",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "5"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number not_equals 5 with 6",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "6"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number not_equals 5 with 5",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "5"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number equals 2.5 with 2.50",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": 2.5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2.50"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number gt -1 with 0",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": -1
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "0"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number lt 1000 with 99",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": 1000
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "99"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number: a non-numeric answer satisfies no ordering operator",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gte",
+       "value": 0
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "abc"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "number: a non-numeric answer is \"not equal\"",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "abc"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "number: unanswered satisfies no ordering operator",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "number",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": 5
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "rating compares as a number",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "star_rating"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lte",
+       "value": 2
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "rating above the limit",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "star_rating"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lte",
+       "value": 2
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "4"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "linear scale equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "linear_scale"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": 3
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "3"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date lt 2026-06-01 with 2026-05-31",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-05-31"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date lt 2026-06-01 with 2026-06-01",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-01"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "date lte 2026-06-01 with 2026-06-01",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lte",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-01"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date gt 2026-06-01 with 2026-06-02",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-02"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date gt 2026-06-01 with 2025-12-31",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2025-12-31"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "date gte 2026-06-01 with 2026-06-01",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gte",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-01"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date equals 2026-06-01 with 2026-06-01",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-01"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date not_equals 2026-06-01 with 2026-06-02",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "2026-06-02"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "date: unanswered is not before anything",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "date"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": "2026-06-01"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "time after",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "time"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gt",
+       "value": "12:00"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "13:30"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "time before",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "time"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "lt",
+       "value": "12:00"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "13:30"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "time equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "time"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "09:05"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "09:05"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "select equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "أ"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "أ"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "select equals: other option",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "أ"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "ب"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "select any_of: one of the list",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "any_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "ب"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "select any_of: outside the list",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "any_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "ج"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "select none_of: outside the list",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "none_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "ج"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "select none_of: unanswered counts as none of them",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "none_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "select any_of: unanswered is false",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "any_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "radio equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "radio",
+    "options": [
+     "س",
+     "ص"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "ص"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "ص"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox contains",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "سفر"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة",
+    "سفر"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox contains: not picked",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "سفر"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة"
+   ]
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "checkbox not_contains",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_contains",
+       "value": "سفر"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox not_contains: unanswered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_contains",
+       "value": "سفر"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox any_of",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "any_of",
+       "value": [
+        "سفر",
+        "رياضة"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة",
+    "رياضة"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox none_of",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "none_of",
+       "value": [
+        "سفر",
+        "رياضة"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox none_of: one is picked",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "none_of",
+       "value": [
+        "سفر",
+        "رياضة"
+       ]
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "سفر"
+   ]
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "checkbox is_empty with an empty list",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": []
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "checkbox is_not_empty",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "checkbox",
+    "options": [
+     "قراءة",
+     "سفر",
+     "رياضة"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "قراءة"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "multiselect contains",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "multiselect",
+    "options": [
+     "أ",
+     "ب"
+    ]
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "contains",
+       "value": "ب"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": [
+    "ب"
+   ]
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "yes_no equals yes",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "yes_no"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "yes"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "yes_no equals yes: answered no",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "yes_no"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "no"
+  },
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "yes_no not_equals yes: answered no",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "yes_no"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "not_equals",
+       "value": "yes"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "no"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "consent given",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "consent"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "yes"
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "consent not given",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "consent"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "file attached",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "file"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": true
+  },
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "file missing",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "file"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": false
+  }
+ },
+ {
+  "name": "image missing is_empty",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "image"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "AND: both hold",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a",
+   "2": "b"
+  },
+  "expect": {
+   "3": true
+  }
+ },
+ {
+  "name": "AND: one fails",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a",
+   "2": "x"
+  },
+  "expect": {
+   "3": false
+  }
+ },
+ {
+  "name": "AND: none held",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "3": false
+  }
+ },
+ {
+  "name": "OR: first holds",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "any",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a"
+  },
+  "expect": {
+   "3": true
+  }
+ },
+ {
+  "name": "OR: second holds",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "any",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "2": "b"
+  },
+  "expect": {
+   "3": true
+  }
+ },
+ {
+  "name": "OR: none holds",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "any",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "x",
+   "2": "y"
+  },
+  "expect": {
+   "3": false
+  }
+ },
+ {
+  "name": "hide with OR: hidden when any holds",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "hide",
+     "match": "any",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "2": "b"
+  },
+  "expect": {
+   "3": false
+  }
+ },
+ {
+  "name": "hide with AND: shown when only one holds",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      },
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "b"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a"
+  },
+  "expect": {
+   "3": true
+  }
+ },
+ {
+  "name": "three conditions mixing types",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "number"
+   },
+   {
+    "id": 2,
+    "type": "select",
+    "options": [
+     "أ",
+     "ب",
+     "ج"
+    ]
+   },
+   {
+    "id": 3,
+    "type": "yes_no"
+   },
+   {
+    "id": 4,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "gte",
+       "value": 18
+      },
+      {
+       "question": 2,
+       "operator": "any_of",
+       "value": [
+        "أ",
+        "ب"
+       ]
+      },
+      {
+       "question": 3,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "30",
+   "2": "ب",
+   "3": "yes"
+  },
+  "expect": {
+   "4": true
+  }
+ },
+ {
+  "name": "a hidden source counts as unanswered (cascade)",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "go"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "stop",
+   "2": "x"
+  },
+  "expect": {
+   "2": false,
+   "3": false
+  }
+ },
+ {
+  "name": "a visible source is read",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "go"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "go",
+   "2": "x"
+  },
+  "expect": {
+   "2": true,
+   "3": true
+  }
+ },
+ {
+  "name": "cascade with not_equals: hidden source reads as unanswered, which is \"not x\"",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "go"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 2,
+       "operator": "not_equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "stop",
+   "2": "x"
+  },
+  "expect": {
+   "2": false,
+   "3": true
+  }
+ },
+ {
+  "name": "a later question is unanswered (forward reference)",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 2,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "2": "x"
+  },
+  "expect": {
+   "1": false,
+   "2": true
+  }
+ },
+ {
+  "name": "a forward reference with is_empty",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 2,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "2": "x"
+  },
+  "expect": {
+   "1": true
+  }
+ },
+ {
+  "name": "a missing source is unanswered",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 99,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "1": false
+  }
+ },
+ {
+  "name": "a missing source with not_equals",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 99,
+       "operator": "not_equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "1": true
+  }
+ },
+ {
+  "name": "a block never reads itself",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "x"
+  },
+  "expect": {
+   "1": false
+  }
+ },
+ {
+  "name": "a rule on a heading is not an answer source",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "section"
+   },
+   {
+    "id": 2,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true
+  }
+ },
+ {
+  "name": "a hidden section hides its members",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "no"
+  },
+  "expect": {
+   "2": false,
+   "3": false,
+   "4": false
+  }
+ },
+ {
+  "name": "a shown section shows its members",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "yes"
+  },
+  "expect": {
+   "2": true,
+   "3": true,
+   "4": true
+  }
+ },
+ {
+  "name": "the next section is not affected",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "section"
+   },
+   {
+    "id": 5,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "no"
+  },
+  "expect": {
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  }
+ },
+ {
+  "name": "a block before the first section is not affected",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "text"
+   },
+   {
+    "id": 3,
+    "type": "section",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_empty"
+      }
+     ]
+    }
+   },
+   {
+    "id": 4,
+    "type": "text"
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true,
+   "3": false,
+   "4": false
+  }
+ },
+ {
+  "name": "a member with its own rule inside a shown section",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section"
+   },
+   {
+    "id": 3,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "a"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "b"
+  },
+  "expect": {
+   "2": true,
+   "3": false
+  }
+ },
+ {
+  "name": "answers inside a hidden section are ignored by later rules",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "text",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 3,
+       "operator": "equals",
+       "value": "z"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "no",
+   "3": "z"
+  },
+  "expect": {
+   "3": false,
+   "4": false
+  }
+ },
+ {
+  "name": "a hidden step hides its blocks up to the next step",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "page_break",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "text"
+   },
+   {
+    "id": 5,
+    "type": "page_break"
+   },
+   {
+    "id": 6,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "no"
+  },
+  "expect": {
+   "2": false,
+   "3": false,
+   "4": false,
+   "5": true,
+   "6": true
+  }
+ },
+ {
+  "name": "a shown step",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "page_break",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "yes"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "page_break"
+   },
+   {
+    "id": 5,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "yes"
+  },
+  "expect": {
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  }
+ },
+ {
+  "name": "a plain step break hides nothing",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "page_break"
+   },
+   {
+    "id": 3,
+    "type": "text"
+   }
+  ],
+  "answers": {},
+  "expect": {
+   "2": true,
+   "3": true
+  }
+ },
+ {
+  "name": "a hidden step also hides its sections",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "page_break",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "skip"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "section"
+   },
+   {
+    "id": 4,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "skip"
+  },
+  "expect": {
+   "2": false,
+   "3": false,
+   "4": false
+  }
+ },
+ {
+  "name": "a section keeps governing across a step break",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "section",
+    "logic": {
+     "action": "hide",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "equals",
+       "value": "x"
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "text"
+   },
+   {
+    "id": 4,
+    "type": "page_break"
+   },
+   {
+    "id": 5,
+    "type": "text"
+   }
+  ],
+  "answers": {
+   "1": "x"
+  },
+  "expect": {
+   "3": false,
+   "5": false
+  }
+ },
+ {
+  "name": "a conditional description",
+  "blocks": [
+   {
+    "id": 1,
+    "type": "text"
+   },
+   {
+    "id": 2,
+    "type": "description",
+    "logic": {
+     "action": "show",
+     "match": "all",
+     "conditions": [
+      {
+       "question": 1,
+       "operator": "is_not_empty"
+      }
+     ]
+    }
+   }
+  ],
+  "answers": {
+   "1": "a"
+  },
+  "expect": {
+   "2": true
+  }
+ }
+]

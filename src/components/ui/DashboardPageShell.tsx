@@ -82,7 +82,7 @@ export default function DashboardPageShell({
           {eyebrow && (
             <div className="mb-2 inline-flex items-center gap-2">
               {typeof eyebrow === 'string' ? (
-                <span className="emc-eyebrow">{eyebrow}</span>
+                <span className={/\p{Script=Arabic}/u.test(eyebrow) ? 'emc-eyebrow emc-eyebrow-ar' : 'emc-eyebrow'}>{eyebrow}</span>
               ) : (
                 eyebrow
               )}

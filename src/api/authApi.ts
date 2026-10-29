@@ -94,6 +94,13 @@ export async function resetPassword(params: {
   await apiClient.post('/auth/reset-password', params, { skipErrorToast: true })
 }
 
+/** A signed-in, still-unverified user asks for a fresh verification email for their own address. */
+export async function resendMyVerification(): Promise<string> {
+  const res = await apiClient.post<{ message?: unknown }>('/auth/email/resend', {}, { skipErrorToast: true })
+  const msg = res.data?.message
+  return typeof msg === 'string' && msg.trim() ? msg : 'تم إرسال رسالة توثيق البريد الإلكتروني.'
+}
+
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
 export async function logoutRemote(): Promise<void> {
   await apiClient.post('/auth/logout', undefined, { skipErrorToast: true as const }).catch(() => {})

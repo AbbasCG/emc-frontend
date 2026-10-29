@@ -87,7 +87,12 @@ function resolveDisplayPrice(course: Course, _countryCode: string): DisplayPrice
 function resolveSeatsRemaining(course: Course | null): number | null {
   if (!course) return null
   const capacityRaw = course.capacity ?? course.seats_count
-  const takenRaw = course.effective_enrollment_count ?? course.registrations_count
+  // `seats_remaining` is the backend's canonical figure (same rule enrollment enforces); the counts below are the fallback.
+  if (course.seats_remaining != null && capacityRaw != null) {
+    const direct = Math.trunc(Number(course.seats_remaining))
+    return Number.isFinite(direct) && direct > 0 ? direct : null
+  }
+  const takenRaw = course.seats_taken ?? course.effective_enrollment_count ?? course.registrations_count
   // Both numbers must be genuinely present — a missing enrollment count would
   // turn capacity into a fabricated «seats left», which §1 forbids.
   if (capacityRaw == null || takenRaw == null) return null
@@ -754,11 +759,13 @@ export default function Checkout() {
                 )}
               </div>
 
-              {/* وعد الانطلاق verbatim, from the single shared module */}
-              <div className="rounded-xl border border-line bg-paper2 p-4 text-right">
-                <p className="text-sm font-semibold leading-7 text-ink-500">{LAUNCH_PROMISE}</p>
-                <p className="mt-3 text-sm font-black text-navy">{REFUND_LINE}</p>
-              </div>
+              {/* وعد الانطلاق verbatim, from the single shared module. Rendered only for paid items */}
+              {!couponCoversAll && (price?.amount ?? 0) > 0 && (
+                <div className="rounded-xl border border-line bg-paper2 p-4 text-right">
+                  <p className="text-sm font-semibold leading-7 text-ink-500">{LAUNCH_PROMISE}</p>
+                  <p className="mt-3 text-sm font-black text-navy">{REFUND_LINE}</p>
+                </div>
+              )}
 
               {method === 'bank_transfer' ? (
                 <BankTransferPanel

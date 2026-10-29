@@ -27,6 +27,7 @@ export const EMC_DASHBOARD_ROLES = [
   'strategy_planning_manager',
   'digital_ambassadors_manager',
   'advisors_manager',
+  'department_member',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -58,6 +59,7 @@ const ROLE_HOME: Record<string, string> = {
   support_agent: '/dashboard/support',
   volunteer: '/dashboard/ops/volunteers',
   department_manager: '/dashboard/department',
+  department_member: '/dashboard/department/meeting-lounge',
   programs_manager: '/dashboard/programs-manager',
   operations_manager: '/dashboard/operations-manager',
   partnerships_manager: '/dashboard/partnerships-manager',
@@ -114,13 +116,13 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // the backend role:admin,super_admin,tech_admin,ai_manager gate and the
   // organizational_departments.ai_expert_applications page capability.
   { prefix: '/dashboard/admin/ai/expert-applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
+  { prefix: '/dashboard/admin/trainers/applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
 
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
-  { prefix: '/dashboard/student', roles: ['student'] },
   { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
@@ -153,13 +155,24 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/section-lead', roles: ['section_lead'] },
 ].sort((a, b) => b.prefix.length - a.prefix.length)
 
-const STUDENT_EXTRA_PREFIXES = [
+/**
+ * The learner space: «دوراتي», lessons, progress, attendance, assignments, certificates, orders. Learning is not a role, so every
+ * authenticated account opens these (the backend manifest grants `personal.student_learning` to everyone); each page shows only
+ * that account's own enrollments.
+ */
+const LEARNER_PREFIXES = [
+  '/dashboard/student',
   '/dashboard/certificates',
   '/dashboard/learning',
   '/dashboard/courses/',
   '/dashboard/lessons/',
   '/dashboard/quizzes/',
 ]
+
+/** True for a path in the learner space, whoever is looking at it. */
+export function isLearnerPath(pathname: string): boolean {
+  return matchesAnyPrefix(pathname, LEARNER_PREFIXES)
+}
 
 /**
  * Resource Center (مركز الموارد / مكتبة الدورات) — internal staff read/share access.
@@ -225,9 +238,19 @@ export function normalizeRole(role?: string | null): string | null {
   return ROLE_ALIASES[t] ?? t
 }
 
-export function getDashboardPathByRole(role?: string | null): string {
+/** Roles that no department can confer: a specialised role reported for a department manager is never allowed to resolve to these homes. */
+const PRIVILEGED_ROLES = new Set(['super_admin', 'admin', 'tech_admin', 'executive_admin'])
+
+/**
+ * Landing page for a role. `specializedRole` is the role the SERVER reports for a department manager who leads a department
+ * (`specialized_role`). It is never derived from a department slug or name, and a privileged role is ignored.
+ */
+export function getDashboardPathByRole(role?: string | null, specializedRole?: string | null): string {
   const n = normalizeRole(role)
   if (!n) return '/dashboard/profile'
+  if (n === 'department_manager' && specializedRole && !PRIVILEGED_ROLES.has(specializedRole) && ROLE_HOME[specializedRole]) {
+    return ROLE_HOME[specializedRole]
+  }
   return ROLE_HOME[n] ?? '/dashboard/profile'
 }
 
@@ -275,7 +298,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
       'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
       'marketing', 'marketing_manager', 'quality', 'quality_manager',
       'support_agent', 'operations_manager', 'partnerships_manager',
-      'community_manager', 'volunteer', 'department_manager', 'ai_manager',
+      'community_manager', 'volunteer', 'department_manager', 'department_member', 'ai_manager',
       'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager',
     ]
   }
@@ -366,8 +389,8 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))
     return ['admin', 'super_admin', 'tech_admin', 'instructor', 'programs_manager']
 
-  /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
-  if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']
+  /* Learner paths (/dashboard/student/…, /dashboard/courses/:id/modules, lessons, quizzes, …) — any signed-in account */
+  if (isLearnerPath(path)) return 'authenticated'
 
   return []
 }

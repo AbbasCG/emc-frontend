@@ -47,6 +47,9 @@ function coalesceType(raw: unknown): NotificationType {
     'assignment_created',
     'session_scheduled',
     'attendance_marked',
+    'ticket_resolved',
+    'suggestion_approved',
+    'suggestion_implemented',
   ]
   return (allowed.includes(s as NotificationType) ? s : 'registration') as NotificationType
 }

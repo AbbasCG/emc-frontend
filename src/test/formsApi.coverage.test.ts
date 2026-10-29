@@ -79,21 +79,24 @@ describe('mutations', () => {
     await expect(
       submitPublicForm('volunteer-form', { name: 'سارة', city: 'القاهرة' }),
     ).resolves.toBeUndefined()
-    expect(mockedApi.post).toHaveBeenCalledWith('/forms/volunteer-form/submit', {
-      answers: { name: 'سارة', city: 'القاهرة' },
-    })
+    // The form shows its own errors next to the fields, so the global error toast is switched off for the call.
+    expect(mockedApi.post).toHaveBeenCalledWith(
+      '/forms/volunteer-form/submit',
+      { answers: { name: 'سارة', city: 'القاهرة' } },
+      { skipErrorToast: true },
+    )
   })
 
   it('createFormDefinition POSTs the body and unwraps the created form', async () => {
     mockedApi.post.mockResolvedValueOnce({ data: { data: form } })
     await expect(createFormDefinition({ title: 'نموذج التطوع' })).resolves.toEqual(form)
-    expect(mockedApi.post).toHaveBeenCalledWith('/operations/forms', { title: 'نموذج التطوع' })
+    expect(mockedApi.post).toHaveBeenCalledWith('/operations/forms', { title: 'نموذج التطوع' }, { skipErrorToast: true })
   })
 
   it('updateFormDefinition PUTs the body and unwraps the updated form', async () => {
     mockedApi.put.mockResolvedValueOnce({ data: { data: form } })
     await expect(updateFormDefinition(3, { title: 'نموذج محدث' })).resolves.toEqual(form)
-    expect(mockedApi.put).toHaveBeenCalledWith('/operations/forms/3', { title: 'نموذج محدث' })
+    expect(mockedApi.put).toHaveBeenCalledWith('/operations/forms/3', { title: 'نموذج محدث' }, { skipErrorToast: true })
   })
 
   it('mutation errors propagate to callers', async () => {

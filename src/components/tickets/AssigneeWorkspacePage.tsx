@@ -26,8 +26,11 @@ import {
   Inbox,
   ListChecks,
   WifiOff,
+  Video,
 } from 'lucide-react';
 import toast from '@/lib/toast';
+import { fetchMeetings } from '@/api/meetingsApi';
+import type { OpsMeeting } from '@/types/operations';
 
 // Brand V2.2 tokens only (raw hex is lint-forbidden):
 //   primary brand-500 · secondary accent-500 (solid; accent-600/800 for text on light)
@@ -139,6 +142,7 @@ const AssigneeWorkspacePage: React.FC = () => {
   const [internalNote, setInternalNote]   = useState('');
   const [savingNote, setSavingNote]       = useState(false);
   const [tab, setTab]                     = useState<ListTab>('active');
+  const [upcomingMeetings, setUpcomingMeetings] = useState<OpsMeeting[]>([]);
 
   const detailRef = useRef<HTMLDivElement>(null);
   const detailRequest = useRef(0);
@@ -171,8 +175,22 @@ const AssigneeWorkspacePage: React.FC = () => {
     }
   }, [user, authLoading]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount / user change; the loading flag must reset before the request
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  // Load upcoming meetings where the member is invited
+  const fetchMyMeetings = useCallback(async () => {
+    if (authLoading || !user) return;
+    try {
+      const res = await fetchMeetings({ when: 'upcoming', per_page: 5 });
+      setUpcomingMeetings(res.rows);
+    } catch {
+      // Non-critical, ignore
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount / user change; the loading flag must reset before the request
+    fetchTasks();
+    fetchMyMeetings();
+  }, [fetchTasks, fetchMyMeetings]);
 
   // The list payload has no activity log; the single-ticket payload does.
   // A failed detail fetch keeps the list data on screen instead of blanking it.
@@ -357,6 +375,54 @@ const AssigneeWorkspacePage: React.FC = () => {
           <StatCard label="تم الحل" value={resolvedCount} tone="bg-emerald-50 text-emerald-600" icon={<CheckCircle2 className="h-5 w-5" aria-hidden="true" />} />
           <StatCard label="تعذر الحل" value={unresolvedCount} tone="bg-orange-50 text-orange-600" icon={<AlertTriangle className="h-5 w-5" aria-hidden="true" />} />
         </section>
+
+        {/* ── Upcoming Meetings Section for Assignee ── */}
+        {upcomingMeetings.length > 0 && (
+          <section className="rounded-3xl border border-brand-100 bg-brand-50/40 p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-sm font-black text-navy">
+                <Video size={17} className="text-brand-600" />
+                اجتماعاتي القادمة المقررة ({upcomingMeetings.length})
+              </h3>
+              <a
+                href="/dashboard/department/meeting-lounge"
+                className="text-xs font-black text-brand-600 hover:underline"
+              >
+                دخول صالة الاجتماعات ←
+              </a>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {upcomingMeetings.map((m) => (
+                <div
+                  key={m.id}
+                  className="rounded-2xl border border-line bg-white p-4 shadow-xs flex flex-col justify-between space-y-3"
+                >
+                  <div>
+                    <h4 className="text-sm font-black text-navy line-clamp-1">{m.title}</h4>
+                    <p className="mt-1 text-xs font-semibold text-muted-500 flex items-center gap-1.5">
+                      <Clock size={12} />
+                      {m.meeting_date} {m.start_time ? `الساعة ${m.start_time}` : ''}
+                    </p>
+                    {m.department && (
+                      <span className="mt-1 inline-block text-[11px] font-bold text-accent-700">
+                        {m.department.name}
+                      </span>
+                    )}
+                  </div>
+
+                  <a
+                    href="/dashboard/department/meeting-lounge"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-brand-600"
+                  >
+                    <Video size={13} />
+                    حضور في الصالة
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {loading ? (
           <div role="status" className="rounded-3xl border border-slate-200 bg-white p-16 text-center shadow-sm">

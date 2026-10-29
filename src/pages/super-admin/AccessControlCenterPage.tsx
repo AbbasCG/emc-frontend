@@ -78,12 +78,12 @@ function SummaryCard({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-customBlue/10 text-customBlue">
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
           <p className="text-xs text-slate-500">{labelAr}</p>
-          <p className="text-lg font-bold text-[#0C2A4B]">{value == null ? '—' : value}</p>
+          <p className="text-lg font-bold text-navy">{value == null ? '—' : value}</p>
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ function SearchField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pe-10 ps-3 text-sm text-slate-800 outline-none transition focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/20"
+        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pe-10 ps-3 text-sm text-slate-800 outline-none transition focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
       />
     </div>
   )
@@ -157,8 +157,8 @@ function PickerList<T>({
               className={cn(
                 'w-full rounded-xl border px-3 py-2.5 text-right transition',
                 active
-                  ? 'border-[#0077B6] bg-[#0077B6]/10 text-[#0C2A4B]'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-[#0077B6]/40 hover:bg-slate-50',
+                  ? 'border-customBlue bg-customBlue/10 text-navy'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-customBlue/40 hover:bg-slate-50',
               )}
             >
               <span className="block text-sm font-semibold">{getLabel(item)}</span>
@@ -221,7 +221,7 @@ function DepartmentsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/5 p-4 text-sm leading-relaxed text-[#0C2A4B]">
+      <div className="rounded-2xl border border-customBlue/20 bg-customBlue/5 p-4 text-sm leading-relaxed text-navy">
         <p className="font-semibold">أعضاء القسم وقائد القسم</p>
         <p className="mt-1 text-slate-700">
           قائد القسم يرث صلاحيات أعضاء القسم بالإضافة إلى صلاحيات القيادة. لا حاجة لتكرار صفحات الأعضاء داخل صلاحيات
@@ -289,7 +289,7 @@ function RolesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/5 p-4 text-sm leading-relaxed text-[#0C2A4B]">
+      <div className="rounded-2xl border border-customBlue/20 bg-customBlue/5 p-4 text-sm leading-relaxed text-navy">
         <p className="font-semibold">صفحات الدور الافتراضية</p>
         <p className="mt-1 text-slate-700">
           هذه الصفحات تُمنح افتراضيًا لجميع المستخدمين الذين يحملون هذا الدور. المنح فقط — لا يوجد منع على مستوى الدور.
@@ -344,6 +344,7 @@ function UserPicker({
   useEffect(() => {
     const q = query.trim()
     if (q.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- empties the results when the query is too short to search
       setResults([])
       return
     }
@@ -397,7 +398,7 @@ function UsersTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/5 p-4 text-sm leading-relaxed text-[#0C2A4B]">
+      <div className="rounded-2xl border border-customBlue/20 bg-customBlue/5 p-4 text-sm leading-relaxed text-navy">
         <p className="font-semibold">استثناءات المستخدم</p>
         <ul className="mt-2 space-y-1 text-slate-700">
           <li>
@@ -440,7 +441,7 @@ function EffectiveTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/5 p-4 text-sm leading-relaxed text-[#0C2A4B]">
+      <div className="rounded-2xl border border-customBlue/20 bg-customBlue/5 p-4 text-sm leading-relaxed text-navy">
         <p className="font-semibold">الوصول الفعلي النهائي</p>
         <p className="mt-1 text-slate-700">
           هذه النتيجة محسوبة في الخادم بعد دمج حماية النظام والدور والقسم واستثناءات المستخدم والوصول الأساسي. تُعرض
@@ -504,11 +505,11 @@ export default function AccessControlCenterPage() {
     <SaPageRoot>
       <header className="mb-6">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0C2A4B] text-white">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-navy text-white">
             <KeyRound className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="text-xl font-extrabold text-[#0C2A4B] sm:text-2xl">إدارة الوصول والصلاحيات</h1>
+            <h1 className="text-xl font-extrabold text-navy sm:text-2xl">إدارة الوصول والصلاحيات</h1>
             <p className="mt-0.5 text-sm text-slate-600">
               إدارة وصول الأقسام والأدوار والمستخدمين إلى صفحات المنصة من مكان واحد.
             </p>
@@ -550,8 +551,8 @@ export default function AccessControlCenterPage() {
                 className={cn(
                   'inline-flex items-center gap-2 whitespace-nowrap rounded-xl border px-4 py-2.5 text-sm font-semibold transition',
                   active
-                    ? 'border-[#0C2A4B] bg-[#0C2A4B] text-white'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40 hover:text-[#0C2A4B]',
+                    ? 'border-navy bg-navy text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-customBlue/40 hover:text-navy',
                 )}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />

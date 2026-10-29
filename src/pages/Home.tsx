@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import HomeCinematicHero from '../components/home/HomeCinematicHero'
-import HomeImpactMetrics from '../components/home/HomeImpactMetrics'
+import HomePathFinder from '../components/home/HomePathFinder'
+// import HomeImpactMetrics from '../components/home/HomeImpactMetrics'
 // M10: hidden — partner marquee duplicated HomePartnersSection (kept the grid as the single partners scene)
 // import HomeTrustStrip from '../components/home/HomeTrustStrip'
 import HomeLearningTracks from '../components/home/HomeLearningTracks'
@@ -11,13 +12,14 @@ import HomeLearningJourney from '../components/home/HomeLearningJourney'
 // import HomeAiSection from '../components/home/HomeAiSection'
 import HomeWhyBand from '../components/home/HomeWhyBand'
 import HomeTestimonialsCarousel from '../components/home/HomeTestimonialsCarousel'
-import HomePartnersSection from '../components/home/HomePartnersSection'
+// import HomePartnersSection from '../components/home/HomePartnersSection'
 import HomeFaqSection from '../components/home/HomeFaqSection'
 import HomeGrandCTA from '../components/home/HomeGrandCTA'
 import PublicSeo from '@/components/public/PublicSeo'
 import { OrganizationJsonLd } from '@/components/public/JsonLd'
 
 const FeaturedCoursesSection = lazy(() => import('../components/home/FeaturedCoursesSection'))
+const HomeThemesBento = lazy(() => import('../components/home/HomeThemesBento'))
 const HomeEcosystemBento = lazy(() => import('../components/home/HomeEcosystemBento'))
 
 // DL2.0: editorial fallback — hairline-seated row placeholders, no card boxes
@@ -54,16 +56,24 @@ export default function Home() {
       {/* 1. Cinematic dark hero headline + the team's 12-themes orbit («منظومة EMC») + stat pills */}
       <HomeCinematicHero />
 
-      {/* 2. Featured courses from API (light) editorial rows, real content immediately after the hero */}
+      {/* 2. Interactive Path Finder: 3-step smart guide */}
+      <HomePathFinder />
+
+      {/* 3. Featured courses from API with 3-second card anatomy and skeleton screens */}
       <Suspense fallback={<SectionFallback />}>
         <FeaturedCoursesSection />
+      </Suspense>
+
+      {/* 4. 12 Core Knowledge Themes Bento Grid (60-30-10 visual hierarchy) */}
+      <Suspense fallback={<SectionFallback />}>
+        <HomeThemesBento />
       </Suspense>
 
       {/* 3. Learning journey (light) the purchase story: ورشة → دورة → مسار → شهادة معتمدة on one rail */}
       <HomeLearningJourney />
 
-      {/* 4. Impact metrics dark moment #1, one typographic line-up of serif numbers */}
-      <HomeImpactMetrics />
+      {/* 4. Impact metrics omitted here to avoid duplicate numbers already prominent in Hero */}
+      {/* <HomeImpactMetrics /> */}
 
       {/* 5. Learning tracks & certificates (light) tabs kept, items as editorial rows */}
       <HomeLearningTracks />
@@ -78,8 +88,8 @@ export default function Home() {
       {/* 8. Transparent learning-experience signals — no unverified testimonials. */}
       <HomeTestimonialsCarousel />
 
-      {/* 9. Partners (light) plain wordmark row between hairlines */}
-      <HomePartnersSection />
+      {/* 9. Partners (hidden temporarily — will be re-added later) */}
+      {/* <HomePartnersSection /> */}
 
       {/* 10. FAQ (light) sticky intro + hairline-seated accordion rows */}
       <HomeFaqSection />

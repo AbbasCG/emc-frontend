@@ -1,5 +1,5 @@
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
-import { buildPublicLoginHref, isStudentUser } from '@/utils/publicEnrollAuth'
+import { buildPublicLoginHref } from '@/utils/publicEnrollAuth'
 import type { EnrollIntent } from '@/lib/enrollIntent'
 import type { StudentCourseAccess } from '@/api/studentApi'
 
@@ -8,7 +8,6 @@ export type PublicEnrollCta = {
   disabled: boolean
   href?: string
   scrollToEnroll?: boolean
-  denyNonStudent?: boolean
   /** Triggers paid checkout flow — POST /courses/{id}/checkout */
   checkout?: boolean
   checkoutCourseId?: number
@@ -28,6 +27,8 @@ export type PublicEnrollCta = {
 
 const RESUME_PAYMENT_FALLBACK_HREF = '/dashboard/student/registrations'
 const PAYMENT_REQUIRED_NOTICE = 'يجب إكمال الدفع أولًا قبل الوصول إلى محتوى الدورة.'
+export const UNDER_REVIEW_LABEL = 'تم استلام الدفعة — قيد المراجعة'
+export const UNDER_REVIEW_NOTICE = 'استلمنا دفعتك وهي محفوظة بأمان. لا حاجة للدفع مرة أخرى؛ ستراجع الإدارة المالية تسجيلك وسنخبرك بالنتيجة.'
 
 /**
  * Resolves the CTA for a paid course where the student already has a
@@ -50,6 +51,13 @@ function resolveAccessBlockedCta(access: StudentCourseAccess): PublicEnrollCta |
   const resumeHref = access.payment_url ?? RESUME_PAYMENT_FALLBACK_HREF
 
   switch (access.block_reason) {
+    case 'payment_under_review':
+      return {
+        label: UNDER_REVIEW_LABEL,
+        disabled: true,
+        variant: 'muted',
+        message: UNDER_REVIEW_NOTICE,
+      }
     case 'payment_pending':
       if (access.payment_status === 'pending_review') {
         return {
@@ -100,7 +108,6 @@ export function resolveCourseEnrollCta(input: {
   seatsFull: boolean
   alreadyEnrolled: boolean
   isAuthenticated: boolean
-  userRole?: string | null
   courseSlug: string
   courseId: number
   /** Arabic course title — carried into the guest QuickJoin intent (modal header / success state). */
@@ -124,7 +131,6 @@ export function resolveCourseEnrollCta(input: {
     seatsFull,
     alreadyEnrolled,
     isAuthenticated,
-    userRole,
     courseSlug,
     courseId,
     courseTitle,
@@ -189,15 +195,6 @@ export function resolveCourseEnrollCta(input: {
       variant: 'primary',
     }
   }
-  if (!isStudentUser(userRole)) {
-    return {
-      label: isPaid ? 'الدفع والتسجيل' : 'الالتحاق بالدورة',
-      disabled: false,
-      denyNonStudent: true,
-      variant: 'primary',
-    }
-  }
-
   if (isPaid) {
     return {
       label: 'الدفع والتسجيل',

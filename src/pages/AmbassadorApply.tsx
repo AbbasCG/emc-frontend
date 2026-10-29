@@ -1,3 +1,4 @@
+import { CvFileField } from '@/components/ui/CvFileField'
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router'
@@ -1253,17 +1254,7 @@ export default function AmbassadorApply() {
                 {/* ── Step 10: Documents ────────────────────────────── */}
                 {currentStep === 10 && (
                   <>
-                    <FileUploadZone
-                      label="السيرة الذاتية (مطلوب) *"
-                      file={form.cv_file}
-                      onFile={(f) => set('cv_file', f)}
-                      accept=".pdf"
-                      hasError={!!errors.cv_file}
-                      hint="PDF فقط، حجم أقصى 5 ميغابايت"
-                    />
-                    {errors.cv_file && (
-                      <p className="text-[12px] font-bold text-red-600" role="alert">{errors.cv_file}</p>
-                    )}
+                    <CvFileField required file={form.cv_file} onChange={(f) => set('cv_file', f)} error={errors.cv_file} />
                     <FileUploadZone
                       label="بطاقة الطالب الجامعي"
                       file={form.student_id_file}

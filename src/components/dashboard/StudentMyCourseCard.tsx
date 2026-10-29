@@ -70,6 +70,7 @@ function statusArabic(enrollment: Enrollment): string {
   // label — this top-line status pill stays generic to avoid showing the
   // same message twice.
   const access = enrollment.access
+  if (access?.payment_under_review) return 'قيد المراجعة'
   if (access?.payment_required && !access.payment_completed) return 'معلّقة'
   if (enrollment.can_start_learning || enrollment.placement_status === 'completed') return 'نشطة'
   if (enrollment.status === 'pending') return 'معلّقة'
@@ -104,7 +105,8 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
   // A registration existing (even a "pending" one) is not proof of payment;
   // the backend's access.payment_completed is the only source of truth here.
   const access = enrollment.access ?? null
-  const paymentBlocked = !!access && access.payment_required && !access.payment_completed
+  // Payment received but enrollment withheld for review is blocked too — and must never read as "complete payment".
+  const paymentBlocked = !!access && ((access.payment_required && !access.payment_completed) || access.payment_under_review === true)
 
   // ── Placement logic — source of truth is placement_progress from API ─────────
   const cx = course as Record<string, unknown>
@@ -178,7 +180,8 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-[2px] ${
               access?.block_reason === 'payment_failed' ? 'bg-red-600/95' : 'bg-customOrange/95'
             }`}>
-              {access?.block_reason === 'payment_pending' ? (<><Hourglass className="h-3 w-3" aria-hidden /> الدفع قيد المراجعة</>)
+              {access?.payment_under_review ? (<><Hourglass className="h-3 w-3" aria-hidden /> تم استلام الدفعة — قيد المراجعة</>)
+               : access?.block_reason === 'payment_pending' ? (<><Hourglass className="h-3 w-3" aria-hidden /> الدفع قيد المراجعة</>)
                : access?.block_reason === 'payment_failed' ? (<><XCircle className="h-3 w-3" aria-hidden /> فشل الدفع</>)
                : (<><CreditCard className="h-3 w-3" aria-hidden /> بانتظار الدفع</>)}
             </span>

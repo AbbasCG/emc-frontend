@@ -70,6 +70,8 @@ export type Order = {
   payment_provider: string
   provider_payment_intent_id: string | null
   paid_at: string | null
+  /** Paid, but the enrollment awaits a financial review (server-authoritative). */
+  payment_under_review?: boolean
   created_at: string
   course?: { id: number; title: string; slug: string } | null
   user?: { id: number; name: string; email: string } | null

@@ -30,20 +30,21 @@ export default function DepartmentPermissionTree() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
   const fetchEmployees = async () => {
     try {
       const response = await apiClient.get('/department/employees');
       if (response.data.success) {
         setEmployees(response.data.employees);
       }
-    } catch (err: any) {
+    } catch {
       setError('فشل في جلب قائمة الموظفين');
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
+    void fetchEmployees();
+  }, []);
 
   const fetchTree = async (employee: Employee) => {
     setIsLoading(true);
@@ -53,7 +54,7 @@ export default function DepartmentPermissionTree() {
       if (response.data.success) {
         setTree(response.data.tree);
       }
-    } catch (err: any) {
+    } catch {
       setError('فشل في جلب شجرة الصلاحيات للموظف');
     } finally {
       setIsLoading(false);
@@ -78,14 +79,14 @@ export default function DepartmentPermissionTree() {
       await apiClient.post(`/department/employees/${selectedEmployee.id}/permissions/${action}`, {
         permission_name: node.permission_name
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Revert on error
       setTree(prev => prev.map(n => n.id === node.id ? { 
         ...n, 
         has_permission: oldHasPermission,
         assignment_state: oldState
       } : n));
-      setError(err.response?.data?.message || 'حدث خطأ أثناء تعديل الصلاحية');
+      setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'حدث خطأ أثناء تعديل الصلاحية');
     }
   };
 

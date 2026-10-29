@@ -4,8 +4,8 @@ import { mockApi, loginAs, COURSE_MAIN, ERROR_BOUNDARY_TEXT } from '../support/m
 /**
  * Journey 1 — browse → course detail → enroll (free course, mocked API).
  *
- * Phase A (guest): home hero renders (confirmed +20,000 stat pill), hero CTA
- * leads to the catalog, the mocked course card opens the detail page.
+ * Phase A (guest): home hero renders (confirmed +20,000 stat pill), the featured-programs
+ * "view all" link leads to the catalog, the mocked course card opens the detail page.
  * Phase B (seeded student): the detail CTA becomes "الالتحاق بالدورة",
  * the enrollment form (prefilled from the auth profile) submits against the
  * mocked POST /courses/{id}/register and the success banner appears.
@@ -19,8 +19,8 @@ test('guest browses catalog, student enrolls in mocked course', async ({ page })
   await expect(page.getByText('+20,000').first()).toBeVisible()
   await expect(page.getByText(ERROR_BOUNDARY_TEXT)).toHaveCount(0)
 
-  // Hero CTA → /courses (visible on both desktop and mobile)
-  await page.getByRole('link', { name: 'استكشف البرامج' }).click()
+  // Featured programs → /courses (the hero no longer carries a catalog CTA; this link exists on desktop and mobile)
+  await page.getByRole('link', { name: 'عرض جميع الدورات' }).click()
   await expect(page).toHaveURL(/\/courses$/)
   await expect(
     page.getByRole('heading', { name: 'استكشف برامجنا' }),

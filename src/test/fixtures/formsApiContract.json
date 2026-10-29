@@ -1,0 +1,1879 @@
+{
+  "createRequest": {
+    "title": "استبيان رضا الطلاب",
+    "description": "نموذج تجريبي لتسجيل العقد",
+    "form_type": "suggestion",
+    "slug": "contract-741fee",
+    "questions": [
+      {
+        "id": 1,
+        "label": "الاسم الكامل",
+        "type": "text",
+        "required": true,
+        "sort_order": 1
+      },
+      {
+        "id": 2,
+        "label": "البريد الإلكتروني",
+        "type": "email",
+        "required": true,
+        "sort_order": 2
+      },
+      {
+        "id": 3,
+        "label": "المدينة",
+        "type": "select",
+        "required": true,
+        "sort_order": 3,
+        "options": [
+          "الرياض",
+          "جدة"
+        ]
+      },
+      {
+        "id": 4,
+        "label": "الاهتمامات",
+        "type": "checkbox",
+        "required": false,
+        "sort_order": 4,
+        "options": [
+          "برمجة",
+          "تصميم"
+        ]
+      },
+      {
+        "id": 5,
+        "label": "السيرة الذاتية",
+        "type": "file",
+        "required": false,
+        "sort_order": 5
+      }
+    ],
+    "status": "active"
+  },
+  "createDraftResponse": {
+    "success": true,
+    "data": {
+      "id": 18,
+      "title": "مسودة بلا أسئلة",
+      "slug": "draft-741fee",
+      "description": null,
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "draft",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": null,
+      "published_at": null,
+      "current_version": null,
+      "published_version_id": null,
+      "has_unpublished_changes": true,
+      "settings": {
+        "opens_at": null,
+        "closes_at": null,
+        "max_submissions": null,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [],
+      "submissions_count": 0,
+      "last_submission_at": null,
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:18.000000Z"
+    }
+  },
+  "publishEmptyResponse": {
+    "success": false,
+    "message": "Validation failed.",
+    "errors": {
+      "status": [
+        "أضف سؤالاً واحداً على الأقل قبل نشر النموذج."
+      ]
+    }
+  },
+  "createResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:19.000000Z",
+      "current_version": 1,
+      "published_version_id": 18,
+      "has_unpublished_changes": false,
+      "settings": {
+        "opens_at": null,
+        "closes_at": null,
+        "max_submissions": null,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "submissions_count": 0,
+      "last_submission_at": null,
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:19.000000Z"
+    }
+  },
+  "detailResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:19.000000Z",
+      "current_version": 1,
+      "published_version_id": 18,
+      "has_unpublished_changes": false,
+      "settings": {
+        "opens_at": null,
+        "closes_at": null,
+        "max_submissions": null,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "submissions_count": 0,
+      "last_submission_at": null,
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:19.000000Z"
+    }
+  },
+  "listResponse": {
+    "success": true,
+    "data": {
+      "data": [
+        {
+          "id": 19,
+          "title": "استبيان رضا الطلاب",
+          "slug": "contract-741fee",
+          "description": "نموذج تجريبي لتسجيل العقد",
+          "type": "suggestion",
+          "form_type": "suggestion",
+          "status": "active",
+          "visibility": "private",
+          "responses_visibility": "restricted",
+          "department_id": null,
+          "department": null,
+          "created_by": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "owner": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "last_editor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "publisher": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "published_at": "2026-10-15T18:50:19.000000Z",
+          "current_version": 1,
+          "published_version_id": 18,
+          "settings": {
+            "opens_at": null,
+            "closes_at": null,
+            "max_submissions": null,
+            "per_respondent_limit": null,
+            "allow_anonymous": true,
+            "requires_login": false
+          },
+          "submissions_count": 0,
+          "last_submission_at": null,
+          "abilities": {
+            "view": true,
+            "edit": true,
+            "publish": true,
+            "manage_access": true,
+            "view_responses": true,
+            "manage_responses": true,
+            "delete": true
+          },
+          "created_at": "2026-10-15T18:50:18.000000Z",
+          "updated_at": "2026-10-15T18:50:19.000000Z"
+        },
+        {
+          "id": 14,
+          "title": "استبيان رضا الطلاب",
+          "slug": "contract-5e8f84",
+          "description": "نموذج تجريبي لتسجيل العقد",
+          "type": "suggestion",
+          "form_type": "suggestion",
+          "status": "active",
+          "visibility": "organization",
+          "responses_visibility": "form_viewers",
+          "department_id": null,
+          "department": null,
+          "created_by": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "owner": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "last_editor": null,
+          "publisher": null,
+          "published_at": "2026-10-15T17:55:53.000000Z",
+          "current_version": 1,
+          "published_version_id": 12,
+          "settings": {
+            "opens_at": null,
+            "closes_at": null,
+            "max_submissions": null,
+            "per_respondent_limit": null,
+            "allow_anonymous": true,
+            "requires_login": false
+          },
+          "submissions_count": 9,
+          "last_submission_at": "2026-10-15 17:55:59",
+          "abilities": {
+            "view": true,
+            "edit": true,
+            "publish": true,
+            "manage_access": true,
+            "view_responses": true,
+            "manage_responses": true,
+            "delete": true
+          },
+          "created_at": "2026-10-15T17:55:53.000000Z",
+          "updated_at": "2026-10-15T17:55:53.000000Z"
+        },
+        {
+          "id": 12,
+          "title": "استبيان المتصفح الكامل",
+          "slug": "استبيان-المتصفح-الكامل",
+          "description": "نموذج لاختبار الحفظ من الواجهة إلى الخادم",
+          "type": "suggestion",
+          "form_type": "suggestion",
+          "status": "active",
+          "visibility": "organization",
+          "responses_visibility": "form_viewers",
+          "department_id": null,
+          "department": null,
+          "created_by": {
+            "id": 40,
+            "name": "مدير النماذج"
+          },
+          "owner": {
+            "id": 40,
+            "name": "مدير النماذج"
+          },
+          "last_editor": null,
+          "publisher": null,
+          "published_at": "2026-10-15T17:24:32.000000Z",
+          "current_version": 1,
+          "published_version_id": 11,
+          "settings": {
+            "opens_at": null,
+            "closes_at": null,
+            "max_submissions": null,
+            "per_respondent_limit": null,
+            "allow_anonymous": true,
+            "requires_login": false
+          },
+          "submissions_count": 1,
+          "last_submission_at": "2026-10-15 17:25:15",
+          "abilities": {
+            "view": true,
+            "edit": true,
+            "publish": true,
+            "manage_access": false,
+            "view_responses": true,
+            "manage_responses": true,
+            "delete": false
+          },
+          "created_at": "2026-10-15T17:24:32.000000Z",
+          "updated_at": "2026-10-15T17:24:32.000000Z"
+        },
+        {
+          "id": 11,
+          "title": "استبيان رضا الطلاب",
+          "slug": "contract-14c281",
+          "description": "نموذج تجريبي لتسجيل العقد",
+          "type": "suggestion",
+          "form_type": "suggestion",
+          "status": "active",
+          "visibility": "organization",
+          "responses_visibility": "form_viewers",
+          "department_id": null,
+          "department": null,
+          "created_by": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "owner": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "last_editor": null,
+          "publisher": null,
+          "published_at": "2026-10-15T17:11:30.000000Z",
+          "current_version": 1,
+          "published_version_id": 10,
+          "settings": {
+            "opens_at": null,
+            "closes_at": null,
+            "max_submissions": null,
+            "per_respondent_limit": null,
+            "allow_anonymous": true,
+            "requires_login": false
+          },
+          "submissions_count": 9,
+          "last_submission_at": "2026-10-15 17:11:36",
+          "abilities": {
+            "view": true,
+            "edit": true,
+            "publish": true,
+            "manage_access": true,
+            "view_responses": true,
+            "manage_responses": true,
+            "delete": true
+          },
+          "created_at": "2026-10-15T17:11:30.000000Z",
+          "updated_at": "2026-10-15T17:11:30.000000Z"
+        }
+      ],
+      "links": {
+        "first": "http://127.0.0.1:8000/api/operations/forms?page=1",
+        "last": "http://127.0.0.1:8000/api/operations/forms?page=1",
+        "prev": null,
+        "next": null
+      },
+      "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 1,
+        "links": [
+          {
+            "url": null,
+            "label": "&laquo; Previous",
+            "page": null,
+            "active": false
+          },
+          {
+            "url": "http://127.0.0.1:8000/api/operations/forms?page=1",
+            "label": "1",
+            "page": 1,
+            "active": true
+          },
+          {
+            "url": null,
+            "label": "Next &raquo;",
+            "page": null,
+            "active": false
+          }
+        ],
+        "path": "http://127.0.0.1:8000/api/operations/forms",
+        "per_page": 20,
+        "to": 4,
+        "total": 4
+      }
+    }
+  },
+  "publicShowResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "version": 1,
+      "preview": false,
+      "availability": {
+        "state": "open",
+        "message": null,
+        "opens_at": null,
+        "closes_at": null,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ]
+    }
+  },
+  "submitInvalidRequest": {
+    "answers": {
+      "36": "",
+      "38": "مكة",
+      "39": [
+        "برمجة",
+        "سحر"
+      ]
+    }
+  },
+  "submitInvalidResponse": {
+    "success": false,
+    "message": "Validation failed.",
+    "errors": {
+      "answers.36": [
+        "حقل «الاسم الكامل» مطلوب."
+      ],
+      "answers.37": [
+        "حقل «البريد الإلكتروني» مطلوب."
+      ],
+      "answers.38": [
+        "اختر قيمة من الخيارات المتاحة في «المدينة»."
+      ],
+      "answers.39.1": [
+        "اختر من الخيارات المتاحة فقط في «الاهتمامات»."
+      ]
+    }
+  },
+  "submitOkResponse": {
+    "success": true,
+    "message": "Form submitted successfully.",
+    "data": {
+      "submission_id": 72
+    }
+  },
+  "submissionsResponse": {
+    "success": true,
+    "data": {
+      "data": [
+        {
+          "id": 72,
+          "form_id": 19,
+          "form_version_id": 18,
+          "form_version": 1,
+          "status": "new",
+          "submitted_at": "2026-10-15T18:50:20.000000Z",
+          "metadata": null,
+          "submitter_label": "زائر",
+          "user": null,
+          "answers_preview": "الاسم الكامل: سارة العتيبي · البريد الإلكتروني: sara@example.com · المدينة: جدة",
+          "answers": [
+            {
+              "id": 162,
+              "question_id": 36,
+              "question_label": "الاسم الكامل",
+              "question_type": "text",
+              "question_deleted": false,
+              "value": "سارة العتيبي",
+              "has_file": false,
+              "file_name": null
+            },
+            {
+              "id": 163,
+              "question_id": 37,
+              "question_label": "البريد الإلكتروني",
+              "question_type": "email",
+              "question_deleted": false,
+              "value": "sara@example.com",
+              "has_file": false,
+              "file_name": null
+            },
+            {
+              "id": 164,
+              "question_id": 38,
+              "question_label": "المدينة",
+              "question_type": "select",
+              "question_deleted": false,
+              "value": "جدة",
+              "has_file": false,
+              "file_name": null
+            },
+            {
+              "id": 165,
+              "question_id": 39,
+              "question_label": "الاهتمامات",
+              "question_type": "checkbox",
+              "question_deleted": false,
+              "value": [
+                "برمجة",
+                "تصميم"
+              ],
+              "has_file": false,
+              "file_name": null
+            },
+            {
+              "id": 166,
+              "question_id": 40,
+              "question_label": "السيرة الذاتية",
+              "question_type": "file",
+              "question_deleted": false,
+              "value": "cv.pdf",
+              "has_file": true,
+              "file_name": "cv.pdf"
+            }
+          ],
+          "created_at": "2026-10-15T18:50:20.000000Z"
+        }
+      ],
+      "links": {
+        "first": "http://127.0.0.1:8000/api/operations/forms/19/submissions?page=1",
+        "last": "http://127.0.0.1:8000/api/operations/forms/19/submissions?page=1",
+        "prev": null,
+        "next": null
+      },
+      "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 1,
+        "links": [
+          {
+            "url": null,
+            "label": "&laquo; Previous",
+            "page": null,
+            "active": false
+          },
+          {
+            "url": "http://127.0.0.1:8000/api/operations/forms/19/submissions?page=1",
+            "label": "1",
+            "page": 1,
+            "active": true
+          },
+          {
+            "url": null,
+            "label": "Next &raquo;",
+            "page": null,
+            "active": false
+          }
+        ],
+        "path": "http://127.0.0.1:8000/api/operations/forms/19/submissions",
+        "per_page": 20,
+        "to": 1,
+        "total": 1
+      }
+    }
+  },
+  "publicNotFoundResponse": {
+    "success": false,
+    "message": "The requested endpoint does not exist."
+  },
+  "publicNotFoundStatus": 404,
+  "forbiddenResponse": {
+    "success": false,
+    "message": "Forbidden. You do not have permission to perform this action."
+  },
+  "forbiddenStatus": 403,
+  "previewResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "version": null,
+      "preview": true,
+      "availability": {
+        "state": "open",
+        "message": null,
+        "opens_at": null,
+        "closes_at": null,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ]
+    }
+  },
+  "settingsResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:19.000000Z",
+      "current_version": 1,
+      "published_version_id": 18,
+      "has_unpublished_changes": false,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "submissions_count": 1,
+      "last_submission_at": "2026-10-15 18:50:20",
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:22.000000Z"
+    }
+  },
+  "editedDraftResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب (معدّل)",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:19.000000Z",
+      "current_version": 1,
+      "published_version_id": 18,
+      "has_unpublished_changes": true,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        }
+      ],
+      "submissions_count": 1,
+      "last_submission_at": "2026-10-15 18:50:20",
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:23.000000Z"
+    }
+  },
+  "publishResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب (معدّل)",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:23.000000Z",
+      "current_version": 2,
+      "published_version_id": 19,
+      "has_unpublished_changes": false,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        }
+      ],
+      "submissions_count": 1,
+      "last_submission_at": "2026-10-15 18:50:20",
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:23.000000Z"
+    }
+  },
+  "publishNothingNewResponse": {
+    "success": false,
+    "message": "Validation failed.",
+    "errors": {
+      "status": [
+        "لا توجد تغييرات جديدة لنشرها. النسخة المنشورة مطابقة للمسودة."
+      ]
+    }
+  },
+  "versionsResponse": {
+    "success": true,
+    "data": {
+      "data": [
+        {
+          "id": 19,
+          "version_number": 2,
+          "origin": "publish",
+          "note": "تحديث الأسئلة",
+          "question_count": 3,
+          "published_at": "2026-10-15T18:50:23.000000Z",
+          "publisher": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "restored_from_version_id": null,
+          "is_current": true
+        },
+        {
+          "id": 18,
+          "version_number": 1,
+          "origin": "publish",
+          "note": null,
+          "question_count": 5,
+          "published_at": "2026-10-15T18:50:19.000000Z",
+          "publisher": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "restored_from_version_id": null,
+          "is_current": false
+        }
+      ],
+      "meta": {
+        "current_page": 1,
+        "last_page": 1,
+        "total": 2
+      }
+    }
+  },
+  "versionResponse": {
+    "success": true,
+    "data": {
+      "id": 18,
+      "version_number": 1,
+      "origin": "publish",
+      "note": null,
+      "question_count": 5,
+      "published_at": "2026-10-15T18:50:19.000000Z",
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "restored_from_version_id": null,
+      "is_current": false,
+      "title": "استبيان رضا الطلاب",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "required": true,
+          "is_required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "required": true,
+          "is_required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "required": true,
+          "is_required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "required": false,
+          "is_required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "required": false,
+          "is_required": false,
+          "sort_order": 5
+        }
+      ],
+      "settings": {
+        "allow_anonymous": true,
+        "per_respondent_limit": null,
+        "max_submissions": null,
+        "opens_at": null,
+        "closes_at": null
+      }
+    }
+  },
+  "restoreResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:23.000000Z",
+      "current_version": 2,
+      "published_version_id": 19,
+      "has_unpublished_changes": true,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "submissions_count": 1,
+      "last_submission_at": "2026-10-15 18:50:20",
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:25.000000Z"
+    }
+  },
+  "addCollaboratorResponse": {
+    "success": true,
+    "data": {
+      "id": 2,
+      "user": {
+        "id": 42,
+        "name": "عمليات ب",
+        "role": "operations_manager",
+        "departments": [
+          "قسم ب"
+        ]
+      },
+      "access_level": "viewer",
+      "can_view_responses": false,
+      "granted_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "granted_at": "2026-10-15T18:50:25.000000Z",
+      "created_at": "2026-10-15T18:50:25.000000Z"
+    }
+  },
+  "collaboratorsResponse": {
+    "success": true,
+    "data": [
+      {
+        "id": 2,
+        "user": {
+          "id": 42,
+          "name": "عمليات ب",
+          "role": "operations_manager",
+          "departments": [
+            "قسم ب"
+          ]
+        },
+        "access_level": "viewer",
+        "can_view_responses": false,
+        "granted_by": {
+          "id": 41,
+          "name": "عمليات أ"
+        },
+        "granted_at": "2026-10-15T18:50:25.000000Z",
+        "created_at": "2026-10-15T18:50:25.000000Z"
+      }
+    ]
+  },
+  "candidatesResponse": {
+    "success": true,
+    "data": []
+  },
+  "duplicateCollaboratorResponse": {
+    "success": false,
+    "message": "Validation failed.",
+    "errors": {
+      "user_id": [
+        "تمت إضافة هذا الموظف مسبقاً. عدّل صلاحياته بدلاً من إضافته مرة أخرى."
+      ]
+    }
+  },
+  "collaboratorViewResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:23.000000Z",
+      "current_version": 2,
+      "published_version_id": 19,
+      "has_unpublished_changes": true,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "abilities": {
+        "view": true,
+        "edit": false,
+        "publish": false,
+        "manage_access": false,
+        "view_responses": false,
+        "manage_responses": false,
+        "delete": false
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:25.000000Z"
+    }
+  },
+  "activityResponse": {
+    "success": true,
+    "data": {
+      "data": [
+        {
+          "id": 27,
+          "action": "collaborator_added",
+          "label": "إضافة متعاون",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "user": "عمليات ب",
+            "access_level": "viewer",
+            "can_view_responses": false
+          },
+          "created_at": "2026-10-15T18:50:25.000000Z"
+        },
+        {
+          "id": 26,
+          "action": "version_restored",
+          "label": "استعادة إصدار سابق إلى المسودة",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "from_version": 1,
+            "question_count": 5
+          },
+          "created_at": "2026-10-15T18:50:25.000000Z"
+        },
+        {
+          "id": 25,
+          "action": "published",
+          "label": "نشر النموذج",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "version": 2,
+            "question_count": 3,
+            "note": "تحديث الأسئلة",
+            "status_from": "active",
+            "status_to": "active"
+          },
+          "created_at": "2026-10-15T18:50:23.000000Z"
+        },
+        {
+          "id": 24,
+          "action": "questions_changed",
+          "label": "تعديل الأسئلة",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "added": [],
+            "removed": [
+              "الاهتمامات",
+              "السيرة الذاتية"
+            ],
+            "edited": []
+          },
+          "created_at": "2026-10-15T18:50:23.000000Z"
+        },
+        {
+          "id": 23,
+          "action": "updated",
+          "label": "تعديل بيانات النموذج",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "fields": [
+              "العنوان"
+            ]
+          },
+          "created_at": "2026-10-15T18:50:23.000000Z"
+        },
+        {
+          "id": 22,
+          "action": "settings_changed",
+          "label": "تغيير إعدادات النشر والإتاحة",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "fields": [
+              "موعد الإغلاق",
+              "الحد الأقصى للإجابات"
+            ]
+          },
+          "created_at": "2026-10-15T18:50:22.000000Z"
+        },
+        {
+          "id": 21,
+          "action": "published",
+          "label": "نشر النموذج",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "version": 1,
+            "question_count": 5,
+            "note": null,
+            "status_from": "draft",
+            "status_to": "active"
+          },
+          "created_at": "2026-10-15T18:50:19.000000Z"
+        },
+        {
+          "id": 20,
+          "action": "created",
+          "label": "إنشاء النموذج",
+          "actor": {
+            "id": 41,
+            "name": "عمليات أ"
+          },
+          "details": {
+            "question_count": 5
+          },
+          "created_at": "2026-10-15T18:50:19.000000Z"
+        }
+      ],
+      "meta": {
+        "current_page": 1,
+        "last_page": 1,
+        "total": 8
+      }
+    }
+  },
+  "closeResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "closed",
+      "visibility": "private",
+      "responses_visibility": "restricted",
+      "department_id": null,
+      "department": null,
+      "created_by": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "owner": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "last_editor": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "publisher": {
+        "id": 41,
+        "name": "عمليات أ"
+      },
+      "published_at": "2026-10-15T18:50:23.000000Z",
+      "current_version": 2,
+      "published_version_id": 19,
+      "has_unpublished_changes": true,
+      "settings": {
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "max_submissions": 50,
+        "per_respondent_limit": null,
+        "allow_anonymous": true,
+        "requires_login": false
+      },
+      "questions": [
+        {
+          "id": 36,
+          "label": "الاسم الكامل",
+          "type": "text",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 1
+        },
+        {
+          "id": 37,
+          "label": "البريد الإلكتروني",
+          "type": "email",
+          "options": null,
+          "is_required": true,
+          "required": true,
+          "sort_order": 2
+        },
+        {
+          "id": 38,
+          "label": "المدينة",
+          "type": "select",
+          "options": [
+            "الرياض",
+            "جدة"
+          ],
+          "is_required": true,
+          "required": true,
+          "sort_order": 3
+        },
+        {
+          "id": 39,
+          "label": "الاهتمامات",
+          "type": "checkbox",
+          "options": [
+            "برمجة",
+            "تصميم"
+          ],
+          "is_required": false,
+          "required": false,
+          "sort_order": 4
+        },
+        {
+          "id": 40,
+          "label": "السيرة الذاتية",
+          "type": "file",
+          "options": null,
+          "is_required": false,
+          "required": false,
+          "sort_order": 5
+        }
+      ],
+      "submissions_count": 1,
+      "last_submission_at": "2026-10-15 18:50:20",
+      "abilities": {
+        "view": true,
+        "edit": true,
+        "publish": true,
+        "manage_access": true,
+        "view_responses": true,
+        "manage_responses": true,
+        "delete": true
+      },
+      "created_at": "2026-10-15T18:50:18.000000Z",
+      "updated_at": "2026-10-15T18:50:27.000000Z"
+    }
+  },
+  "publicClosedResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب (معدّل)",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "closed",
+      "version": 2,
+      "preview": false,
+      "availability": {
+        "state": "closed",
+        "message": "هذا النموذج مغلق ولا يستقبل إجابات حالياً.",
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "requires_login": false
+      },
+      "questions": []
+    }
+  },
+  "submitClosedStatus": 403,
+  "submitClosedResponse": {
+    "success": false,
+    "message": "هذا النموذج مغلق ولا يستقبل إجابات حالياً.",
+    "code": "closed"
+  },
+  "publicLoginRequiredResponse": {
+    "success": true,
+    "data": {
+      "id": 19,
+      "title": "استبيان رضا الطلاب (معدّل)",
+      "slug": "contract-741fee",
+      "description": "نموذج تجريبي لتسجيل العقد",
+      "type": "suggestion",
+      "form_type": "suggestion",
+      "status": "active",
+      "version": 2,
+      "preview": false,
+      "availability": {
+        "state": "login_required",
+        "message": "يجب تسجيل الدخول لتعبئة هذا النموذج.",
+        "opens_at": null,
+        "closes_at": "2030-01-01T10:00:00+00:00",
+        "requires_login": true
+      },
+      "questions": []
+    }
+  },
+  "submitLoginRequiredStatus": 401,
+  "submitLoginRequiredResponse": {
+    "success": false,
+    "message": "يجب تسجيل الدخول لتعبئة هذا النموذج.",
+    "code": "login_required"
+  },
+  "studentForbidden": 403,
+  "throttledStatus": 429,
+  "throttledResponse": {
+    "success": false,
+    "message": "Too many requests. Please slow down and try again."
+  }
+}

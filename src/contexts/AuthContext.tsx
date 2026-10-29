@@ -9,6 +9,7 @@ import {
 } from 'react'
 import axios from 'axios'
 import toast from '@/lib/toast'
+import { invalidateTicketDetail } from '@/services/ticketDetailCache'
 import * as authApi from '../api/authApi'
 import type { RegisterAccountInput } from '../api/authApi'
 import type { User } from '../types'
@@ -66,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // mount effect: the first render already reflects the stored session, so there is
   // no logged-out frame to flash and no cascading re-render.
   const [user, setUser] = useState<User | null>(readCachedUser)
+  // Cached ticket details belong to one signed-in identity: any change of user (login, impersonation, restore, logout) drops them.
+  const cacheOwner = user?.id ?? null
+  useEffect(() => invalidateTicketDetail(), [cacheOwner])
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
   const [isLoading, setIsLoading] = useState(
     () => localStorage.getItem(TOKEN_KEY) != null || localStorage.getItem(SESSION_HINT_KEY) === '1',

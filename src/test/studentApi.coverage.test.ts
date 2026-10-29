@@ -612,6 +612,7 @@ describe('normalizeRegistrationRow', () => {
       payment_status: 'paid',
       payment_completed: true,
       payment_url: null, // empty string → null
+      payment_under_review: false,
       enrollment_active: true,
       can_start_placement_test: true,
       placement_test_required: true,
@@ -637,6 +638,7 @@ describe('normalizeRegistrationRow', () => {
       payment_status: null,
       payment_completed: false,
       payment_url: null,
+      payment_under_review: false,
       enrollment_active: false,
       can_start_placement_test: false,
       placement_test_required: false,

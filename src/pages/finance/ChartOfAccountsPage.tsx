@@ -24,6 +24,7 @@ import {
   deleteChartOfAccount,
   type ChartOfAccountItem,
 } from '@/api/chartOfAccountsApi'
+import { FINANCE_CURRENCIES } from '@/utils/financeFormatters'
 
 /** Server-provided message from an API error response, if any. */
 function apiMessage(err: unknown): string | undefined {
@@ -133,6 +134,15 @@ function TreeNode({ account, level = 0, onAddChild, onEdit, onDelete }: TreeNode
             </span>
           )}
 
+          {account.default_for_currency && (
+            <span
+              title={`الحساب الافتراضي المعتمد لعملة ${account.default_for_currency}`}
+              className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-800"
+            >
+              💵 افتراضي: {account.default_for_currency}
+            </span>
+          )}
+
           {/* Action buttons */}
           <div className="flex items-center gap-1 opacity-90 transition-opacity group-hover:opacity-100">
             {!account.is_selectable && (
@@ -210,6 +220,7 @@ export default function ChartOfAccountsPage() {
   const [formNameEn, setFormNameEn] = useState('')
   const [formType, setFormType] = useState<'debit' | 'credit'>('debit')
   const [formIsSelectable, setFormIsSelectable] = useState(true)
+  const [formDefaultForCurrency, setFormDefaultForCurrency] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   // No synchronous setState before the first await: loading starts `true`,
@@ -249,6 +260,7 @@ export default function ChartOfAccountsPage() {
     setFormNameAr('')
     setFormNameEn('')
     setFormIsSelectable(true)
+    setFormDefaultForCurrency('')
 
     try {
       const res = await suggestAccountCode(parent?.id)
@@ -267,6 +279,7 @@ export default function ChartOfAccountsPage() {
     setFormNameAr(account.name_ar)
     setFormNameEn(account.name_en ?? '')
     setFormIsSelectable(account.is_selectable)
+    setFormDefaultForCurrency(account.default_for_currency ?? '')
     setIsEditOpen(true)
   }
 
@@ -287,6 +300,7 @@ export default function ChartOfAccountsPage() {
         type: formType,
         parent_id: selectedParent?.id ?? null,
         is_selectable: formIsSelectable,
+        default_for_currency: formDefaultForCurrency || null,
       })
       toast.success('تم إضافة الحساب المحاسبي بنجاح')
       setIsCreateOpen(false)
@@ -309,6 +323,7 @@ export default function ChartOfAccountsPage() {
         name_ar: formNameAr.trim(),
         name_en: formNameEn.trim() || undefined,
         is_selectable: formIsSelectable,
+        default_for_currency: formDefaultForCurrency || null,
       })
       toast.success('تم تحديث بيانات الحساب بنجاح')
       setIsEditOpen(false)
@@ -608,6 +623,27 @@ export default function ChartOfAccountsPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-black text-deepBlue mb-1">
+                    حساب افتراضي للعملة (اختياري)
+                  </label>
+                  <select
+                    value={formDefaultForCurrency}
+                    onChange={(e) => setFormDefaultForCurrency(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-slate-200 px-3 font-bold text-deepBlue outline-none focus:border-customBlue bg-white text-xs"
+                  >
+                    <option value="">-- بدون عملة افتراضية --</option>
+                    {FINANCE_CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} ({c.name} - {c.symbol})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-slate-400">
+                    إذا تم تحديده، سيتم توجيه سندات القبض والصرف بهذه العملة لهذا الحساب تلقائياً
+                  </span>
+                </div>
+
                 <div className="mt-6 flex items-center justify-end gap-2 pt-2 border-t">
                   <button
                     type="button"
@@ -687,6 +723,27 @@ export default function ChartOfAccountsPage() {
                     <option value="1">فرعي (يقبل قيود)</option>
                     <option value="0">رئيسي (تجميعي)</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-deepBlue mb-1">
+                    حساب افتراضي للعملة (اختياري)
+                  </label>
+                  <select
+                    value={formDefaultForCurrency}
+                    onChange={(e) => setFormDefaultForCurrency(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-slate-200 px-3 font-bold text-deepBlue outline-none focus:border-customBlue bg-white text-xs"
+                  >
+                    <option value="">-- بدون عملة افتراضية --</option>
+                    {FINANCE_CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} ({c.name} - {c.symbol})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-slate-400">
+                    إذا تم تحديده، سيتم توجيه سندات القبض والصرف بهذه العملة لهذا الحساب تلقائياً
+                  </span>
                 </div>
 
                 <div className="mt-6 flex items-center justify-end gap-2 pt-2 border-t">

@@ -45,6 +45,7 @@ import AssignmentsTab, { type AssignmentEntry } from './learn-tabs/AssignmentsTa
 import NotesTab from './learn-tabs/NotesTab'
 import ProgressTab from './learn-tabs/ProgressTab'
 import QuizzesTab from './learn-tabs/QuizzesTab'
+import { UNDER_REVIEW_NOTICE } from '@/utils/publicCourseDetailCta'
 
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
@@ -57,6 +58,7 @@ type GateError =
   | 'placement_required'
   | 'placement_oral'
   | 'payment_pending'
+  | 'payment_under_review'
   | 'payment_failed'
   | 'payment_required'
   | null
@@ -78,6 +80,7 @@ function parseLearnGateError(e: unknown): { gate: GateError; message: string | n
     // Payment must be evaluated before placement state — these reason codes
     // come straight from the backend's canonical access block, never
     // re-derived here (production hotfix).
+    if (ps === 'payment_under_review') return { gate: 'payment_under_review', message: body?.message ?? null, access }
     if (ps === 'payment_pending') return { gate: 'payment_pending', message: body?.message ?? null, access }
     if (ps === 'payment_failed') return { gate: 'payment_failed', message: body?.message ?? null, access }
     if (ps === 'payment_required' || ps === 'no_registration' || ps === 'registration_cancelled') {
@@ -113,7 +116,7 @@ async function loadLearnOutcome(courseId: number, knownEnrolled: boolean): Promi
     if (gate === 'missing') {
       return { kind: 'gate', gate: 'missing', paymentUrl: null, message: null }
     }
-    if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+    if (gate === 'payment_pending' || gate === 'payment_under_review' || gate === 'payment_failed' || gate === 'payment_required') {
       return { kind: 'gate', gate, paymentUrl: access?.payment_url ?? null, message: message ?? null }
     }
     if (gate === 'placement_required' || gate === 'placement_oral') {
@@ -519,15 +522,19 @@ export default function StudentCourseLearnPage() {
   // Production hotfix — dedicated unpaid-course state. Payment is always
   // evaluated before placement-test state (never shows the placement-test
   // start/retry actions here), per the canonical backend access block.
-  if (gateError === 'payment_pending' || gateError === 'payment_failed' || gateError === 'payment_required') {
-    const Icon = gateError === 'payment_failed' ? XCircle : gateError === 'payment_pending' ? Hourglass : CreditCard
+  if (gateError === 'payment_pending' || gateError === 'payment_under_review' || gateError === 'payment_failed' || gateError === 'payment_required') {
+    const waiting = gateError === 'payment_pending' || gateError === 'payment_under_review'
+    const Icon = gateError === 'payment_failed' ? XCircle : waiting ? Hourglass : CreditCard
     const iconColor = gateError === 'payment_failed' ? 'text-red-500' : 'text-customOrange'
     const title =
-      gateError === 'payment_pending' ? 'الدفع قيد المراجعة'
+      gateError === 'payment_under_review' ? 'تم استلام الدفعة — قيد المراجعة'
+      : gateError === 'payment_pending' ? 'الدفع قيد المراجعة'
       : gateError === 'payment_failed' ? 'لم تكتمل عملية الدفع'
       : 'يلزم إكمال الدفع أولاً'
     const body =
-      gateError === 'payment_pending'
+      gateError === 'payment_under_review'
+        ? UNDER_REVIEW_NOTICE
+      : gateError === 'payment_pending'
         ? 'تم تسجيل عملية الدفع، وهي الآن قيد المراجعة. ستتمكن من بدء اختبار تحديد المستوى بعد اعتماد الدفع.'
       : gateError === 'payment_failed'
         ? 'تعذر تأكيد عملية الدفع. يرجى إعادة المحاولة للمتابعة إلى اختبار تحديد المستوى ومحتوى الدورة.'
@@ -543,7 +550,7 @@ export default function StudentCourseLearnPage() {
           {body}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          {gateError !== 'payment_pending' && (
+          {!waiting && (
             gatePaymentUrl ? (
               <a
                 href={gatePaymentUrl}

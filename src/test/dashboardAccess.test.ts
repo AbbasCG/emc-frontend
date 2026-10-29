@@ -54,6 +54,14 @@ describe('canAccessDashboardPath', () => {
     expect(canAccessDashboardPath('super_admin', '/dashboard/super-admin')).toBe(true)
   })
 
+  it('every role can open the learner space, and a guest cannot', () => {
+    for (const role of ['volunteer', 'partner', 'finance_manager', 'instructor', 'admin', 'a_role_added_later'] as const) {
+      expect(canAccessDashboardPath(role, '/dashboard/student/courses')).toBe(true)
+      expect(canAccessDashboardPath(role, '/dashboard/certificates')).toBe(true)
+    }
+    expect(canAccessDashboardPath(null, '/dashboard/student/courses')).toBe(false)
+  })
+
   it('student can access student namespace', () => {
     expect(canAccessDashboardPath('student', '/dashboard/student')).toBe(true)
     expect(canAccessDashboardPath('student', '/dashboard/student/sessions')).toBe(true)
@@ -115,7 +123,8 @@ describe('getAllowedRolesForPath', () => {
 
   it('returns role array for namespaced paths', () => {
     expect(getAllowedRolesForPath('/dashboard/admin')).toContain('admin')
-    expect(getAllowedRolesForPath('/dashboard/student/sessions')).toContain('student')
+    // The learner space belongs to every signed-in account (learning is not a role), so it is not a namespaced path any more.
+    expect(getAllowedRolesForPath('/dashboard/student/sessions')).toBe('authenticated')
     expect(getAllowedRolesForPath('/dashboard/finance')).toContain('finance_manager')
   })
 })

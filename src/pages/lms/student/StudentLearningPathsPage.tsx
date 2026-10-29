@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchStudentLearningPaths, type StudentEnrollment } from '../../../api/learningPathsApi'
 import { fmtDate } from '@/components/lms/lmsFormatters'
+import { UNDER_REVIEW_LABEL } from '@/utils/publicCourseDetailCta'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-US').format(n)
@@ -136,6 +137,14 @@ export default function StudentLearningPathsPage() {
                       {isCompleted ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">
                           <CheckCircle className="h-3 w-3" /> مكتمل
+                        </span>
+                      ) : en.payment_under_review ? (
+                        <span data-testid="path-card-under-review" className="inline-flex items-center gap-1 rounded-full bg-customOrange px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+                          <Clock className="h-3 w-3" /> {UNDER_REVIEW_LABEL}
+                        </span>
+                      ) : en.enrollment_status === 'pending_payment' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-customOrange px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+                          <Clock className="h-3 w-3" /> بانتظار الدفع
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#0077B6] px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">

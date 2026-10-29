@@ -12,7 +12,6 @@ import {
   fetchStudentLearningPaths,
   type LearningPath,
 } from '@/api/learningPathsApi'
-import { normalizeRole } from '@/utils/dashboardAccess'
 import { toLatinDigits } from '@/utils/publicDetailFormat'
 import { formatPathDuration, formatPathPrice } from './learningPathDisplay'
 import LearningPathsHero from './LearningPathsHero'
@@ -162,11 +161,11 @@ export default function LearningPathsPage() {
   const [seenViewer, setSeenViewer] = useState({ isAuthenticated, viewerRole })
   if (seenViewer.isAuthenticated !== isAuthenticated || seenViewer.viewerRole !== viewerRole) {
     setSeenViewer({ isAuthenticated, viewerRole })
-    if (!isAuthenticated || normalizeRole(viewerRole) !== 'student') setEnrolledIds(new Set())
+    if (!isAuthenticated) setEnrolledIds(new Set())
   }
 
   useEffect(() => {
-    if (!isAuthenticated || normalizeRole(user?.role) !== 'student') return
+    if (!isAuthenticated) return
     let alive = true
     void fetchStudentLearningPaths().then((rows) => {
       if (!alive) return

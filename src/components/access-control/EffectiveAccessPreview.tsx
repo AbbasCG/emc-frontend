@@ -64,6 +64,7 @@ export function EffectiveAccessPreview({ userId, userName }: { userId: number; u
   }, [userId])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void load()
   }, [load])
 
@@ -163,7 +164,7 @@ export function EffectiveAccessPreview({ userId, userName }: { userId: number; u
               className={cn(
                 'rounded-lg px-2.5 py-1 text-[10px] font-black transition',
                 filter === f.id ?
-                  'bg-[#0C2A4B] text-white'
+                  'bg-navy text-white'
                 : 'border border-ink-100 bg-white text-muted-600 hover:text-deepBlue',
               )}
             >

@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import {
+  Activity,
   Award,
   BarChart3,
   Bell,
@@ -11,6 +12,7 @@ import {
   Calendar,
   CalendarDays,
   ClipboardCheck,
+  Scale,
   ClipboardList,
   Code2,
   Cpu,
@@ -218,6 +220,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
             ]),
         { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
         { label: 'طلبات انضمام الخبراء', href: '/dashboard/admin/ai/expert-applications', icon: UserPlus },
+        { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications', icon: GraduationCap },
         { label: 'طلبات الاحتياج (HR والإدارات)', href: '/dashboard/hr/incoming-requests', icon: Inbox         },
         { label: 'تقديم طلب احتیاج كادر', href: '/dashboard/hr/my-requests', icon: UserPlus },
       ],
@@ -235,6 +238,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'الفواتير',        href: '/dashboard/admin/finance/invoices',                 icon: FileText      },
         { label: 'المعاملات',       href: '/dashboard/admin/finance/transactions',             icon: BarChart3     },
         { label: 'المدفوعات اليدوية', href: '/dashboard/admin/finance/manual-payments',        icon: ClipboardCheck },
+        { label: 'تسوية المدفوعات',  href: '/dashboard/admin/finance/payment-reconciliations',  icon: Scale          },
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'سندات المصروفات',    href: '/dashboard/finance/expenses',                   icon: Receipt       },
         { label: 'سندات القبض (الإيرادات)', href: '/dashboard/finance/revenues',                   icon: TrendingUp    },
@@ -271,6 +275,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       defaultOpen: false,
       items: [
         { label: 'الإعدادات',         href: '/dashboard/settings',                      icon: Settings     },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'إعدادات الحضور',    href: '/dashboard/super-admin/attendance-settings', icon: ClipboardCheck },
         { label: 'البريد الإلكتروني', href: '/dashboard/super-admin/email-settings',    icon: Mail         },
         { label: 'سجلات البريد',      href: '/dashboard/super-admin/email-logs',        icon: ScrollText   },
@@ -298,6 +303,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       items: [
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
+        { label: 'مركز المتابعة التنفيذي', href: '/dashboard/executive/command-center', icon: Activity },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
         { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
@@ -335,6 +342,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي', href: '/dashboard/super-admin/ambassador-applications', icon: Star },
         { label: 'طلبات انضمام الخبراء', href: '/dashboard/admin/ai/expert-applications', icon: UserPlus },
+        { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications', icon: GraduationCap },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
       ],
     },
@@ -377,6 +385,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
+        { label: 'تسوية المدفوعات', href: '/dashboard/finance/payment-reconciliations', icon: Scale },
         { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },
@@ -409,6 +418,8 @@ function techAdminSidebar(): SidebarNavGroup[] {
       defaultOpen: true,
       items: [
         { label: 'لوحة التحكم التقنية', href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'مركز المتابعة التقني', href: '/dashboard/executive/command-center', icon: Activity },
+        { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
 
         { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },
         { label: 'سجلات التدقيق',   href: '/dashboard/super-admin/audit-logs',  icon: ScrollText      },
@@ -458,6 +469,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests',         icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي',    href: '/dashboard/super-admin/ambassador-applications',    icon: Star           },
         { label: 'طلبات انضمام الخبراء',   href: '/dashboard/admin/ai/expert-applications',           icon: UserPlus       },
+        { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications',            icon: GraduationCap  },
         { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',                          icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                             icon: Users          },
         { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
@@ -518,12 +530,64 @@ function techAdminSidebar(): SidebarNavGroup[] {
 }
 
 export interface SidebarContext {
-  /** True when the instructor teaches at least one course with requires_placement_test=true — gates المعهد الإنجليزي. Source of truth: courses.requires_placement_test, never role/department/title. */
+  /** True when the instructor teaches at least one course with requires_placement_test=true — gates المعهد الإنجليزي. */
   hasEnglishCourses?: boolean
+  /** True when user is enrolled in at least one course or workshop */
+  hasEnrolledCourses?: boolean
+  /** Department name if user belongs to or leads a department */
+  departmentName?: string | null
+  /** Department slug if available */
+  departmentSlug?: string | null
+  /** Specialized role for department manager */
+  specializedRole?: string | null
+  /** Impact points balance */
+  impactPointsBalance?: number
+}
+
+function learnerBlock(collapsible = true): SidebarNavGroup[] {
+  return [
+    {
+      title: 'تعلّمي والدورات',
+      collapsible,
+      defaultOpen: false,
+      items: [
+        { label: 'دوراتي والورش', href: '/dashboard/student/courses', icon: BookOpen },
+        { label: 'المسارات التعليمية', href: '/dashboard/student/learning-paths', icon: GraduationCap },
+        { label: 'الشهادات', href: '/dashboard/student/certificates', icon: Award },
+        { label: 'التقويم الدراسي', href: '/dashboard/student/calendar', icon: CalendarDays },
+      ],
+    },
+  ]
+}
+
+/** The learner's own courses and workshops: the same page for every account, whatever its role. */
+export const LEARNER_COURSES_HREF = '/dashboard/student/courses'
+
+/**
+ * Sidebar navigation for a role (Arabic RTL labels), plus «دوراتي» for EVERY role.
+ *
+ * Learning is not a role: any account may be enrolled in a course or workshop, so the learner entry is added here, once, instead of
+ * being copied into every role's menu. A role added tomorrow gets it for free; a role whose menu already has it (the student's)
+ * is left exactly as it is. The role's own menu is never replaced or reordered, and the entry only reuses the existing learner
+ * route; whether the page opens is still decided by the access manifest, which grants it to every authenticated account.
+ */
+export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
+  const groups = roleSidebar(roleRaw, ctx)
+  if (groups.some((g) => g.items.some((item) => item.href === LEARNER_COURSES_HREF))) return groups
+
+  // An instructor already has a «دوراتي» that means the courses they TEACH; the learner entry is named so the two are never mixed up.
+  const label = normalizeRole(roleRaw ?? null) === 'instructor' ? 'دوراتي كمتعلّم' : 'دوراتي'
+
+  const learner: SidebarNavGroup = { title: 'التعلّم', items: [{ label, href: LEARNER_COURSES_HREF, icon: BookOpen }] }
+  // A trailing «الحساب» group stays last, as it does for every other heading added to a menu.
+  const last = groups[groups.length - 1]
+  if (last?.title === 'الحساب') return [...groups.slice(0, -1), learner, last]
+
+  return [...groups, learner]
 }
 
 /** Role-specific sidebar navigation (Arabic RTL labels). */
-export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
+function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
   const n = normalizeRole(roleRaw ?? null)
 
   if (n === 'super_admin') return superMasterSidebar()
@@ -541,6 +605,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
+          { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
@@ -653,6 +718,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'طلبات الاحتياج الكادر',
         items: [
           { label: 'طلبات الإدارات الواردة (HR)', href: '/dashboard/hr/incoming-requests', icon: Inbox },
+          { label: 'فرص التطوع', href: '/dashboard/hr/opportunities', icon: Megaphone },
           { label: 'تقديم طلب احتیاج قسم HR (للإدارة العليا)', href: '/dashboard/hr/my-requests', icon: UserPlus },
         ],
       },
@@ -729,14 +795,102 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
       ...resourceCenterBlock(),
       ...communicationsBlock(n),
     ]
   }
 
-  if (n === 'department_manager') {
+  if (n === 'department_member') {
+    const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
     return [
-      { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
+      {
+        title: deptTitle,
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: Calendar },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+          membersNavItem(),
+        ],
+      },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
+      ...resourceCenterBlock({ collapsible: true }),
+      ...communicationsBlock(n),
+    ]
+  }
+
+  if (n === 'department_manager') {
+    const DEPT_SLUG_MAP: Record<string, string> = {
+      finance: 'finance_manager',
+      'human-resources': 'hr_manager',
+      'marketing-media': 'marketing_manager',
+      'quality-governance': 'quality_manager',
+      'programs-tracks': 'programs_manager',
+      operations: 'operations_manager',
+      'ai-transformation': 'ai_manager',
+      'community-health': 'community_manager',
+      partnerships: 'partnerships_manager',
+      'strategy-planning': 'strategy_planning_manager',
+      'digital-ambassadors': 'digital_ambassadors_manager',
+      advisors: 'advisors_manager',
+      'executive-management': 'executive_admin',
+      technology: 'tech_admin',
+    }
+    const DEPT_NAME_MAP: Record<string, string> = {
+      'الإدارة المالية': 'finance_manager',
+      'إدارة الموارد البشرية والشؤون القانونية': 'hr_manager',
+      'إدارة الموارد البشرية': 'hr_manager',
+      'إدارة الإعلام والتسويق': 'marketing_manager',
+      'إدارة التسويق': 'marketing_manager',
+      'إدارة الجودة والحوكمة': 'quality_manager',
+      'إدارة الجودة': 'quality_manager',
+      'إدارة البرامج والمسارات': 'programs_manager',
+      'إدارة العمليات والتشغيل': 'operations_manager',
+      'إدارة الذكاء الاصطناعي والتحول الرقمي': 'ai_manager',
+      'إدارة الذكاء الاصطناعي': 'ai_manager',
+      'إدارة الصحة النفسية والوعي': 'community_manager',
+      'إدارة الشراكات والعلاقات العامة': 'partnerships_manager',
+      'إدارة الشراكات': 'partnerships_manager',
+      'إدارة الاستراتيجية والتخطيط المؤسسي': 'strategy_planning_manager',
+      'إدارة سفراء التحول الرقمي': 'digital_ambassadors_manager',
+      'إدارة الاستشارات والمستشارين': 'advisors_manager',
+      'الإدارة العليا': 'executive_admin',
+      'إدارة التقنية والدعم الفني': 'tech_admin',
+    }
+
+    const spec =
+      ctx?.specializedRole ||
+      (ctx?.departmentSlug ? DEPT_SLUG_MAP[ctx.departmentSlug] : null) ||
+      (ctx?.departmentName ? DEPT_NAME_MAP[ctx.departmentName] : null)
+
+    if (spec && spec !== 'department_manager') {
+      const specializedGroups = roleSidebar(spec, ctx)
+      const hasStructure = specializedGroups.some((g) =>
+        g.items.some((i) => i.href === '/dashboard/department/structure')
+      )
+      if (!hasStructure) {
+        const leadershipGroup: SidebarNavGroup = {
+          title: 'إدارة الفريق والهيكلة',
+          collapsible: true,
+          defaultOpen: false,
+          items: [
+            { label: 'الهيكلة والتسكين الإداري', href: '/dashboard/department/structure', icon: FolderTree },
+            { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
+            { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
+            membersNavItem(),
+          ],
+        }
+        return [specializedGroups[0], leadershipGroup, ...specializedGroups.slice(1)]
+      }
+      return specializedGroups
+    }
+
+    const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
+    return [
+      { items: [{ label: deptTitle, href: '/dashboard/department', icon: Building2 }] },
       {
         title: 'التعلّم والبرامج والطلبات',
         items: [
@@ -748,13 +902,16 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       {
-        title: 'إدارة الموظفين',
+        title: 'إدارة الفريق والهيكلة',
         items: [
+          { label: 'الهيكلة والتسكين الإداري', href: '/dashboard/department/structure', icon: FolderTree },
           { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
-          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: Calendar },
           membersNavItem(),
         ]
       },
+      ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
       ...communicationsBlock(n),
     ]
   }
@@ -957,6 +1114,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
           { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
           { label: 'طلبات انضمام الخبراء',  href: '/dashboard/admin/ai/expert-applications', icon: UserPlus     },
+          { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications', icon: GraduationCap  },
         ],
       },
       {

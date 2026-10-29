@@ -89,6 +89,18 @@ function firstValidationMessage(errors: unknown): string | null {
 }
 
 /** Parses Laravel / common JSON error bodies into a single Arabic-oriented message. */
+/** The code the server answers with when an instructor tries to enroll in a course, workshop or path they teach. */
+export const INSTRUCTOR_CONFLICT_CODE = 'instructor_teaches_program'
+
+/** The server's Arabic explanation when the account teaches the program it tried to join; null for any other failure. */
+export function getInstructorConflictMessage(error: unknown): string | null {
+  if (!axios.isAxiosError(error) || error.response?.status !== 403) return null
+  const data = error.response.data as Record<string, unknown> | undefined
+  if (data?.code !== INSTRUCTOR_CONFLICT_CODE) return null
+
+  return typeof data.message_ar === 'string' && data.message_ar.trim() ? data.message_ar.trim() : getApiErrorMessage(error)
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) {
     if (error instanceof Error && error.message) return error.message

@@ -38,7 +38,7 @@ function deliveryLabelAr(course: CourseItem): string {
  *  One hairline seat below, hover = paper tint + sliding sky bar; the ONLY box-like element is
  *  the money action «سجل الآن». */
 function CourseCard({ course, index = 0 }: CourseCardProps) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   const imgSrc = course.thumbnail
@@ -142,7 +142,6 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
                   if (registerDisabled) return
                   gatePublicEnrollClick({
                     isAuthenticated,
-                    role: user?.role,
                     redirectPath: buildCourseDetailEnrollHref(course.slug),
                     navigate,
                     // In-context QuickJoin: guests get the 3-field modal instead of leaving the page.
@@ -154,7 +153,7 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
                       id: course.id,
                       price: typeof course.price === 'number' ? course.price : undefined,
                     },
-                    onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
+                    onLearner: () => navigate(buildCourseDetailEnrollHref(course.slug)),
                   })
                 }}
                 className={`rounded-xl px-4 py-2.5 text-sm font-black transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-1 ${

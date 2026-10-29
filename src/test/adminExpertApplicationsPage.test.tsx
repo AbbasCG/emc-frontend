@@ -87,7 +87,7 @@ describe('AdminExpertApplicationsPage', () => {
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: /عرض/ }))
 
-    const dialog = await screen.findByRole('dialog', { name: 'تفاصيل الطلب' })
+    const dialog = await screen.findByRole('dialog')
     expect(await within(dialog).findByText('مهندسة بيانات')).toBeInTheDocument()
     expect(within(dialog).getByText('المسمى الوظيفي')).toBeInTheDocument()
     expect(within(dialog).getByText('NLP')).toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('AdminExpertApplicationsPage', () => {
   it('offers review, approve and reject for a new application and applies the choice', async () => {
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: /عرض/ }))
-    const dialog = await screen.findByRole('dialog', { name: 'تفاصيل الطلب' })
+    const dialog = await screen.findByRole('dialog')
     await within(dialog).findByText('مهندسة بيانات')
 
     expect(within(dialog).getByRole('button', { name: 'بدء المراجعة' })).toBeInTheDocument()
@@ -112,7 +112,7 @@ describe('AdminExpertApplicationsPage', () => {
     mockShow.mockResolvedValue({ ...row({ status: 'rejected' }), job_title: 'x' })
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: /عرض/ }))
-    const dialog = await screen.findByRole('dialog', { name: 'تفاصيل الطلب' })
+    const dialog = await screen.findByRole('dialog')
 
     expect(await within(dialog).findByText('تم البت في هذا الطلب — القرار نهائي.')).toBeInTheDocument()
     expect(within(dialog).queryByRole('button', { name: 'قبول الطلب' })).not.toBeInTheDocument()

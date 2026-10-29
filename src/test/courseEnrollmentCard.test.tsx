@@ -6,7 +6,6 @@ import { MemoryRouter } from 'react-router'
 import { AxiosError } from 'axios'
 import CourseEnrollmentCard from '@/components/enrollment/CourseEnrollmentCard'
 import { ENDED_COURSE_DETAIL_MESSAGE } from '@/utils/courseEnded'
-import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import type { Course, User } from '@/types'
 import { axeCheck } from './axe'
 
@@ -326,22 +325,37 @@ describe('CourseEnrollmentCard — ended course', () => {
   })
 })
 
-/* ── non-student roles ─────────────────────────────────────────────── */
+/* ── every role may enrol ──────────────────────────────────────────── */
 
-describe('CourseEnrollmentCard — signed-in non-student', () => {
-  it('tells an instructor that only students may enrol and hides the action', async () => {
+describe('CourseEnrollmentCard — learning is not a role', () => {
+  it.each(['instructor', 'super_admin', 'tech_admin', 'volunteer', 'partner', 'finance_manager', 'a_role_added_later'])(
+    'offers the enrol action to a signed-in %s and enrols them',
+    async (role) => {
+      const user = userEvent.setup()
+      mockSubmitCourseRegistration.mockResolvedValue({ success: true })
+      signInAsStudent(studentUser({ role }))
+      renderCard()
+
+      await user.click(await screen.findByRole('button', { name: /الالتحاق بالدورة/ }))
+
+      await waitFor(() => expect(mockSubmitCourseRegistration).toHaveBeenCalledTimes(1))
+      expect(screen.queryByText(/ليس حساب طالب|للطلاب فقط|كطالب/)).not.toBeInTheDocument()
+    },
+  )
+
+  it("shows the server's Arabic message when the account teaches this course, and does not claim success", async () => {
+    const user = userEvent.setup()
+    const message = 'لا يمكنك التسجيل في دورة أنت المدرّب المسؤول عنها.'
+    mockSubmitCourseRegistration.mockRejectedValue(
+      axiosErr(403, { success: false, code: 'instructor_teaches_program', message, message_ar: message }),
+    )
     signInAsStudent(studentUser({ role: 'instructor' }))
     renderCard()
 
-    expect(await screen.findByText(PUBLIC_ENROLL_STUDENT_ONLY_MSG)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /الالتحاق بالدورة/ })).not.toBeInTheDocument()
-  })
+    await user.click(await screen.findByRole('button', { name: /الالتحاق بالدورة/ }))
 
-  it('applies the same gate to an admin', async () => {
-    signInAsStudent(studentUser({ role: 'super_admin' }))
-    renderCard()
-
-    expect(await screen.findByText(PUBLIC_ENROLL_STUDENT_ONLY_MSG)).toBeInTheDocument()
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(screen.queryByText('تم التسجيل بنجاح')).not.toBeInTheDocument()
   })
 })
 

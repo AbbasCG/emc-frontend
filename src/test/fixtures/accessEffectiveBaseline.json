@@ -1925,13 +1925,13 @@
                 "/dashboard/student/my-certificates",
                 "/dashboard/learning"
             ],
-            "label_ar": "مساحة الطالب التعليمية",
+            "label_ar": "مساحة التعلّم (دوراتي)",
             "category": "personal",
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
             "department_scoped": false,
-            "authenticated_baseline": false
+            "authenticated_baseline": true
         },
         {
             "key": "personal.instructor_workspace",
@@ -2553,7 +2553,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2561,7 +2562,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "executive_admin__none": {
@@ -2574,7 +2576,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2582,7 +2585,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__none": {
@@ -2595,7 +2599,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2603,7 +2608,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "programs_manager__none": {
@@ -2616,7 +2622,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2624,7 +2631,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "finance_manager__none": {
@@ -2637,7 +2645,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2645,7 +2654,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "quality_manager__none": {
@@ -2658,7 +2668,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2666,7 +2677,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "hr_manager__none": {
@@ -2679,7 +2691,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2687,7 +2700,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "marketing_manager__none": {
@@ -2700,7 +2714,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2708,7 +2723,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "partnerships_manager__none": {
@@ -2721,7 +2737,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2729,7 +2746,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "community_manager__none": {
@@ -2742,7 +2760,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2750,7 +2769,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "support_agent__none": {
@@ -2763,7 +2783,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2771,7 +2792,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "instructor__none": {
@@ -2784,7 +2806,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2792,7 +2815,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "student__none": {
@@ -2805,7 +2829,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2813,7 +2838,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "partner__none": {
@@ -2826,7 +2852,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2834,7 +2861,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "volunteer__none": {
@@ -2847,7 +2875,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2855,7 +2884,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "department_manager__none": {
@@ -2868,7 +2898,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2876,7 +2907,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "section_lead__none": {
@@ -2889,7 +2921,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2897,7 +2930,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "ai_manager__none": {
@@ -2910,7 +2944,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2918,7 +2953,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "strategy_planning_manager__none": {
@@ -2931,7 +2967,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2939,7 +2976,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "digital_ambassadors_manager__none": {
@@ -2952,7 +2990,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2960,7 +2999,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "advisors_manager__none": {
@@ -2973,7 +3013,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -2981,7 +3022,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__member": {
@@ -2994,7 +3036,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3002,7 +3045,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__leader": {
@@ -3015,7 +3059,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3023,7 +3068,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "programs_manager__member": {
@@ -3036,7 +3082,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3044,7 +3091,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "programs_manager__leader": {
@@ -3057,7 +3105,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3065,7 +3114,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "department_manager__member": {
@@ -3078,7 +3128,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3086,7 +3137,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "department_manager__leader": {
@@ -3099,7 +3151,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3107,7 +3160,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "ai_manager__member": {
@@ -3120,7 +3174,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3128,7 +3183,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "ai_manager__leader": {
@@ -3141,7 +3197,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3149,7 +3206,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "strategy_planning_manager__member": {
@@ -3162,7 +3220,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3170,7 +3229,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "strategy_planning_manager__leader": {
@@ -3183,7 +3243,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3191,7 +3252,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "quality_manager__member": {
@@ -3204,7 +3266,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3212,7 +3275,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "quality_manager__leader": {
@@ -3225,7 +3289,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3233,7 +3298,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "volunteer__member": {
@@ -3246,7 +3312,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3254,7 +3321,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "volunteer__leader": {
@@ -3267,7 +3335,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3275,7 +3344,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             }
         },
@@ -3840,7 +3910,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3848,7 +3919,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "executive_admin__none": {
@@ -3861,7 +3933,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3869,7 +3942,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "finance_manager__none": {
@@ -3884,7 +3958,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
@@ -3894,7 +3969,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "quality_manager__none": {
@@ -3909,7 +3985,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
@@ -3919,7 +3996,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "instructor__none": {
@@ -3933,7 +4011,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
@@ -3942,7 +4021,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "student__none": {
@@ -3955,7 +4035,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3963,7 +4044,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "partner__none": {
@@ -3976,7 +4058,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -3984,7 +4067,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "support_agent__none": {
@@ -3997,7 +4081,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -4005,7 +4090,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "hr_manager__none": {
@@ -4018,7 +4104,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -4026,7 +4113,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__none": {
@@ -4039,7 +4127,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -4047,7 +4136,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__member": {
@@ -4061,7 +4151,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.meeting_reports": "department_member",
@@ -4070,7 +4161,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "operations_manager__leader": {
@@ -4085,7 +4177,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.meeting_reports": "department_member",
@@ -4095,7 +4188,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "ai_manager__leader": {
@@ -4111,7 +4205,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.meeting_reports": "department_member",
@@ -4122,7 +4217,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "volunteer__override_allow": {
@@ -4137,7 +4233,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
@@ -4147,7 +4244,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             },
             "volunteer__override_deny": {
@@ -4160,7 +4258,8 @@
                     "personal.profile",
                     "personal.notifications",
                     "personal.notification_preferences",
-                    "personal.volunteer_hr_profile"
+                    "personal.volunteer_hr_profile",
+                    "personal.student_learning"
                 ],
                 "provenance": {
                     "operations.tickets": "authenticated_baseline",
@@ -4168,7 +4267,8 @@
                     "personal.profile": "authenticated_baseline",
                     "personal.notifications": "authenticated_baseline",
                     "personal.notification_preferences": "authenticated_baseline",
-                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                    "personal.volunteer_hr_profile": "authenticated_baseline",
+                    "personal.student_learning": "authenticated_baseline"
                 }
             }
         }

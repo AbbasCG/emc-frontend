@@ -29,7 +29,7 @@ export function roleHasCapabilitySlug(roleSlug: string, cap: CapabilityId): bool
     return ['super_admin', 'tech_admin', 'executive_admin', 'admin', 'instructor', 'quality_manager', 'student', 'programs_manager'].includes(r)
   if (cap === 'finance') return ['super_admin', 'tech_admin', 'executive_admin', 'finance_manager'].includes(r)
   if (cap === 'people')
-    return ['super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'department_manager', 'operations_manager', 'community_manager'].includes(r)
+    return ['super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'department_manager', 'department_member', 'operations_manager', 'community_manager'].includes(r)
   if (cap === 'growth')
     return ['super_admin', 'tech_admin', 'executive_admin', 'marketing_manager', 'support_agent', 'partner', 'volunteer', 'partnerships_manager', 'community_manager'].includes(
       r,

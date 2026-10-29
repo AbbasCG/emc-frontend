@@ -68,7 +68,7 @@ export default function PartnerCrmModal({ isOpen, onClose, onSuccess, editingPar
       onSuccess()
       onClose()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
     } finally {
       setSubmitting(false)
     }

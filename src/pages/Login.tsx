@@ -228,51 +228,7 @@ export default function Login() {
               </motion.button>
             </form>
 
-            {/* Demo quick-fill chips — DEV ONLY. Demo credentials must never render on a production login page. */}
-            {import.meta.env.DEV && (
-            <div className="mt-6 rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                تسجيل الدخول السريع التجريبي (Demo Accounts):
-              </span>
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => { setEmail('superadmin@emc.test'); setPassword('password'); }}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue transition hover:border-customBlue hover:bg-sky-50"
-                >
-                  👑 سوبر أدمن
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEmail('admin@emc.test'); setPassword('password'); }}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue transition hover:border-customBlue hover:bg-sky-50"
-                >
-                  ⚡ أدمن المنصة
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEmail('student@emc.test'); setPassword('password'); }}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue transition hover:border-customBlue hover:bg-sky-50"
-                >
-                  🎓 طالب
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEmail('instructor@emc.test'); setPassword('password'); }}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue transition hover:border-customBlue hover:bg-sky-50"
-                >
-                  👨‍🏫 مدرب
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEmail('finance@emc.test'); setPassword('password'); }}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue transition hover:border-customBlue hover:bg-sky-50"
-                >
-                  💳 المالية
-                </button>
-              </div>
-            </div>
-            )}
+
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
               {t('auth.login.noAccount')}{' '}
