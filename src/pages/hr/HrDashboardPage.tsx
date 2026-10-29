@@ -271,6 +271,7 @@ export default function HrDashboardPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-sm font-black text-[#0C2A4B]">الإجراءات السريعة</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <QuickAction label="اعتماد نقاط المتطوعين"   href="/dashboard/hr/volunteer-points-approval" icon={Award}           accent="bg-sky-100 text-[#0077B6]"     />
             <QuickAction label="مراجعة طلبات التطوع"     href="/dashboard/hr/volunteer-requests" icon={HeartHandshake}  accent="bg-amber-100 text-amber-700"   />
             <QuickAction label="عرض المتطوعين المقبولين"  href="/dashboard/volunteer"             icon={CheckCircle2}    accent="bg-emerald-100 text-emerald-700" />
             <QuickAction label="إدارة المدربين"           href="/dashboard/hr/instructors"        icon={GraduationCap}   accent="bg-indigo-100 text-indigo-700"  />

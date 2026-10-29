@@ -3,6 +3,7 @@ import apiClient from './axios'
 import { unwrapData } from './unwrap'
 import { getApiErrorMessage, getLaravelFieldErrors, translateLaravelFieldMessage } from './apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
+import { isSpecializedManagerRole, getSpecializedRoleForDepartment } from '@/pages/super-admin/users/assignableRoles'
 
 const silent = { skipErrorToast: true as const }
 
@@ -425,16 +426,48 @@ export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUser
   }
 }
 
-function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQuery): AdminManagedUser[] {
+export function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQuery): AdminManagedUser[] {
   const search = q.search?.trim().toLowerCase() ?? ''
   return users.filter((u) => {
-    if (q.role && q.role !== 'all' && normalizeRole(u.role) !== q.role) return false
+    if (q.role && q.role !== 'all') {
+      const uRole = normalizeRole(u.role)
+      if (q.role === 'department_manager') {
+        const isMgr = uRole === 'department_manager' || isSpecializedManagerRole(u.role)
+        if (!isMgr) return false
+      } else if (q.role === 'instructor') {
+        if (uRole !== 'instructor' && uRole !== 'teacher') return false
+      } else if (uRole !== q.role) {
+        return false
+      }
+    }
+
     if (q.status === 'active' && (u.is_active === false || u.deleted_at)) return false
     if (q.status === 'inactive' && (u.is_active !== false || u.deleted_at)) return false
     if (q.status === 'deleted' && !u.deleted_at) return false
-    if (q.department && q.department !== 'all' && (u.department?.trim() ?? '') !== q.department) return false
+
+    if (q.department && q.department !== 'all') {
+      const uDept = (u.department?.trim() ?? '').toLowerCase()
+      const qDept = q.department.trim().toLowerCase()
+      const cleanQDept = qDept.replace(/^إدارة\s+/i, '').trim()
+      const cleanUDept = uDept.replace(/^إدارة\s+/i, '').trim()
+
+      const matchDept =
+        uDept === qDept ||
+        (cleanQDept && cleanUDept === cleanQDept) ||
+        (cleanQDept && cleanUDept.includes(cleanQDept)) ||
+        (cleanUDept && cleanQDept.includes(cleanUDept)) ||
+        (qDept && uDept.includes(qDept)) ||
+        (uDept && qDept.includes(uDept))
+
+      const specRole = getSpecializedRoleForDepartment(q.department)
+      const matchRole = specRole && normalizeRole(u.role) === specRole
+
+      if (!matchDept && !matchRole) return false
+    }
+
     if (q.verified === 'verified' && !u.email_verified_at) return false
     if (q.verified === 'unverified' && u.email_verified_at) return false
+
     if (!search) return true
     const hay = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
     return hay.includes(search)

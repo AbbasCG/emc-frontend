@@ -145,13 +145,13 @@ describe('getAllowedRolesForPath — مساحات المديرين الدقيق�
 
   it('اعتماد البرامج المالية مشترك بينما بقية مساحة المالية حصرية', () => {
     expect(getAllowedRolesForPath('/dashboard/finance/program-approvals')).toContain('admin')
-    expect(getAllowedRolesForPath('/dashboard/finance/reports')).toEqual(['finance_manager'])
+    expect(getAllowedRolesForPath('/dashboard/finance/reports')).toEqual(['finance_manager', 'department_manager'])
   })
 
   it('الطلبات المالية للأقسام متاحة لأي مستخدم مسجّل (القيد على الخادم)', () => {
     expect(getAllowedRolesForPath('/dashboard/department/financial-requests')).toBe('authenticated')
     expect(getAllowedRolesForPath('/dashboard/department/financial-requests/4')).toBe('authenticated')
-    expect(getAllowedRolesForPath('/dashboard/department/teams')).toEqual(['department_manager'])
+    expect(getAllowedRolesForPath('/dashboard/department/teams')).toEqual(['department_manager', 'department_member'])
   })
 
   it('يفرّق بين إدارة المتطوعين ولوحة المتطوّع نفسه', () => {

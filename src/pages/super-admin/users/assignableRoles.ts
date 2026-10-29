@@ -41,10 +41,111 @@ export const ASSIGNABLE_CANONICAL_ROLES = [
   'support_agent',
 ] as const
 
+export const ALL_SPECIALIZED_MANAGER_ROLES = [
+  'hr_manager',
+  'finance_manager',
+  'programs_manager',
+  'operations_manager',
+  'marketing_manager',
+  'partnerships_manager',
+  'quality_manager',
+  'community_manager',
+  'tech_admin',
+  'ai_manager',
+  'strategy_planning_manager',
+  'digital_ambassadors_manager',
+  'advisors_manager',
+  'executive_admin',
+] as const
+
+export function isSpecializedManagerRole(role?: string | null): boolean {
+  if (!role) return false
+  return (
+    role === 'department_manager' ||
+    (ALL_SPECIALIZED_MANAGER_ROLES as readonly string[]).includes(role)
+  )
+}
+
+export const DEPARTMENT_SPECIALIZED_ROLES_MAP: Record<string, string> = {
+  'human-resources': 'hr_manager',
+  'finance': 'finance_manager',
+  'programs-tracks': 'programs_manager',
+  'operations': 'operations_manager',
+  'marketing-media': 'marketing_manager',
+  'partnerships': 'partnerships_manager',
+  'quality-governance': 'quality_manager',
+  'community-health': 'community_manager',
+  'technology': 'tech_admin',
+  'ai-digital-transformation': 'ai_manager',
+  'ai-transformation': 'ai_manager',
+  'strategy-planning': 'strategy_planning_manager',
+  'digital-ambassadors': 'digital_ambassadors_manager',
+  'advisors': 'advisors_manager',
+  'executive-management': 'executive_admin',
+}
+
+export const DEPARTMENT_NAME_TO_SPECIALIZED_ROLE: Record<string, string> = {
+  'إدارة الموارد البشرية': 'hr_manager',
+  'إدارة الموارد البشرية والشؤون القانونية': 'hr_manager',
+  'الإدارة المالية': 'finance_manager',
+  'إدارة البرامج والمسارات': 'programs_manager',
+  'إدارة التشغيل والعمليات': 'operations_manager',
+  'إدارة العمليات والتشغيل': 'operations_manager',
+  'إدارة الإعلام والتسويق': 'marketing_manager',
+  'إدارة التسويق والإعلام': 'marketing_manager',
+  'إدارة التسويق': 'marketing_manager',
+  'إدارة الشراكات والعلاقات العامة': 'partnerships_manager',
+  'إدارة الشراكات والعلاقات': 'partnerships_manager',
+  'إدارة الشراكات': 'partnerships_manager',
+  'إدارة الجودة والحوكمة': 'quality_manager',
+  'إدارة الجودة': 'quality_manager',
+  'إدارة المجتمع والصحة النفسية والوعي': 'community_manager',
+  'إدارة المجتمع والصحة': 'community_manager',
+  'إدارة الصحة النفسية والوعي': 'community_manager',
+  'إدارة التقنية والدعم الفني': 'tech_admin',
+  'إدارة التقنية': 'tech_admin',
+  'إدارة الذكاء الاصطناعي والتحول الرقمي': 'ai_manager',
+  'إدارة الذكاء الاصطناعي': 'ai_manager',
+  'إدارة الاستراتيجية والتخطيط المؤسسي': 'strategy_planning_manager',
+  'إدارة سفراء التحول الرقمي': 'digital_ambassadors_manager',
+  'إدارة الاستشارات والمستشارين': 'advisors_manager',
+  'الإدارة العليا': 'executive_admin',
+}
+
+export function getSpecializedRoleForDepartment(
+  dept?: { id?: number | string; slug?: string; name_ar?: string; name?: string } | string | null,
+): { role: string; labelAr: string } | null {
+  if (!dept) return null
+  let roleSlug: string | null = null
+  if (typeof dept === 'string') {
+    const trimmed = dept.trim()
+    roleSlug = DEPARTMENT_NAME_TO_SPECIALIZED_ROLE[trimmed] || DEPARTMENT_SPECIALIZED_ROLES_MAP[trimmed] || null
+  } else {
+    if (dept.slug && DEPARTMENT_SPECIALIZED_ROLES_MAP[dept.slug]) {
+      roleSlug = DEPARTMENT_SPECIALIZED_ROLES_MAP[dept.slug]
+    } else {
+      const name = (dept.name_ar || dept.name || '').trim()
+      roleSlug = DEPARTMENT_NAME_TO_SPECIALIZED_ROLE[name] || null
+    }
+  }
+  if (!roleSlug) return null
+  return {
+    role: roleSlug,
+    labelAr: ROLE_LABEL_AR[roleSlug as (typeof EMC_DASHBOARD_ROLES)[number]] ?? roleSlug,
+  }
+}
+
 export type AssignableRoleOption = { value: string; labelAr: string }
 
-export function getAssignableRoleOptions(includeSuperAdmin: boolean): AssignableRoleOption[] {
-  return ASSIGNABLE_CANONICAL_ROLES.filter((r) => includeSuperAdmin || r !== 'super_admin').map((value) => ({
+export function getAssignableRoleOptions(
+  includeSuperAdmin: boolean,
+  extraCurrentRole?: string | null,
+): AssignableRoleOption[] {
+  const allowed = ASSIGNABLE_CANONICAL_ROLES.filter((r) => includeSuperAdmin || r !== 'super_admin') as string[]
+  if (extraCurrentRole && !allowed.includes(extraCurrentRole)) {
+    allowed.push(extraCurrentRole)
+  }
+  return allowed.map((value) => ({
     value,
     labelAr: ROLE_LABEL_AR[value as (typeof EMC_DASHBOARD_ROLES)[number]] ?? value,
   }))

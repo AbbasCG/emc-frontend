@@ -289,6 +289,7 @@ const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
 const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
 const HrMyRequestsPage       = lazy(() => import('./pages/hr/HrMyRequestsPage'))
 const HrIncomingRequestsPage = lazy(() => import('./pages/hr/HrIncomingRequestsPage'))
+const HrVolunteerPointsApprovalPage = lazy(() => import('./pages/hr/HrVolunteerPointsApprovalPage'))
 
 // ── Lazy: workshop request workflow ──────────────────────────────────────────
 const WorkshopRequestsPage        = lazy(() => import('./pages/WorkshopRequestsPage'))
@@ -674,6 +675,7 @@ function App() {
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
                   <Route path="/dashboard/hr/my-requests" element={<HrMyRequestsPage />} />
                   <Route path="/dashboard/hr/incoming-requests" element={<HrIncomingRequestsPage />} />
+                  <Route path="/dashboard/hr/volunteer-points-approval" element={<Suspense fallback={<RouteFallback />}><HrVolunteerPointsApprovalPage /></Suspense>} />
                   <Route path="/dashboard/hr/opportunities" element={<Suspense fallback={<RouteFallback />}><HrOpportunitiesPage /></Suspense>} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />

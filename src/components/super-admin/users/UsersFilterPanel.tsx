@@ -48,18 +48,26 @@ export function UsersFilterPanel({
       sticky
       searchValue={query}
       onSearchChange={onQueryChange}
-      searchPlaceholder="بحث بالاسم، البريد، الجوال، المعرّف، الدور، الإدارة…"
+      searchPlaceholder="بحث سريع بالاسم، البريد…"
+      searchClassName="w-full sm:w-44 md:w-52 lg:w-56 shrink-0"
       innerClassName="rounded-3xl border-slate-200/90 shadow-[0_8px_32px_-12px_rgba(12,42,75,0.12)]"
     >
-      <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70">
+      <div className="flex w-full flex-col gap-2.5 lg:w-auto lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70 shrink-0">
           <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
             <Filter className="h-3.5 w-3.5" aria-hidden />
           </span>
-          <span>تصفية النتائج</span>
+          <span className="hidden sm:inline">تصفية</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MiniSelect label="الدور" value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} />
+          <MiniSelect
+            label="الإدارة"
+            value={departmentFilter}
+            onChange={onDepartmentFilterChange}
+            options={departmentOptions}
+            className="max-w-[11rem]"
+          />
           <MiniSelect
             label="الحالة"
             value={statusFilter}
@@ -80,12 +88,6 @@ export function UsersFilterPanel({
               { value: 'verified', labelAr: 'موثّق' },
               { value: 'unverified', labelAr: 'غير موثّق' },
             ]}
-          />
-          <MiniSelect
-            label="الإدارة"
-            value={departmentFilter}
-            onChange={onDepartmentFilterChange}
-            options={departmentOptions}
           />
           <MiniSelect
             label="تاريخ الانضمام"

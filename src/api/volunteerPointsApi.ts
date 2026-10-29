@@ -262,3 +262,177 @@ export async function adjustMemberPoints(
   const res = await apiClient.post<unknown>(`/operations/volunteer-points/users/${userId}/adjust`, input)
   return unwrapData(res.data)
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// New Workflow: الأنشطة ونظام طلبات واعتماد النقاط
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type PointActivity = {
+  id: number
+  category_key: string
+  category_name_ar: string
+  name_ar: string
+  type: 'fixed' | 'range'
+  points_min: number
+  points_max: number
+  description_ar: string | null
+  requires_attachment: boolean
+  monthly_cap: number | null
+}
+
+export type PointCategoryGroup = {
+  key: string
+  name_ar: string
+  activities: PointActivity[]
+}
+
+export type PointRequestItem = {
+  id: number
+  user_id: number
+  department_id: number | null
+  requester_id: number
+  activity_id: number | null
+  category_key: string
+  activity_name: string
+  points_requested: number
+  points_approved: number | null
+  reason: string
+  attachment_path: string | null
+  attachment_name: string | null
+  status: 'pending' | 'approved' | 'rejected' | 'revision'
+  reviewer_id: number | null
+  reviewed_at: string | null
+  review_notes: string | null
+  rejection_reason: string | null
+  award_id: number | null
+  created_at: string
+  user?: { id: number; name: string; role?: string | null }
+  department?: { id: number; name: string } | null
+  requester?: { id: number; name: string }
+  reviewer?: { id: number; name: string } | null
+  activity?: PointActivity | null
+}
+
+export type PointRequestDetailResponse = {
+  data: PointRequestItem
+  volunteer_summary: {
+    lifetime_points: number
+    available_points: number
+    month_points: number
+    level: PointsLevel
+    monthly_cap_left: number
+  }
+  attachment_url: string | null
+}
+
+/** GET /operations/volunteer-points/activities — جلب التصنيفات والأنشطة */
+export async function fetchPointsActivities(): Promise<{
+  categories: PointCategoryGroup[]
+  activities: PointActivity[]
+}> {
+  const res = await apiClient.get<unknown>('/operations/volunteer-points/activities')
+  const body = unwrapData<{ categories: PointCategoryGroup[]; activities: PointActivity[] }>(res.data)
+  return body
+}
+
+/** POST /operations/volunteer-points/requests — إرسال طلب منح نقاط للاعتماد */
+export async function submitPointsRequest(formData: FormData): Promise<{
+  message: string
+  data: PointRequestItem
+}> {
+  const res = await apiClient.post<unknown>('/operations/volunteer-points/requests', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return (res.data as { message: string; data: PointRequestItem }) ?? { message: 'تم إرسال الطلب للاعتماد', data: unwrapData<PointRequestItem>(res.data) }
+}
+
+export type PointsRequestsQuery = {
+  status?: string
+  department_id?: number
+  user_id?: number
+  category_key?: string
+  search?: string
+  page?: number
+  per_page?: number
+}
+
+export type PointsRequestsPage = {
+  rows: PointRequestItem[]
+  total: number
+  perPage: number
+  currentPage: number
+  lastPage: number
+  stats: {
+    pending: number
+    approved: number
+    rejected: number
+  }
+  capabilities: {
+    can_approve: boolean
+  }
+}
+
+/** GET /operations/volunteer-points/requests — استرجاع طلبات النقاط */
+export async function fetchPointsRequests(query: PointsRequestsQuery = {}): Promise<PointsRequestsPage> {
+  const params: Record<string, string | number> = {}
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== '') params[key] = value
+  }
+
+  const res = await apiClient.get<{
+    data?: PointRequestItem[]
+    meta?: {
+      total: number
+      per_page: number
+      current_page: number
+      last_page: number
+      stats: { pending: number; approved: number; rejected: number }
+    }
+    capabilities?: { can_approve: boolean }
+  }>('/operations/volunteer-points/requests', { params })
+
+  const body = res.data
+  return {
+    rows: body.data ?? [],
+    total: body.meta?.total ?? 0,
+    perPage: body.meta?.per_page ?? 20,
+    currentPage: body.meta?.current_page ?? 1,
+    lastPage: body.meta?.last_page ?? 1,
+    stats: body.meta?.stats ?? { pending: 0, approved: 0, rejected: 0 },
+    capabilities: body.capabilities ?? { can_approve: false },
+  }
+}
+
+/** GET /operations/volunteer-points/requests/{id} — تفاصيل طلب الاعتماد */
+export async function fetchPointsRequestDetail(id: number): Promise<PointRequestDetailResponse> {
+  const res = await apiClient.get<PointRequestDetailResponse>(`/operations/volunteer-points/requests/${id}`)
+  return res.data
+}
+
+/** POST /operations/volunteer-points/requests/{id}/approve — اعتماد طلب النقاط */
+export async function approvePointsRequest(
+  id: number,
+  payload?: { approved_points?: number; review_notes?: string },
+): Promise<{ message: string; data: { request: PointRequestItem } }> {
+  const res = await apiClient.post<unknown>(`/operations/volunteer-points/requests/${id}/approve`, payload ?? {})
+  return res.data as { message: string; data: { request: PointRequestItem } }
+}
+
+/** POST /operations/volunteer-points/requests/{id}/reject — رفض طلب النقاط */
+export async function rejectPointsRequest(
+  id: number,
+  rejection_reason: string,
+): Promise<{ message: string; data: PointRequestItem }> {
+  const res = await apiClient.post<unknown>(`/operations/volunteer-points/requests/${id}/reject`, { rejection_reason })
+  return res.data as { message: string; data: PointRequestItem }
+}
+
+/** POST /operations/volunteer-points/requests/{id}/revision — إعادة الطلب للتعديل */
+export async function returnPointsRequestForRevision(
+  id: number,
+  review_notes: string,
+): Promise<{ message: string; data: PointRequestItem }> {
+  const res = await apiClient.post<unknown>(`/operations/volunteer-points/requests/${id}/revision`, { review_notes })
+  return res.data as { message: string; data: PointRequestItem }
+}
+

@@ -14,7 +14,13 @@ import {
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import { adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS } from '@/pages/super-admin/users/assignableRoles'
+import {
+  adminRoleLabelAr,
+  DEFAULT_EMC_DEPARTMENTS,
+  getSpecializedRoleForDepartment,
+  isSpecializedManagerRole,
+} from '@/pages/super-admin/users/assignableRoles'
+import apiClient from '@/api/axios'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatDate, formatRelativeDate } from '@/utils/dateTime'
@@ -115,6 +121,52 @@ export function UserEditDrawer({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPw, setShowPw] = useState(false)
   const [showPwConf, setShowPwConf] = useState(false)
+
+  const isManagerRole = isSpecializedManagerRole(formRole)
+  const isMemberRole = formRole === 'department_member'
+  const isDeptRole = isManagerRole || isMemberRole
+
+  const [fetchedDeps, setFetchedDeps] = useState<{ id: number; name_ar?: string; name?: string; slug?: string }[]>([])
+  useEffect(() => {
+    let cancelled = false
+    apiClient
+      .get('/departments/options')
+      .then((res) => {
+        if (cancelled) return
+        const raw = res.data?.data ?? res.data
+        if (Array.isArray(raw) && raw.length > 0) {
+          setFetchedDeps(raw)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const activeDepartmentList =
+    departmentList && departmentList.length > 0 ? departmentList : fetchedDeps.length > 0 ? fetchedDeps : DEFAULT_EMC_DEPARTMENTS
+
+  // Auto-fill department if user is department_member and had previous department
+  useEffect(() => {
+    if (isMemberRole && !formDepartmentId && formDepartment) {
+      const matched = activeDepartmentList.find((d) => d.name_ar === formDepartment || d.name === formDepartment)
+      if (matched) {
+        onFormDepartmentId?.(String(matched.id))
+      }
+    }
+  }, [isMemberRole, formDepartmentId, formDepartment, activeDepartmentList, onFormDepartmentId])
+
+  const currentSelectedDept = useMemo(() => {
+    return activeDepartmentList.find(
+      (d) => String(d.id) === String(formDepartmentId) || d.name_ar === formDepartment || d.name === formDepartment,
+    )
+  }, [activeDepartmentList, formDepartmentId, formDepartment])
+
+  const specializedInfo = useMemo(() => {
+    if (!isManagerRole || !currentSelectedDept) return null
+    return getSpecializedRoleForDepartment(currentSelectedDept)
+  }, [isManagerRole, currentSelectedDept])
 
   // Clear the validation/reveal state during render when the drawer closes or points at
   // another user (react.dev "adjusting state when a prop changes") — every one of these
@@ -258,7 +310,7 @@ export function UserEditDrawer({
               <Field label="الجوال">
                 <input value={formPhone} onChange={(e) => onFormPhone(e.target.value)} className={INPUT} dir="ltr" />
               </Field>
-              {formRole !== 'department_manager' && formRole !== 'department_member' && (
+              {!isDeptRole && (
                 <Field label="القسم / الإدارة">
                   <input value={formDepartment} onChange={(e) => onFormDepartment(e.target.value)} className={INPUT} />
                 </Field>
@@ -277,18 +329,38 @@ export function UserEditDrawer({
 
           <Section title="الأدوار والصلاحيات" icon={ShieldCheck}>
             <Field label="الدور">
-              <select value={formRole} onChange={(e) => onFormRole(e.target.value)} className={INPUT}>
+              <select
+                value={formRole}
+                onChange={(e) => {
+                  const nextRole = e.target.value
+                  onFormRole(nextRole)
+                  if (nextRole === 'department_manager' && currentSelectedDept) {
+                    const spec = getSpecializedRoleForDepartment(currentSelectedDept)
+                    if (spec) onFormRole(spec.role)
+                  }
+                  if (nextRole === 'department_member' && !formDepartmentId && formDepartment) {
+                    const matched = activeDepartmentList.find((d) => d.name_ar === formDepartment || d.name === formDepartment)
+                    if (matched) onFormDepartmentId?.(String(matched.id))
+                  }
+                }}
+                className={INPUT}
+              >
                 {roleOptions.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.labelAr}
                   </option>
                 ))}
+                {!roleOptions.some((o) => o.value === formRole) && (
+                  <option value={formRole}>
+                    {adminRoleLabelAr(formRole)}
+                  </option>
+                )}
               </select>
             </Field>
 
-            {(formRole === 'department_manager' || formRole === 'department_member') && (
+            {isDeptRole && (
               <Field
-                label="الإدارة التابع لها"
+                label={isManagerRole ? 'الإدارة التي يديرها *' : 'الإدارة التابع لها *'}
                 error={!formDepartmentId && !formDepartment ? 'يرجى اختيار الإدارة المعنية' : undefined}
               >
                 <select
@@ -296,8 +368,15 @@ export function UserEditDrawer({
                   onChange={(e) => {
                     const id = e.target.value
                     onFormDepartmentId?.(id)
-                    const matched = departmentList?.find((d) => String(d.id) === id)
-                    onFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
+                    const matched = activeDepartmentList.find((d) => String(d.id) === id)
+                    const deptName = matched ? matched.name_ar || matched.name || '' : ''
+                    onFormDepartment(deptName)
+                    if (isManagerRole && matched) {
+                      const spec = getSpecializedRoleForDepartment(matched)
+                      if (spec) {
+                        onFormRole(spec.role)
+                      }
+                    }
                   }}
                   className={cn(
                     INPUT,
@@ -305,13 +384,37 @@ export function UserEditDrawer({
                   )}
                 >
                   <option value="">-- اختر الإدارة المعنية --</option>
-                  {departmentList?.map((d) => (
+                  {activeDepartmentList.map((d) => (
                     <option key={d.id} value={String(d.id)}>
                       {d.name_ar || d.name}
                     </option>
                   ))}
                 </select>
               </Field>
+            )}
+
+            {isManagerRole && specializedInfo && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-[12px] text-emerald-900 shadow-sm">
+                <div className="flex items-center gap-2 font-black text-emerald-800">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>تم الربط التلقائي بالدور التخصصي الفعلي: {specializedInfo.labelAr} ({specializedInfo.role})</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-emerald-700">
+                  سيتم توجيه هذا المدير إلى لوحة التحكم التخصصية وتفعيل شاشات وصلاحيات {currentSelectedDept?.name_ar || currentSelectedDept?.name} بالكامل.
+                </p>
+              </div>
+            )}
+
+            {isMemberRole && (formDepartment || formDepartmentId) && (
+              <div className="rounded-xl border border-sky-200 bg-sky-50/90 p-3 text-[12px] text-sky-900 shadow-sm">
+                <div className="flex items-center gap-2 font-black text-sky-800">
+                  <Sparkles className="h-4 w-4 text-sky-600 shrink-0" />
+                  <span>تم تحديد الإدارة تلقائياً: {currentSelectedDept?.name_ar || currentSelectedDept?.name || formDepartment}</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-sky-700">
+                  تم استرجاع إدارة العضو المسجلة مسبقاً وتسكينه فيها كعضو إدارة.
+                </p>
+              </div>
             )}
 
             <p className="rounded-xl bg-[#0C2A4B]/5 px-3 py-2 text-[11px] font-bold text-[#0C2A4B]">
