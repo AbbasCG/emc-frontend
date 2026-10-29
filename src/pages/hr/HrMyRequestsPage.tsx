@@ -11,12 +11,23 @@ function apiMessage(err: unknown): string | undefined {
   return typeof data?.message === 'string' ? data.message : undefined
 }
 
-// Basic HR Request Type
+export type EmploymentTypeOption = 'وظيفة شاغرة' | 'استبدال'
+
+export const EMPLOYMENT_TYPE_OPTIONS: EmploymentTypeOption[] = [
+  'وظيفة شاغرة',
+  'استبدال',
+]
+
+// HR Staffing Request Type
 export interface HrRequest {
   id: number
   department_id: number
+  employment_type?: string | null
+  job_title?: string | null
   request_type: string
   required_count: number
+  qualification?: string | null
+  responsibilities?: string | null
   skills_and_specs: string
   notes: string | null
   status: 'pending' | 'approved' | 'rejected' | 'in_progress'
@@ -28,15 +39,49 @@ export interface HrRequest {
   creator?: { id: number; name: string }
 }
 
+/** Extract employment type & job title gracefully even for legacy rows that only stored `request_type`. */
+function resolveRequestDisplay(req: HrRequest): {
+  employmentType: string
+  jobTitle: string
+} {
+  if (req.employment_type || req.job_title) {
+    return {
+      employmentType: req.employment_type || 'وظيفة شاغرة',
+      jobTitle: req.job_title || req.request_type || 'احتياج وظيفي',
+    }
+  }
+  const raw = (req.request_type || '').trim()
+  const match = raw.match(/^(.*?)\s*\((وظيفة شاغرة|استبدال)\)\s*$/)
+  if (match) {
+    return {
+      jobTitle: match[1].trim() || raw,
+      employmentType: match[2],
+    }
+  }
+  return {
+    employmentType: 'وظيفة شاغرة',
+    jobTitle: raw || 'احتياج وظيفي',
+  }
+}
+
 export default function HrMyRequestsPage() {
   const [requests, setRequests] = useState<HrRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  // Form State
-  const [requestType, setRequestType] = useState('احتياج وظيفي')
+  // Form State — ordered per HR staffing specification:
+  // 1. نوع التوظيف (وظيفة شاغرة - استبدال)
+  // 2. المسمى الوظيفي (+ العدد المطلوب)
+  // 3. المؤهل (اختياري)
+  // 4. المهام والمسؤوليات
+  // 5. المهارات والقدرات
+  // 6. ملاحظات (اختياري)
+  const [employmentType, setEmploymentType] = useState<EmploymentTypeOption>('وظيفة شاغرة')
+  const [jobTitle, setJobTitle] = useState('')
   const [requiredCount, setRequiredCount] = useState(1)
+  const [qualification, setQualification] = useState('')
+  const [responsibilities, setResponsibilities] = useState('')
   const [skillsAndSpecs, setSkillsAndSpecs] = useState('')
   const [notes, setNotes] = useState('')
 
@@ -67,29 +112,53 @@ export default function HrMyRequestsPage() {
     await loadRequests()
   }, [loadRequests])
 
+  const resetForm = () => {
+    setEmploymentType('وظيفة شاغرة')
+    setJobTitle('')
+    setRequiredCount(1)
+    setQualification('')
+    setResponsibilities('')
+    setSkillsAndSpecs('')
+    setNotes('')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!skillsAndSpecs.trim()) {
-      toast.error('يرجى تحديد المهارات والمواصفات المطلوبة')
+
+    const cleanJobTitle = jobTitle.trim()
+    const cleanResponsibilities = responsibilities.trim()
+    const cleanSkills = skillsAndSpecs.trim()
+    const cleanQualification = qualification.trim()
+    const cleanNotes = notes.trim()
+
+    if (!cleanJobTitle) {
+      toast.error('يرجى إدخال المسمى الوظيفي')
+      return
+    }
+    if (!cleanResponsibilities) {
+      toast.error('يرجى تحديد المهام والمسؤوليات')
+      return
+    }
+    if (!cleanSkills) {
+      toast.error('يرجى تحديد المهارات والقدرات')
       return
     }
 
     try {
       setSubmitting(true)
       await apiClient.post('/admin/hr-requests', {
-        request_type: requestType,
+        employment_type: employmentType,
+        job_title: cleanJobTitle,
+        request_type: `${cleanJobTitle} (${employmentType})`,
         required_count: requiredCount,
-        skills_and_specs: skillsAndSpecs,
-        notes: notes
+        qualification: cleanQualification || null,
+        responsibilities: cleanResponsibilities,
+        skills_and_specs: cleanSkills,
+        notes: cleanNotes || null,
       })
       toast.success('تم تقديم الطلب بنجاح')
       setShowModal(false)
-      // Reset form
-      setRequestType('احتياج وظيفي')
-      setRequiredCount(1)
-      setSkillsAndSpecs('')
-      setNotes('')
-      // Refresh list
+      resetForm()
       void refreshRequests()
     } catch (err) {
       toast.error(apiMessage(err) || 'فشل في إرسال الطلب')
@@ -148,35 +217,54 @@ export default function HrMyRequestsPage() {
             <table className="w-full text-right text-sm">
               <thead className="bg-[#F6F8FB] text-deepBlue border-b border-deepBlue/[0.08]">
                 <tr>
-                  <th className="px-5 py-4 font-black">نوع الطلب</th>
+                  <th className="px-5 py-4 font-black">نوع التوظيف</th>
+                  <th className="px-5 py-4 font-black">المسمى الوظيفي</th>
                   <th className="px-5 py-4 font-black">العدد المطلوب</th>
+                  <th className="px-5 py-4 font-black">المؤهل</th>
                   <th className="px-5 py-4 font-black">القسم</th>
                   <th className="px-5 py-4 font-black">حالة الطلب</th>
                   <th className="px-5 py-4 font-black">تاريخ التقديم</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-deepBlue/[0.05]">
-                {requests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#F6F8FB]/50 transition">
-                    <td className="px-5 py-4 font-bold text-deepBlue">
-                      {req.request_type}
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-deepBlue/80 font-latin">
-                      {req.required_count}
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-deepBlue/70">
-                      {req.department?.name || '---'}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold border ${getStatusColor(req.status)}`}>
-                        {getStatusLabel(req.status)}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-deepBlue/60 font-latin text-[13px]">
-                      {new Date(req.created_at).toLocaleDateString('en-CA')}
-                    </td>
-                  </tr>
-                ))}
+                {requests.map((req) => {
+                  const { employmentType: empType, jobTitle: title } = resolveRequestDisplay(req)
+                  return (
+                    <tr key={req.id} className="hover:bg-[#F6F8FB]/50 transition">
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold border ${
+                            empType === 'استبدال'
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : 'bg-customBlue/10 text-customBlue border-customBlue/20'
+                          }`}
+                        >
+                          {empType}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-bold text-deepBlue">
+                        {title}
+                      </td>
+                      <td className="px-5 py-4 font-semibold text-deepBlue/80 font-latin">
+                        {req.required_count}
+                      </td>
+                      <td className="px-5 py-4 font-semibold text-deepBlue/70">
+                        {req.qualification || '—'}
+                      </td>
+                      <td className="px-5 py-4 font-semibold text-deepBlue/70">
+                        {req.department?.name_ar || req.department?.name || '---'}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold border ${getStatusColor(req.status)}`}>
+                          {getStatusLabel(req.status)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-semibold text-deepBlue/60 font-latin text-[13px]">
+                        {new Date(req.created_at).toLocaleDateString('en-CA')}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -200,48 +288,111 @@ export default function HrMyRequestsPage() {
             </div>
             
             <div className="p-6 overflow-y-auto">
-              <form id="hr-request-form" onSubmit={handleSubmit} className="space-y-5">
+              <form id="hr-request-form" onSubmit={handleSubmit} className="space-y-4">
+                {/* 1. قائمة نوع التوظيف (وظيفة شاغرة - استبدال) */}
                 <div>
-                  <label className="block text-sm font-bold text-deepBlue mb-1.5">نوع الطلب / المسمى الوظيفي</label>
-                  <input 
-                    type="text" 
-                    value={requestType}
-                    onChange={(e) => setRequestType(e.target.value)}
+                  <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                    نوع التوظيف
+                  </label>
+                  <select
+                    value={employmentType}
+                    onChange={(e) => setEmploymentType(e.target.value as EmploymentTypeOption)}
                     required
+                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold text-deepBlue focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                  >
+                    {EMPLOYMENT_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. المسمى الوظيفي + العدد المطلوب */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                      المسمى الوظيفي
+                    </label>
+                    <input
+                      type="text"
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
+                      required
+                      placeholder="مثال: منسق برامج، مصمم محتوى..."
+                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                      العدد المطلوب
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={requiredCount}
+                      onChange={(e) => setRequiredCount(Math.max(1, Number(e.target.value) || 1))}
+                      required
+                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] font-latin text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. المؤهل (اختياري) */}
+                <div>
+                  <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                    المؤهل (اختياري)
+                  </label>
+                  <input
+                    type="text"
+                    value={qualification}
+                    onChange={(e) => setQualification(e.target.value)}
+                    placeholder="مثال: بكالوريوس إدارة أعمال أو ما يعادله..."
                     className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-bold text-deepBlue mb-1.5">العدد المطلوب</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={requiredCount}
-                    onChange={(e) => setRequiredCount(Number(e.target.value))}
-                    required
-                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] font-latin text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
-                  />
-                </div>
 
+                {/* 4. المهام والمسؤوليات */}
                 <div>
-                  <label className="block text-sm font-bold text-deepBlue mb-1.5">المهارات والمواصفات المطلوبة</label>
-                  <textarea 
-                    value={skillsAndSpecs}
-                    onChange={(e) => setSkillsAndSpecs(e.target.value)}
+                  <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                    المهام والمسؤوليات
+                  </label>
+                  <textarea
+                    value={responsibilities}
+                    onChange={(e) => setResponsibilities(e.target.value)}
                     required
-                    rows={4}
-                    placeholder="مثال: خبرة سنتين، إجادة اللغة الإنجليزية..."
+                    rows={3}
+                    placeholder="اذكر المهام والمسؤوليات الرئيسية للدور المطلوب..."
                     className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
                   ></textarea>
                 </div>
 
+                {/* 5. المهارات والقدرات */}
                 <div>
-                  <label className="block text-sm font-bold text-deepBlue mb-1.5">ملاحظات إضافية (اختياري)</label>
-                  <textarea 
+                  <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                    المهارات والقدرات
+                  </label>
+                  <textarea
+                    value={skillsAndSpecs}
+                    onChange={(e) => setSkillsAndSpecs(e.target.value)}
+                    required
+                    rows={3}
+                    placeholder="مثال: خبرة سنتين، إجادة اللغة الإنجليزية، مهارات التواصل..."
+                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
+                  ></textarea>
+                </div>
+
+                {/* 6. ملاحظات (اختياري) */}
+                <div>
+                  <label className="block text-sm font-bold text-deepBlue mb-1.5">
+                    ملاحظات (اختياري)
+                  </label>
+                  <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={2}
+                    placeholder="أي ملاحظات إضافية..."
                     className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
                   ></textarea>
                 </div>
