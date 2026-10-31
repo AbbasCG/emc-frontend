@@ -22,6 +22,44 @@ export type VolunteerRequest = {
   cv_file_url?: string | null
   cv_view_url?: string | null
   cv_download_url?: string | null
+
+  // التقييم الشامل والمستويات الخمسة
+  birth_date?: string | null
+  nationality?: string | null
+  education_level?: string | null
+  current_status?: string | null
+  job_title?: string | null
+  specialization?: string | null
+  volunteer_days_availability?: string | null
+  volunteer_days?: string[] | null
+  preferred_time_slot?: string | null
+  daily_hours?: string | null
+  in_person_capable?: string | null
+  remote_capable?: string | null
+  has_previous_volunteering?: boolean | null
+  volunteering_organizations?: string | null
+  volunteering_duration?: string | null
+  past_volunteer_tasks?: string[] | null
+  personal_skills?: string[] | null
+  skill_level_rating?: number | null
+  technical_tools?: string[] | null
+  value_add_contributions?: string | null
+  portfolio_link_status?: string | null
+  portfolio_url?: string | null
+  motivation_ratings?: Record<string, number> | null
+  commitment_ratings?: Record<string, number> | null
+  situational_responses?: Record<string, string> | null
+  expected_duration?: string | null
+  commitment_three_months?: string | null
+  reasons_for_applying?: string[] | null
+  expected_gains?: string[] | null
+  secondary_departments?: string[] | null
+  primary_value_department?: string | null
+  department_skills?: string[] | null
+  preferred_work_environment?: string | null
+  quit_reasons?: string[] | null
+  suggestions?: string | null
+
   status: VolunteerRequestStatus
   /** The opportunity this application was made for; null/absent for a general application. */
   opportunity_id?: number | null
@@ -53,36 +91,129 @@ export type AcceptedVolunteersMeta = {
 }
 
 export type VolunteerApplicationInput = {
+  opportunity_id?: number | null
   full_name: string
   email: string
   phone: string
   country: string
   city: string
   gender: string
+  birth_date?: string | null
+  nationality?: string | null
+
+  // المستوى الثاني
+  education_level?: string | null
+  current_status?: string | null
+  job_title?: string | null
+  specialization?: string | null
+  volunteer_days_availability?: string | null
+  volunteer_days?: string[] | null
+  preferred_time_slot?: string | null
+  daily_hours?: string | null
+  in_person_capable?: string | null
+  remote_capable?: string | null
+
+  // المستوى الثالث
+  has_previous_volunteering?: boolean | null
+  volunteering_organizations?: string | null
+  volunteering_duration?: string | null
+  past_volunteer_tasks?: string[] | null
+  personal_skills?: string[] | null
+  skill_level_rating?: number | null
+  technical_tools?: string[] | null
+  value_add_contributions?: string | null
+  portfolio_link_status?: string | null
+  portfolio_url?: string | null
+
+  // المستوى الرابع
+  motivation_ratings?: Record<string, number> | null
+  commitment_ratings?: Record<string, number> | null
+  situational_responses?: Record<string, string> | null
+  expected_duration?: string | null
+  commitment_three_months?: string | null
+
+  // المستوى الخامس
+  reasons_for_applying?: string[] | null
+  expected_gains?: string[] | null
+  secondary_departments?: string[] | null
+  primary_value_department?: string | null
+  department_skills?: string[] | null
+  preferred_work_environment?: string | null
+  quit_reasons?: string[] | null
+  suggestions?: string | null
+
   desired_department: string
-  experience_level: string
-  skills: string
-  availability: string
-  motivation: string
-  previous_experience?: string
+  experience_level?: string | null
+  skills?: string | null
+  availability?: string | null
+  motivation?: string | null
+  previous_experience?: string | null
   cv_file?: File | null
-  notes?: string
+  notes?: string | null
   agree_terms: boolean
 }
 
 export async function submitVolunteerApplication(data: VolunteerApplicationInput): Promise<void> {
   const fd = new FormData()
+  if (data.opportunity_id) fd.append('opportunity_id', String(data.opportunity_id))
   fd.append('full_name', data.full_name.trim())
   fd.append('email', data.email.trim())
   fd.append('phone', data.phone.trim())
   fd.append('country', data.country.trim())
   fd.append('city', data.city.trim())
-  fd.append('gender', data.gender)
-  fd.append('desired_department', data.desired_department)
-  fd.append('experience_level', data.experience_level)
-  if (data.skills.trim()) fd.append('skills', data.skills.trim())
-  fd.append('availability', data.availability)
-  fd.append('motivation', data.motivation.trim())
+  fd.append('gender', data.gender || 'unspecified')
+  if (data.birth_date) fd.append('birth_date', data.birth_date)
+  if (data.nationality) fd.append('nationality', data.nationality.trim())
+
+  // المستوى الثاني
+  if (data.education_level) fd.append('education_level', data.education_level)
+  if (data.current_status) fd.append('current_status', data.current_status)
+  if (data.job_title) fd.append('job_title', data.job_title.trim())
+  if (data.specialization) fd.append('specialization', data.specialization.trim())
+  if (data.volunteer_days_availability) fd.append('volunteer_days_availability', data.volunteer_days_availability)
+  if (data.volunteer_days?.length) fd.append('volunteer_days', JSON.stringify(data.volunteer_days))
+  if (data.preferred_time_slot) fd.append('preferred_time_slot', data.preferred_time_slot)
+  if (data.daily_hours) fd.append('daily_hours', data.daily_hours)
+  if (data.in_person_capable) fd.append('in_person_capable', data.in_person_capable)
+  if (data.remote_capable) fd.append('remote_capable', data.remote_capable)
+
+  // المستوى الثالث
+  if (data.has_previous_volunteering !== undefined && data.has_previous_volunteering !== null) {
+    fd.append('has_previous_volunteering', data.has_previous_volunteering ? '1' : '0')
+  }
+  if (data.volunteering_organizations) fd.append('volunteering_organizations', data.volunteering_organizations.trim())
+  if (data.volunteering_duration) fd.append('volunteering_duration', data.volunteering_duration)
+  if (data.past_volunteer_tasks?.length) fd.append('past_volunteer_tasks', JSON.stringify(data.past_volunteer_tasks))
+  if (data.personal_skills?.length) fd.append('personal_skills', JSON.stringify(data.personal_skills))
+  if (data.skill_level_rating) fd.append('skill_level_rating', String(data.skill_level_rating))
+  if (data.technical_tools?.length) fd.append('technical_tools', JSON.stringify(data.technical_tools))
+  if (data.value_add_contributions) fd.append('value_add_contributions', data.value_add_contributions.trim())
+  if (data.portfolio_link_status) fd.append('portfolio_link_status', data.portfolio_link_status)
+  if (data.portfolio_url) fd.append('portfolio_url', data.portfolio_url.trim())
+
+  // المستوى الرابع
+  if (data.motivation_ratings) fd.append('motivation_ratings', JSON.stringify(data.motivation_ratings))
+  if (data.commitment_ratings) fd.append('commitment_ratings', JSON.stringify(data.commitment_ratings))
+  if (data.situational_responses) fd.append('situational_responses', JSON.stringify(data.situational_responses))
+  if (data.expected_duration) fd.append('expected_duration', data.expected_duration)
+  if (data.commitment_three_months) fd.append('commitment_three_months', data.commitment_three_months)
+
+  // المستوى الخامس
+  if (data.reasons_for_applying?.length) fd.append('reasons_for_applying', JSON.stringify(data.reasons_for_applying))
+  if (data.expected_gains?.length) fd.append('expected_gains', JSON.stringify(data.expected_gains))
+  if (data.secondary_departments?.length) fd.append('secondary_departments', JSON.stringify(data.secondary_departments))
+  if (data.primary_value_department) fd.append('primary_value_department', data.primary_value_department)
+  if (data.department_skills?.length) fd.append('department_skills', JSON.stringify(data.department_skills))
+  if (data.preferred_work_environment) fd.append('preferred_work_environment', data.preferred_work_environment)
+  if (data.quit_reasons?.length) fd.append('quit_reasons', JSON.stringify(data.quit_reasons))
+  if (data.suggestions) fd.append('suggestions', data.suggestions.trim())
+
+  // الحقول العامة السابقة لضمان التوافق الكامل
+  fd.append('desired_department', data.desired_department || data.primary_value_department || 'غير محدد')
+  if (data.experience_level) fd.append('experience_level', data.experience_level)
+  if (data.skills) fd.append('skills', data.skills.trim())
+  if (data.availability) fd.append('availability', data.availability)
+  if (data.motivation) fd.append('motivation', data.motivation.trim())
   if (data.previous_experience?.trim()) fd.append('previous_experience', data.previous_experience.trim())
   if (data.cv_file) fd.append('cv_file', data.cv_file)
   if (data.notes?.trim()) fd.append('notes', data.notes.trim())
@@ -174,6 +305,43 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     cv_file_url: parseStr(raw.cv_file_url ?? raw.cv_url),
     cv_view_url: parseStr(raw.cv_view_url),
     cv_download_url: parseStr(raw.cv_download_url ?? raw.cv_file_url ?? raw.cv_url),
+
+    // التقييم الشامل
+    birth_date: parseStr(raw.birth_date),
+    nationality: parseStr(raw.nationality),
+    education_level: parseStr(raw.education_level),
+    current_status: parseStr(raw.current_status),
+    job_title: parseStr(raw.job_title),
+    specialization: parseStr(raw.specialization),
+    volunteer_days_availability: parseStr(raw.volunteer_days_availability),
+    volunteer_days: Array.isArray(raw.volunteer_days) ? (raw.volunteer_days as string[]) : null,
+    preferred_time_slot: parseStr(raw.preferred_time_slot),
+    daily_hours: parseStr(raw.daily_hours),
+    in_person_capable: parseStr(raw.in_person_capable),
+    remote_capable: parseStr(raw.remote_capable),
+    has_previous_volunteering: parseBool(raw.has_previous_volunteering),
+    volunteering_organizations: parseStr(raw.volunteering_organizations),
+    volunteering_duration: parseStr(raw.volunteering_duration),
+    past_volunteer_tasks: Array.isArray(raw.past_volunteer_tasks) ? (raw.past_volunteer_tasks as string[]) : null,
+    personal_skills: Array.isArray(raw.personal_skills) ? (raw.personal_skills as string[]) : null,
+    skill_level_rating: parseId(raw.skill_level_rating),
+    technical_tools: Array.isArray(raw.technical_tools) ? (raw.technical_tools as string[]) : null,
+    value_add_contributions: parseStr(raw.value_add_contributions),
+    portfolio_link_status: parseStr(raw.portfolio_link_status),
+    portfolio_url: parseStr(raw.portfolio_url),
+    motivation_ratings: (raw.motivation_ratings && typeof raw.motivation_ratings === 'object') ? (raw.motivation_ratings as Record<string, number>) : null,
+    commitment_ratings: (raw.commitment_ratings && typeof raw.commitment_ratings === 'object') ? (raw.commitment_ratings as Record<string, number>) : null,
+    situational_responses: (raw.situational_responses && typeof raw.situational_responses === 'object') ? (raw.situational_responses as Record<string, string>) : null,
+    expected_duration: parseStr(raw.expected_duration),
+    commitment_three_months: parseStr(raw.commitment_three_months),
+    reasons_for_applying: Array.isArray(raw.reasons_for_applying) ? (raw.reasons_for_applying as string[]) : null,
+    expected_gains: Array.isArray(raw.expected_gains) ? (raw.expected_gains as string[]) : null,
+    secondary_departments: Array.isArray(raw.secondary_departments) ? (raw.secondary_departments as string[]) : null,
+    primary_value_department: parseStr(raw.primary_value_department),
+    department_skills: Array.isArray(raw.department_skills) ? (raw.department_skills as string[]) : null,
+    preferred_work_environment: parseStr(raw.preferred_work_environment),
+    quit_reasons: Array.isArray(raw.quit_reasons) ? (raw.quit_reasons as string[]) : null,
+    suggestions: parseStr(raw.suggestions),
     status,
     opportunity_id: parseId(raw.opportunity_id),
     opportunity_title: parseStr(raw.opportunity_title),

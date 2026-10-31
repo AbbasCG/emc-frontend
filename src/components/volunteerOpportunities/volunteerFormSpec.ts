@@ -1,37 +1,275 @@
 /**
- * The questions both volunteer application forms ask, in one place.
- *
- * `/volunteer/apply` (general) is the source of truth; the opportunity form follows it field for field. The only
- * deliberate difference is the department: a general applicant picks one, while an opportunity applicant applies
- * to the opportunity's own department, which the server fills in.
+ * Comprehensive volunteer application specifications and constants.
+ * Covers all 5 assessment levels and dynamic logic.
  */
-
-export const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
-
-export const AVAILABILITY_OPTIONS = ['أقل من 3 ساعات أسبوعيًا', '3-5 ساعات أسبوعيًا', '5-10 ساعات أسبوعيًا', 'أكثر من 10 ساعات أسبوعيًا']
 
 export const GENDER_OPTIONS = [
   { value: 'male', label: 'ذكر' },
   { value: 'female', label: 'أنثى' },
 ] as const
 
-/** Field labels, exactly as the general form words them. */
-export const FORM_LABELS = {
-  fullName: 'الاسم الكامل',
-  email: 'البريد الإلكتروني',
-  phone: 'رقم الجوال',
-  country: 'الدولة',
-  city: 'المدينة',
-  gender: 'الجنس',
-  department: 'القسم الذي ترغب بالتطوع فيه',
-  experienceLevel: 'مستوى الخبرة',
-  availability: 'التوفر الأسبوعي',
-  skills: 'المهارات',
-  motivation: 'لماذا ترغب بالتطوع مع EMC؟',
-  previousExperience: 'هل لديك خبرة سابقة في التطوع؟',
-  cv: 'السيرة الذاتية',
-  notes: 'ملاحظات إضافية',
-} as const
+/* ── Level 2: Qualifications & Availability ─────────────────────────── */
+
+export const EDUCATION_LEVELS = [
+  'ثانوية عامة',
+  'دبلوم',
+  'بكالوريوس',
+  'ماجستير',
+  'دكتوراه',
+  'أخرى',
+] as const
+
+export const CURRENT_STATUS_OPTIONS = [
+  'طالب ثانوي',
+  'طالب جامعي',
+  'خريج جامعي / باحث عن عمل',
+  'موظف',
+  'صاحب عمل / عمل حر',
+  'أخرى',
+] as const
+
+export const VOLUNTEER_DAYS_AVAILABILITY = [
+  'يومياً',
+  'أيام الإجازة فقط',
+  'أيام محددة خلال الأسبوع',
+  'حسب طبيعة المهمة والظروف',
+] as const
+
+export const DAYS_OF_WEEK = [
+  'السبت',
+  'الأحد',
+  'الاثنين',
+  'الثلاثاء',
+  'الأربعاء',
+  'الخميس',
+  'الجمعة',
+] as const
+
+export const TIME_SLOT_OPTIONS = [
+  'صباحاً',
+  'مساءً',
+  'أي وقت',
+  'حسب طبيعة المهمة',
+] as const
+
+export const DAILY_HOURS_OPTIONS = [
+  'أقل من ساعة',
+  'ساعة إلى ساعتين',
+  '3–4 ساعات',
+  '5–6 ساعات',
+  'أكثر من 6 ساعات',
+] as const
+
+export const IN_PERSON_OPTIONS = [
+  'نعم',
+  'لا',
+  'حسب الموقع والظروف',
+] as const
+
+export const REMOTE_OPTIONS = [
+  'نعم',
+  'لا',
+  'أحياناً',
+] as const
+
+/* ── Level 3: Experience & Abilities ────────────────────────────────── */
+
+export const PAST_VOLUNTEER_DURATIONS = [
+  'أقل من 3 أشهر',
+  'من 3 إلى 6 أشهر',
+  'من 6 أشهر إلى سنة',
+  'أكثر من سنة',
+] as const
+
+export const PAST_VOLUNTEER_TASKS = [
+  'التنظيم وإدارة الفعاليات',
+  'الإدارة والأعمال المكتبية',
+  'الموارد البشرية والاستقطاب',
+  'التسويق وإدارة وسائل التواصل',
+  'التصميم والجرافيك',
+  'صناعة المحتوى والكتابة',
+  'التصوير والمونتاج',
+  'التعليم والتدريب',
+  'البرمجة وتقنية المعلومات',
+  'خدمة العملاء والتواصل',
+  'العلاقات العامة وبناء الشراكات',
+  'إدارة المشاريع والمبادرات',
+  'جمع البيانات وإعداد التقارير',
+  'أخرى',
+] as const
+
+export const PERSONAL_SKILLS_OPTIONS = [
+  'القيادة وتحمل المسؤولية',
+  'التواصل والعمل الجماعي',
+  'التخطيط والتنظيم',
+  'حل المشكلات',
+  'إدارة الوقت',
+  'الإبداع والابتكار',
+  'التحليل والتفكير النقدي',
+  'التفاوض والإقناع',
+  'التعلم السريع',
+  'العمل تحت الضغط',
+] as const
+
+export const SKILL_RATINGS = [
+  { value: 1, label: 'مبتدئ' },
+  { value: 2, label: 'أساسي' },
+  { value: 3, label: 'متوسط' },
+  { value: 4, label: 'متقدم' },
+  { value: 5, label: 'محترف' },
+] as const
+
+export const TECHNICAL_TOOLS_OPTIONS = [
+  'Word',
+  'Microsoft Excel',
+  'PowerPoint',
+  'Google Workspace',
+  'Canva',
+  'أدوات الذكاء الاصطناعي',
+  'أدوات إدارة المشاريع',
+  'برامج التصميم',
+  'أخرى',
+] as const
+
+export const PORTFOLIO_STATUS_OPTIONS = [
+  'نعم، مع رابط',
+  'نعم، ويمكنني إرسالها لاحقاً',
+  'لا',
+] as const
+
+/* ── Level 4: Motivation, Commitment & Situations ───────────────────── */
+
+export const LIKERT_SCALE = [
+  { value: 1, label: 'لا أتفق بشدة' },
+  { value: 2, label: 'لا أتفق' },
+  { value: 3, label: 'محايد' },
+  { value: 4, label: 'أتفق' },
+  { value: 5, label: 'أتفق بشدة' },
+] as const
+
+export const MOTIVATION_STATEMENTS = [
+  { id: 'm1', text: 'أرغب في المساهمة في خدمة المجتمع وتحقيق أثر إيجابي' },
+  { id: 'm2', text: 'أرى أن التطوع فرصة لتطوير مهاراتي وقدراتي' },
+  { id: 'm3', text: 'لدي اهتمام حقيقي بمجال عمل المؤسسة' },
+  { id: 'm4', text: 'أبحث عن تجربة تساعدني على اكتساب خبرة عملية' },
+] as const
+
+export const COMMITMENT_STATEMENTS = [
+  { id: 'c1', text: 'أستطيع الالتزام بالمواعيد والمهام المتفق عليها' },
+  { id: 'c2', text: 'أحرص على إبلاغ المسؤول مسبقاً عند تعذر المشاركة' },
+  { id: 'c3', text: 'أستطيع الاستمرار في العمل حتى عند مواجهة صعوبات' },
+  { id: 'c4', text: 'أتقبل التوجيهات والملاحظات بهدف تحسين أدائي' },
+  { id: 'c5', text: 'أستطيع العمل ضمن فريق واحترام مسؤوليات الآخرين' },
+] as const
+
+export const SITUATIONAL_QUESTIONS = [
+  {
+    id: 'sit_delay',
+    question: 'إذا تم تكليفك بمهمة تطوعية ولم تتمكن من إنجازها في الوقت المحدد، ماذا ستفعل؟',
+    options: [
+      'أتوقف عن تنفيذ المهمة دون إبلاغ المسؤول.',
+      'أبلغ المسؤول بعد انتهاء الموعد.',
+      'أبلغ المسؤول مسبقاً وأوضح أسباب التأخير وأقترح حلاً.',
+      'أطلب من شخص آخر تنفيذ المهمة دون الرجوع للمسؤول.',
+    ],
+  },
+  {
+    id: 'sit_feedback',
+    question: 'إذا تلقيت ملاحظة سلبية على أدائك، كيف ستتعامل معها؟',
+    options: [
+      'أعتبرها انتقاداً شخصياً.',
+      'أتجاهلها.',
+      'أطلب توضيح الملاحظة وأعمل على تحسين أدائي.',
+      'أرفض تنفيذ الملاحظات.',
+    ],
+  },
+  {
+    id: 'sit_unfamiliar',
+    question: 'إذا تم تكليفك بمهمة لا تمتلك خبرة كافية لتنفيذها، ماذا ستفعل؟',
+    options: [
+      'أرفض المهمة مباشرة.',
+      'أقبلها دون محاولة التعلم.',
+      'أطلب التوجيه وأحاول اكتساب المهارة اللازمة.',
+      'أتجاهل المهمة.',
+    ],
+  },
+] as const
+
+export const EXPECTED_VOLUNTEER_DURATIONS = [
+  'أقل من شهر',
+  'من شهر إلى 3 أشهر',
+  'من 3 إلى 6 أشهر',
+  'من 6 أشهر إلى سنة',
+  'أكثر من سنة',
+] as const
+
+export const THREE_MONTHS_COMMITMENT_OPTIONS = [
+  'نعم',
+  'لا',
+  'أحتاج إلى معرفة طبيعة المهام أولاً',
+] as const
+
+/* ── Level 5: Expectations & Department Matrix ──────────────────────── */
+
+export const REASONS_FOR_APPLYING = [
+  'اكتساب الخبرة العملية',
+  'تطوير المهارات الشخصية والمهنية',
+  'خدمة المجتمع',
+  'تكوين علاقات مهنية واجتماعية',
+  'اكتشاف مجالات جديدة',
+  'تعزيز السيرة الذاتية',
+  'المساهمة في تحقيق رسالة المؤسسة',
+  'استثمار وقت الفراغ',
+  'أسباب أخرى',
+] as const
+
+export const EXPECTED_GAINS = [
+  'التدريب والتطوير',
+  'الخبرة العملية',
+  'الإشراف والتوجيه',
+  'المشاركة في اتخاذ القرار',
+  'فرص القيادة وإدارة المبادرات',
+  'شهادة خبرة أو مشاركة',
+  'علاقات مهنية',
+  'التقدير المعنوي',
+  'فرص مستقبلية للعمل',
+  'أخرى',
+] as const
+
+export const DEPARTMENT_SKILLS_MATRIX: Record<string, string[]> = {
+  'الحوكمة': ['ضمان الجودة', 'التدقيق', 'كتابة السياسات', 'إدارة المخاطر', 'التوثيق'],
+  'المالية': ['المحاسبة', 'إعداد الميزانيات', 'Excel', 'التقارير المالية'],
+  'الشراكات والعلاقات العامة': ['التواصل', 'التفاوض', 'بناء الشراكات', 'كتابة المراسلات'],
+  'التسويق والاعلام': ['التسويق الرقمي', 'التصميم', 'كتابة المحتوى', 'التصوير', 'المونتاج'],
+  'التشغيليه': ['التنسيق', 'إدارة العمليات', 'التخطيط', 'المتابعة', 'إعداد التقارير'],
+  'البرامج والمسارات': ['التعليم', 'التدريب', 'تصميم البرامج', 'إعداد المحتوى', 'التقييم'],
+  'الصحه النفسيه والمجتمع': ['علم النفس', 'الإرشاد', 'العمل الاجتماعي', 'التوعية المجتمعية'],
+  'الذكاء الاصطناعي': ['الذكاء الاصطناعي', 'هندسة الأوامر', 'تحليل البيانات', 'الأتمتة'],
+  'الموارد البشرية': ['الاستقطاب', 'المقابلات', 'التدريب', 'تقييم الأداء', 'إدارة المتطوعين'],
+  'التقنيه وتكنولوجيا المعلومات': ['البرمجة', 'تطوير المواقع', 'قواعد البيانات', 'الدعم الفني', 'الأمن السيبراني'],
+}
+
+export const WORK_ENVIRONMENT_PREFERENCES = [
+  'فريق منظم بإشراف مباشر',
+  'فريق يمنحني مساحة من الاستقلالية',
+  'العمل الفردي',
+  'العمل الجماعي',
+  'لا توجد تفضيلات',
+] as const
+
+export const QUIT_REASONS_OPTIONS = [
+  'عدم وضوح المهام والمسؤوليات',
+  'ضعف التواصل والمتابعة',
+  'عدم التقدير',
+  'عدم توافق المهام مع قدراتي',
+  'عدم توفر الوقت',
+  'عدم وجود فرص للتعلم والتطوير',
+  'ضعف بيئة العمل',
+  'أسباب أخرى',
+] as const
 
 export const CONSENT_TEXT = 'أوافق على استخدام بياناتي لغرض مراجعة طلب التطوع والتواصل معي.'
-export const MOTIVATION_MIN = 20
+
+// Backwards-compatible legacy exports
+export const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
+export const AVAILABILITY_OPTIONS = ['أقل من 3 ساعات أسبوعيًا', '3-5 ساعات أسبوعيًا', '5-10 ساعات أسبوعيًا', 'أكثر من 10 ساعات أسبوعيًا']

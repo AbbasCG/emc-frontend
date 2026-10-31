@@ -9,6 +9,7 @@ import {
   Bot,
   ChevronDown,
   ChevronLeft,
+  Download,
   LogOut,
   Megaphone,
   Menu,
@@ -48,6 +49,7 @@ import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '..
 import { infoToast } from '@/lib/toast'
 import { UserAvatar } from '@/components/UserAvatar'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import { isStandalone, promptInstallApp } from '@/lib/pwa'
 
 // ---------------------------------------------------------------------------
 // Route → page title map (used by topbar)
@@ -624,7 +626,7 @@ function Topbar({
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-2 sm:gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-3 sm:px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     >
       <button
         type="button"
@@ -737,6 +739,20 @@ function Topbar({
                   <Settings className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
                   الإعدادات
                 </Link>
+                {!isStandalone() && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      void promptInstallApp()
+                    }}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
+                  >
+                    <Download className="size-[17px] shrink-0 text-customOrange" aria-hidden />
+                    تثبيت التطبيق على الجهاز
+                  </button>
+                )}
                 <div className="my-2 h-px bg-deepBlue/[0.06]" role="presentation" />
                 <button
                   type="button"
@@ -876,7 +892,7 @@ export default function DashboardLayout() {
         
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <main className="col-start-1 row-start-1 min-w-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}>
+      <main className="col-start-1 row-start-1 min-w-0 pt-16 lg:pt-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}>
       <Topbar
         onMenuClick={() => setSidebarOpen(true)}
         onOpenSearch={() => setPaletteOpen(true)}
@@ -929,7 +945,7 @@ export default function DashboardLayout() {
         <Bot size={26} className="relative" />
       </Link>
 
-        <div className="p-5 md:p-7 lg:p-8">
+        <div className="px-3.5 py-4 sm:px-6 sm:py-6 md:p-7 lg:p-8 pb-24 lg:pb-8">
           <ImpersonationBanner />
           <Outlet />
           {/* «ومضة الأثر» — لأدوار الفريق التي يعنيها نظام النقاط */}

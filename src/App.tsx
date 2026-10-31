@@ -16,6 +16,7 @@ import RouteFallback from './components/RouteFallback'
 import { CookieConsentProvider } from './contexts/CookieConsentContext'
 import CookieBanner from './components/legal/CookieBanner'
 import CookiePreferencesModal from './components/legal/CookiePreferencesModal'
+import PwaInstallBanner from './components/pwa/PwaInstallBanner'
 import { ALL_LEGAL_DOCUMENTS } from './data/legal'
 import { getDashboardPathByRole } from './utils/dashboardAccess'
 
@@ -929,6 +930,7 @@ function App() {
           </Routes>
           </PageAccessProvider>
         </AuthProvider>
+        <PwaInstallBanner />
         <CookieBanner />
         <CookiePreferencesModal />
       </BrowserRouter>
