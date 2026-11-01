@@ -72,7 +72,7 @@ export default function QuickAwardForm({
         const raw = res.data?.data ?? res.data
         if (Array.isArray(raw) && raw.length > 0) {
           setAllDepartments(
-            raw.map((d: any) => ({
+            raw.map((d: { id: number | string; name_ar?: string; name?: string }) => ({
               id: Number(d.id),
               name: d.name_ar || d.name || `إدارة #${d.id}`,
             }))
@@ -110,6 +110,7 @@ export default function QuickAwardForm({
     if (preselectUserId && people.length > 0) {
       const match = people.find((p) => p.user_id === preselectUserId)
       if (match) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- applies the row chosen in the table outside this form, once the people list has loaded
         setSelectedUserId(match.user_id)
         if (match.department_id) setSelectedDeptId(match.department_id)
         formRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
@@ -186,6 +187,7 @@ export default function QuickAwardForm({
   useEffect(() => {
     if (currentActivity) {
       if (currentActivity.type === 'fixed') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- a fixed-points activity fills in its own points when it is chosen
         setPointsInput(String(currentActivity.points_min))
       } else {
         // إذا كان ضمن نطاق ولم يسبق إدخال قيمة صحيحة، نقترح الحد الأدنى

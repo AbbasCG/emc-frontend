@@ -77,7 +77,7 @@ export default function HrVolunteerPointsApprovalPage() {
       setStats(reqsPage.stats)
       setCanApprove(reqsPage.capabilities.can_approve)
       setCategories(actsData.categories)
-    } catch (err) {
+    } catch {
       toast.error('تعذر تحميل طلبات النقاط')
     } finally {
       setLoading(false)
@@ -85,7 +85,9 @@ export default function HrVolunteerPointsApprovalPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever a filter changes
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, categoryFilter])
 
   // Open detail modal
@@ -99,7 +101,7 @@ export default function HrVolunteerPointsApprovalPage() {
       const detail = await fetchPointsRequestDetail(id)
       setRequestDetail(detail)
       setApprovedPoints(detail.data.points_requested)
-    } catch (err) {
+    } catch {
       toast.error('تعذر تحميل تفاصيل الطلب')
       setSelectedRequestId(null)
     } finally {

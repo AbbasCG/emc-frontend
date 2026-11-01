@@ -6,7 +6,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  ChevronDown,
   User,
   GraduationCap,
   Sparkles,
@@ -14,14 +13,8 @@ import {
   Compass,
   Check,
   Send,
-  HelpCircle,
   RotateCcw,
   Building2,
-  Briefcase,
-  Clock,
-  Layers,
-  Award,
-  Link as LinkIcon,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
@@ -311,12 +304,10 @@ function MultiSelectPills({
   options,
   selected,
   onToggle,
-  maxAllowed,
 }: {
   options: readonly string[]
   selected: string[]
   onToggle: (val: string) => void
-  maxAllowed?: number
 }) {
   return (
     <div className="flex flex-wrap gap-2.5">
@@ -366,6 +357,7 @@ export default function VolunteerApply() {
       const saved = localStorage.getItem(DRAFT_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restores the saved draft once, after mount (localStorage is not readable during render)
         setForm((prev) => ({ ...prev, ...parsed, cv_file: null }))
       }
     } catch {
@@ -376,7 +368,7 @@ export default function VolunteerApply() {
   // Auto-save draft on changes (excluding file)
   useEffect(() => {
     try {
-      const { cv_file, ...rest } = form
+      const { cv_file: _cvFile, ...rest } = form
       localStorage.setItem(DRAFT_KEY, JSON.stringify(rest))
     } catch {
       // ignore
@@ -590,7 +582,7 @@ export default function VolunteerApply() {
       setForm(initialForm)
       setStep(1)
       setErrors({})
-      toast.info('تمت إعادة ضبط النموذج')
+      toast.message('تمت إعادة ضبط النموذج')
     }
   }
 
@@ -1388,7 +1380,6 @@ export default function VolunteerApply() {
                     options={EXPECTED_GAINS}
                     selected={form.expected_gains}
                     onToggle={(g) => toggleArrayItem('expected_gains', g, 3)}
-                    maxAllowed={3}
                   />
                 </Field>
 
