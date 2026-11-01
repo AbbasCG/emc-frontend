@@ -1,41 +1,33 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, X, Smartphone, Share, PlusSquare, Sparkles } from 'lucide-react'
+import { Download, X, Share, PlusSquare, Sparkles } from 'lucide-react'
 import { isStandalone, isIos, onInstallAvailabilityChange, promptInstallApp } from '@/lib/pwa'
 
 const DISMISSED_KEY = 'emc_pwa_banner_dismissed'
 
+function wasDismissedThisSession(): boolean {
+  try {
+    return Boolean(sessionStorage.getItem(DISMISSED_KEY))
+  } catch {
+    return false
+  }
+}
+
 export default function PwaInstallBanner() {
-  const [canInstall, setCanInstall] = useState(false)
-  const [showBanner, setShowBanner] = useState(false)
+  // Already running as an installed app: never offer to install. Decided once, from the environment, not in an effect.
+  const [installed, setInstalled] = useState(() => isStandalone())
+  // iOS Safari has no install prompt event, so the banner (with its how-to guide) is offered directly.
+  const [showBanner, setShowBanner] = useState(() => !isStandalone() && !wasDismissedThisSession() && isIos())
   const [showIosGuide, setShowIosGuide] = useState(false)
-  const [installed, setInstalled] = useState(false)
 
   useEffect(() => {
-    // If running in standalone mode (already installed), never show
-    if (isStandalone()) {
-      setInstalled(true)
-      return
-    }
-
-    const dismissed = sessionStorage.getItem(DISMISSED_KEY)
-    if (dismissed) return
+    if (installed || wasDismissedThisSession()) return
 
     // Listen to prompt availability (Android, Windows, Mac, Chrome, Edge)
-    const unsubscribe = onInstallAvailabilityChange((available) => {
-      setCanInstall(available)
-      if (available) {
-        setShowBanner(true)
-      }
+    return onInstallAvailabilityChange((available) => {
+      if (available) setShowBanner(true)
     })
-
-    // If on iOS Safari and not standalone
-    if (isIos() && !isStandalone()) {
-      setShowBanner(true)
-    }
-
-    return () => unsubscribe()
-  }, [])
+  }, [installed])
 
   function handleDismiss() {
     setShowBanner(false)
@@ -70,7 +62,7 @@ export default function PwaInstallBanner() {
           className="fixed top-20 inset-x-3.5 z-40 sm:inset-x-auto sm:left-6 sm:top-20 sm:max-w-sm pointer-events-auto"
           dir="rtl"
         >
-          <div className="relative flex items-center justify-between gap-2.5 overflow-hidden rounded-2xl border border-customBlue/35 bg-gradient-to-r from-deepBlue via-[#0E2843] to-[#0A1D31] px-3.5 py-2.5 text-white shadow-xl backdrop-blur-xl ring-1 ring-white/10">
+          <div className="relative flex items-center justify-between gap-2.5 overflow-hidden rounded-2xl border border-customBlue/35 bg-gradient-to-r from-deepBlue via-deepBlue to-primary-900 px-3.5 py-2.5 text-white shadow-xl backdrop-blur-xl ring-1 ring-white/10">
             {/* Glowing background blur */}
             <div className="pointer-events-none absolute -left-6 -top-6 h-20 w-20 rounded-full bg-customBlue/25 blur-xl" />
 

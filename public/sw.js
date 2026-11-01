@@ -28,9 +28,8 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[SW] Pre-caching non-fatal warning:', err)
-      })
+      // Best effort: a missing asset must not stop the worker from installing.
+      return cache.addAll(PRECACHE_ASSETS).catch(() => undefined)
     }),
   )
   // Force active immediately without waiting for existing clients to close
@@ -43,10 +42,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys
           .filter((k) => k !== STATIC_CACHE && k !== DYNAMIC_CACHE)
-          .map((k) => {
-            console.log('[SW] Purging old cache:', k)
-            return caches.delete(k)
-          }),
+          .map((k) => caches.delete(k)),
       )
     }),
   )
