@@ -41,7 +41,14 @@ import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/userBadgeStatus'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
-import { adminRoleLabelAr, getAssignableRoleOptions, DEFAULT_EMC_DEPARTMENTS, type DepartmentOption } from '@/pages/super-admin/users/assignableRoles'
+import {
+  adminRoleLabelAr,
+  getAssignableRoleOptions,
+  DEFAULT_EMC_DEPARTMENTS,
+  getSpecializedRoleForDepartment,
+  isSpecializedManagerRole,
+  type DepartmentOption,
+} from '@/pages/super-admin/users/assignableRoles'
 import {
   canDeleteAdminUserRow,
   canEditAdminUserRow,
@@ -462,8 +469,8 @@ export default function UsersManagementPage() {
       return true
     }
     if (step === 2) {
-      if ((formRole === 'department_manager' || formRole === 'department_member') && !formDepartmentId && !formDepartment) {
-        toast.warning('يرجى تحديد الإدارة التابع لها')
+      if ((isSpecializedManagerRole(formRole) || formRole === 'department_member') && !formDepartmentId && !formDepartment) {
+        toast.warning(isSpecializedManagerRole(formRole) ? 'يرجى تحديد الإدارة التي يديرها' : 'يرجى تحديد الإدارة التابع لها')
         return false
       }
       return true
@@ -495,14 +502,18 @@ export default function UsersManagementPage() {
     if (!validateCreateWizard(1) || !validateCreateWizard(3)) return
     setSaving(true)
     try {
+      const matched = departmentList.find((d) => String(d.id) === formDepartmentId || d.name_ar === formDepartment)
+      const isManager = isSpecializedManagerRole(formRole)
+      const targetRole = isManager && matched ? (getSpecializedRoleForDepartment(matched)?.role || formRole) : formRole
+
       const body: CreateAdminUserInput = {
         name: formName,
         email: formEmail,
-        role: formRole,
+        role: targetRole,
         password: pw,
         password_confirmation: pwConf || pw,
         phone: formPhone.trim() || undefined,
-        department: formDepartment.trim() || undefined,
+        department: (matched ? matched.name_ar || matched.name : formDepartment.trim()) || undefined,
         department_id: formDepartmentId ? Number(formDepartmentId) : undefined,
         city: formCity.trim() || undefined,
         country: formCountry.trim() || undefined,
@@ -528,12 +539,16 @@ export default function UsersManagementPage() {
     }
     setSaving(true)
     try {
+      const matched = departmentList.find((d) => String(d.id) === formDepartmentId || d.name_ar === formDepartment)
+      const isManager = isSpecializedManagerRole(formRole)
+      const targetRole = isManager && matched ? (getSpecializedRoleForDepartment(matched)?.role || formRole) : formRole
+
       const patch: UpdateAdminUserInput = {
         name: formName,
         email: formEmail,
-        role: formRole,
+        role: targetRole,
         phone: formPhone.trim() || undefined,
-        department: formDepartment.trim() || undefined,
+        department: (matched ? matched.name_ar || matched.name : formDepartment.trim()) || undefined,
         department_id: formDepartmentId ? Number(formDepartmentId) : undefined,
         city: formCity.trim() || undefined,
         country: formCountry.trim() || undefined,
@@ -859,7 +874,17 @@ export default function UsersManagementPage() {
                         children={
                           <select
                             value={formRole}
-                            onChange={(e) => setFormRole(e.target.value)}
+                            onChange={(e) => {
+                              const nextRole = e.target.value
+                              setFormRole(nextRole)
+                              if (nextRole === 'department_manager' && formDepartmentId) {
+                                const matched = departmentList.find((d) => String(d.id) === formDepartmentId)
+                                if (matched) {
+                                  const spec = getSpecializedRoleForDepartment(matched)
+                                  if (spec) setFormRole(spec.role)
+                                }
+                              }
+                            }}
                             className={EMC_WIZARD_INPUT_BASE}
                           >
                             {roleOptionsForm.map((o) => (
@@ -867,35 +892,62 @@ export default function UsersManagementPage() {
                                 {o.labelAr}
                               </option>
                             ))}
+                            {!roleOptionsForm.some((o) => o.value === formRole) && (
+                              <option value={formRole}>
+                                {adminRoleLabelAr(formRole)}
+                              </option>
+                            )}
                           </select>
                         }
                       />
-                      {(formRole === 'department_manager' || formRole === 'department_member') && (
-                        <Labeled
-                          label="الإدارة التابع لها *"
-                          children={
-                            <select
-                              value={formDepartmentId}
-                              onChange={(e) => {
-                                const id = e.target.value
-                                setFormDepartmentId(id)
-                                const matched = departmentList.find((d) => String(d.id) === id)
-                                setFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
-                              }}
-                              className={cn(
-                                EMC_WIZARD_INPUT_BASE,
-                                !formDepartmentId && 'border-amber-400 bg-amber-50/30 text-amber-900',
-                              )}
-                            >
-                              <option value="">-- اختر الإدارة المعنية --</option>
-                              {departmentList.map((d) => (
-                                <option key={d.id} value={String(d.id)}>
-                                  {d.name_ar || d.name}
-                                </option>
-                              ))}
-                            </select>
-                          }
-                        />
+                      {(isSpecializedManagerRole(formRole) || formRole === 'department_member') && (
+                        <>
+                          <Labeled
+                            label={isSpecializedManagerRole(formRole) ? 'الإدارة التي يديرها *' : 'الإدارة التابع لها *'}
+                            children={
+                              <select
+                                value={formDepartmentId}
+                                onChange={(e) => {
+                                  const id = e.target.value
+                                  setFormDepartmentId(id)
+                                  const matched = departmentList.find((d) => String(d.id) === id)
+                                  setFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
+                                  if (isSpecializedManagerRole(formRole) && matched) {
+                                    const spec = getSpecializedRoleForDepartment(matched)
+                                    if (spec) setFormRole(spec.role)
+                                  }
+                                }}
+                                className={cn(
+                                  EMC_WIZARD_INPUT_BASE,
+                                  !formDepartmentId && 'border-amber-400 bg-amber-50/30 text-amber-900',
+                                )}
+                              >
+                                <option value="">-- اختر الإدارة المعنية --</option>
+                                {departmentList.map((d) => (
+                                  <option key={d.id} value={String(d.id)}>
+                                    {d.name_ar || d.name}
+                                  </option>
+                                ))}
+                              </select>
+                            }
+                          />
+                          {isSpecializedManagerRole(formRole) && formDepartmentId && (() => {
+                            const matched = departmentList.find((d) => String(d.id) === formDepartmentId)
+                            const spec = getSpecializedRoleForDepartment(matched)
+                            if (!spec) return null
+                            return (
+                              <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-[12px] text-emerald-900 shadow-sm text-right">
+                                <div className="flex items-center gap-2 font-black text-emerald-800">
+                                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                                  <span>تم الربط التلقائي بالدور التخصصي: {spec.labelAr} ({spec.role})</span>
+                                </div>
+                                <p className="mt-1 text-[11px] font-semibold text-emerald-700">
+                                  ستفتح له لوحة التحكم التخصصية وشاشات {matched?.name_ar || matched?.name} فور تسجيل الدخول.
+                                </p>
+                              </div>
+                            )
+                          })()}
+                        </>
                       )}
                     </FormSectionCard>
                   : createWizardStep === 3 ?

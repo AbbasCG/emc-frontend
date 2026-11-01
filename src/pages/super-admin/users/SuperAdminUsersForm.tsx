@@ -14,7 +14,15 @@ import {
   updateAdminUser,
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
-import { getAssignableRoleOptions, adminRoleLabelAr, DEFAULT_EMC_DEPARTMENTS, type DepartmentOption } from '@/pages/super-admin/users/assignableRoles'
+import { ShieldCheck, Sparkles } from 'lucide-react'
+import {
+  getAssignableRoleOptions,
+  adminRoleLabelAr,
+  DEFAULT_EMC_DEPARTMENTS,
+  getSpecializedRoleForDepartment,
+  isSpecializedManagerRole,
+  type DepartmentOption,
+} from '@/pages/super-admin/users/assignableRoles'
 import { canOfferSuperAdminRoleOption } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SuperAdminCrudHeader } from '@/pages/super-admin/SuperAdminCrudHeader'
@@ -96,17 +104,33 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
     }
   }, [variant])
 
+  const isManagerRole = isSpecializedManagerRole(role)
+  const isMemberRole = role === 'department_member'
+  const isDeptRole = isManagerRole || isMemberRole
+
+  const currentSelectedDept = useMemo(() => {
+    return departments.find((d) => String(d.id) === String(department))
+  }, [departments, department])
+
+  const specializedInfo = useMemo(() => {
+    if (!isManagerRole || !currentSelectedDept) return null
+    return getSpecializedRoleForDepartment(currentSelectedDept)
+  }, [isManagerRole, currentSelectedDept])
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     void (async () => {
       setSaving(true)
       try {
-        const isDeptRole = role === 'department_manager' || role === 'department_member'
         if (isDeptRole && !department) {
-          toast.warning(role === 'department_manager' ? 'يرجى اختيار الإدارة التي يديرها المستخدم' : 'يرجى اختيار الإدارة التابع لها العضو')
+          toast.warning(isManagerRole ? 'يرجى اختيار الإدارة التي يديرها المستخدم' : 'يرجى اختيار الإدارة التابع لها العضو')
           setSaving(false)
           return
         }
+
+        const matchedDept = departments.find((d) => String(d.id) === department)
+        const deptName = matchedDept ? matchedDept.name_ar || matchedDept.name || null : null
+        const targetRole = isManagerRole && matchedDept ? (getSpecializedRoleForDepartment(matchedDept)?.role || role) : role
 
         if (variant === 'create') {
           if (!password.trim()) {
@@ -120,10 +144,10 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           const created = await createAdminUser({
             name,
             email,
-            role,
+            role: targetRole,
             password,
             password_confirmation: passwordConfirmation || password,
-            department: department || null,
+            department: deptName,
             department_id: department ? Number(department) : null,
           })
           toast.success('تم إنشاء المستخدم')
@@ -138,8 +162,8 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           const patch: UpdateAdminUserInput = {
             name,
             email,
-            role,
-            department: department || null,
+            role: targetRole,
+            department: deptName,
             department_id: department ? Number(department) : null,
           }
           if (pw) {
@@ -219,7 +243,14 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           الدور
           <select
             value={role}
-            onChange={(x) => setRole(x.target.value)}
+            onChange={(x) => {
+              const nextRole = x.target.value
+              setRole(nextRole)
+              if (nextRole === 'department_manager' && currentSelectedDept) {
+                const spec = getSpecializedRoleForDepartment(currentSelectedDept)
+                if (spec) setRole(spec.role)
+              }
+            }}
             className="rounded-2xl border border-deepBlue/[0.1] px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
           >
             {roleOptions.map((opt) => (
@@ -227,27 +258,37 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
                 {opt.labelAr}
               </option>
             ))}
+            {!roleOptions.some((o) => o.value === role) && (
+              <option value={role}>
+                {adminRoleLabelAr(role)}
+              </option>
+            )}
           </select>
         </label>
 
-        {(() => {
-          const isDeptRole = role === 'department_manager' || role === 'department_member'
-          return (
+        {isDeptRole && (
+          <div className="space-y-2">
             <label className={`flex flex-col gap-2 text-right text-[12px] font-black ${isDeptRole ? 'text-customBlue' : 'text-deepBlue'}`}>
               <div className="flex items-center justify-between">
                 <span>
-                  {role === 'department_manager' ? 'الإدارة التي يديرها *' : role === 'department_member' ? 'الإدارة التابع لها *' : 'الإدارة (اختياري)'}
+                  {isManagerRole ? 'الإدارة التي يديرها *' : 'الإدارة التابع لها *'}
                 </span>
-                {isDeptRole && (
-                  <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    مطلوبة للتسكين ولوحة التحكم
-                  </span>
-                )}
+                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  مطلوبة للتسكين ولوحة التحكم
+                </span>
               </div>
               <select
                 value={department}
                 required={isDeptRole}
-                onChange={(x) => setDepartment(x.target.value)}
+                onChange={(x) => {
+                  const id = x.target.value
+                  setDepartment(id)
+                  const matched = departments.find((d) => String(d.id) === id)
+                  if (isManagerRole && matched) {
+                    const spec = getSpecializedRoleForDepartment(matched)
+                    if (spec) setRole(spec.role)
+                  }
+                }}
                 className={`rounded-2xl border px-4 py-2.5 text-[13px] font-semibold outline-none focus:ring-2 ${
                   isDeptRole && !department
                     ? 'border-amber-400 bg-amber-50/30 focus:border-amber-500 focus:ring-amber-200'
@@ -262,8 +303,32 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
                 ))}
               </select>
             </label>
-          )
-        })()}
+
+            {isManagerRole && specializedInfo && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-[12px] text-emerald-900 shadow-sm text-right">
+                <div className="flex items-center gap-2 font-black text-emerald-800">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>تم الربط التلقائي بالدور التخصصي الفعلي: {specializedInfo.labelAr} ({specializedInfo.role})</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-emerald-700">
+                  سيتم توجيه هذا المدير إلى لوحة التحكم التخصصية وتفعيل شاشات وصلاحيات {currentSelectedDept?.name_ar || currentSelectedDept?.name} بالكامل.
+                </p>
+              </div>
+            )}
+
+            {isMemberRole && currentSelectedDept && (
+              <div className="rounded-xl border border-sky-200 bg-sky-50/90 p-3 text-[12px] text-sky-900 shadow-sm text-right">
+                <div className="flex items-center gap-2 font-black text-sky-800">
+                  <Sparkles className="h-4 w-4 text-sky-600 shrink-0" />
+                  <span>تم تحديد الإدارة: {currentSelectedDept.name_ar || currentSelectedDept.name}</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-sky-700">
+                  سيتم تسكين العضو في هذه الإدارة وإتاحة صالة الاجتماعات والتقارير الخاصة بها.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">

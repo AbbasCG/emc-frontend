@@ -81,7 +81,7 @@ describe('submitVolunteerApplication', () => {
     expect(entries.agree_terms).toBe('1') // always sent as '1'
   })
 
-  it('omits the optional fields when blank, but always sends the select-style fields', async () => {
+  it('omits the optional fields when blank, and sends unspecified (the backend default) for a blank gender', async () => {
     mockedApi.post.mockResolvedValueOnce({ data: { success: true } })
     await submitVolunteerApplication({
       ...baseInput,
@@ -96,8 +96,8 @@ describe('submitVolunteerApplication', () => {
     expect(entries.previous_experience).toBeUndefined()
     expect(entries.cv_file).toBeUndefined()
     expect(entries.notes).toBeUndefined()
-    // gender/department/level/availability are appended unconditionally, even empty
-    expect(entries.gender).toBe('')
+    // a blank gender is sent as 'unspecified', the value the backend itself defaults to; the answered fields still travel
+    expect(entries.gender).toBe('unspecified')
     expect(entries.availability).toBe('weekends')
   })
 
