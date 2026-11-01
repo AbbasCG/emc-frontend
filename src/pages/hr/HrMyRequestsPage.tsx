@@ -11,9 +11,9 @@ function apiMessage(err: unknown): string | undefined {
   return typeof data?.message === 'string' ? data.message : undefined
 }
 
-export type EmploymentTypeOption = 'وظيفة شاغرة' | 'استبدال'
+type EmploymentTypeOption = 'وظيفة شاغرة' | 'استبدال'
 
-export const EMPLOYMENT_TYPE_OPTIONS: EmploymentTypeOption[] = [
+const EMPLOYMENT_TYPE_OPTIONS: EmploymentTypeOption[] = [
   'وظيفة شاغرة',
   'استبدال',
 ]
@@ -196,7 +196,7 @@ export default function HrMyRequestsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-customBlue text-white font-bold rounded-xl hover:bg-[#0E5A8A] transition shadow-emc-sm hover:-translate-y-0.5"
+          className="flex items-center gap-2 px-4 py-2 bg-customBlue text-white font-bold rounded-xl hover:bg-primary-600 transition shadow-emc-sm hover:-translate-y-0.5"
         >
           <Plus size={18} />
           تقديم طلب احتياج جديد
@@ -215,7 +215,7 @@ export default function HrMyRequestsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right text-sm">
-              <thead className="bg-[#F6F8FB] text-deepBlue border-b border-deepBlue/[0.08]">
+              <thead className="bg-detail-soft text-deepBlue border-b border-deepBlue/[0.08]">
                 <tr>
                   <th className="px-5 py-4 font-black">نوع التوظيف</th>
                   <th className="px-5 py-4 font-black">المسمى الوظيفي</th>
@@ -230,7 +230,7 @@ export default function HrMyRequestsPage() {
                 {requests.map((req) => {
                   const { employmentType: empType, jobTitle: title } = resolveRequestDisplay(req)
                   return (
-                    <tr key={req.id} className="hover:bg-[#F6F8FB]/50 transition">
+                    <tr key={req.id} className="hover:bg-detail-soft/50 transition">
                       <td className="px-5 py-4">
                         <span
                           className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold border ${
@@ -275,7 +275,7 @@ export default function HrMyRequestsPage() {
       {showModal && (
         <div className="fixed inset-0 z-modal-overlay bg-deepBlue/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-emc-card flex flex-col max-h-[90vh]">
-            <div className="px-6 py-5 border-b border-deepBlue/[0.08] flex items-center justify-between bg-[#F6F8FB]/50">
+            <div className="px-6 py-5 border-b border-deepBlue/[0.08] flex items-center justify-between bg-detail-soft/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-customBlue/10 flex items-center justify-center text-customBlue">
                   <Users size={20} />
@@ -298,7 +298,7 @@ export default function HrMyRequestsPage() {
                     value={employmentType}
                     onChange={(e) => setEmploymentType(e.target.value as EmploymentTypeOption)}
                     required
-                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold text-deepBlue focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold text-deepBlue focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
                   >
                     {EMPLOYMENT_TYPE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
@@ -320,7 +320,7 @@ export default function HrMyRequestsPage() {
                       onChange={(e) => setJobTitle(e.target.value)}
                       required
                       placeholder="مثال: منسق برامج، مصمم محتوى..."
-                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
                     />
                   </div>
 
@@ -334,7 +334,7 @@ export default function HrMyRequestsPage() {
                       value={requiredCount}
                       onChange={(e) => setRequiredCount(Math.max(1, Number(e.target.value) || 1))}
                       required
-                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] font-latin text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                      className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-detail-soft font-latin text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
                     />
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export default function HrMyRequestsPage() {
                     value={qualification}
                     onChange={(e) => setQualification(e.target.value)}
                     placeholder="مثال: بكالوريوس إدارة أعمال أو ما يعادله..."
-                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
+                    className="w-full h-11 px-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition"
                   />
                 </div>
 
@@ -364,7 +364,7 @@ export default function HrMyRequestsPage() {
                     required
                     rows={3}
                     placeholder="اذكر المهام والمسؤوليات الرئيسية للدور المطلوب..."
-                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
+                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
                   ></textarea>
                 </div>
 
@@ -379,7 +379,7 @@ export default function HrMyRequestsPage() {
                     required
                     rows={3}
                     placeholder="مثال: خبرة سنتين، إجادة اللغة الإنجليزية، مهارات التواصل..."
-                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
+                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
                   ></textarea>
                 </div>
 
@@ -393,13 +393,13 @@ export default function HrMyRequestsPage() {
                     onChange={(e) => setNotes(e.target.value)}
                     rows={2}
                     placeholder="أي ملاحظات إضافية..."
-                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-[#F6F8FB] text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
+                    className="w-full p-4 rounded-xl border border-deepBlue/10 bg-detail-soft text-sm font-semibold focus:bg-white focus:border-customBlue focus:ring-1 focus:ring-customBlue outline-none transition resize-none"
                   ></textarea>
                 </div>
               </form>
             </div>
 
-            <div className="px-6 py-4 border-t border-deepBlue/[0.08] bg-[#F6F8FB]/50 flex justify-end gap-3 shrink-0">
+            <div className="px-6 py-4 border-t border-deepBlue/[0.08] bg-detail-soft/50 flex justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
@@ -411,7 +411,7 @@ export default function HrMyRequestsPage() {
                 type="submit"
                 form="hr-request-form"
                 disabled={submitting}
-                className="px-6 py-2.5 rounded-xl font-bold bg-customBlue text-white hover:bg-[#0E5A8A] transition shadow-emc-sm disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl font-bold bg-customBlue text-white hover:bg-primary-600 transition shadow-emc-sm disabled:opacity-50 flex items-center gap-2"
               >
                 {submitting ? <Loader2 size={18} className="animate-spin" /> : 'تقديم الطلب'}
               </button>
