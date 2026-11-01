@@ -258,7 +258,12 @@ export default function ImpactPointsPage() {
 
               {caps.can_award && (
                 <div ref={awardRef} id="quick-award" className="scroll-mt-4">
-                  <QuickAwardForm monthlyCap={monthlyCap} preselectUserId={awardTarget} onAwarded={onPointsChanged} />
+                  <QuickAwardForm
+                    monthlyCap={monthlyCap}
+                    scope={caps.scope}
+                    preselectUserId={awardTarget}
+                    onAwarded={onPointsChanged}
+                  />
                 </div>
               )}
 

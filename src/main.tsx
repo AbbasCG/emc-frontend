@@ -9,9 +9,11 @@ import { LanguageProvider } from './i18n/LanguageProvider'
 import App from './App.tsx'
 import { validateEnv } from './utils/validateEnv'
 import { initSentry } from './utils/sentry'
+import { registerPwaServiceWorker } from './lib/pwa'
 
 validateEnv()
 initSentry()
+registerPwaServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

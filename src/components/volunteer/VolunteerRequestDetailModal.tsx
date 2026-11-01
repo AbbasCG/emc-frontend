@@ -204,13 +204,80 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
         }
         main={
           <>
-            <CardShell title="معلومات التطوع" icon={Users}>
-              <InfoRow label="القسم المطلوب" value={orNull(req.desired_department)} wide />
-              <InfoRow label="التوفر" value={orNull(req.availability)} wide />
-              <InfoRow label="مستوى الخبرة" value={orNull(req.experience_level)} wide />
+            <CardShell title="معلومات التطوع والتفرغ" icon={Users}>
+              <InfoRow label="القسم المطلوب" value={orNull(req.primary_value_department || req.desired_department)} wide />
+              <InfoRow label="المؤهل العلمي" value={orNull(req.education_level)} wide />
+              <InfoRow label="الوضع الحالي" value={orNull(req.current_status ? `${req.current_status}${req.job_title ? ` (${req.job_title})` : ''}` : null)} wide />
+              <InfoRow label="التخصص" value={orNull(req.specialization)} wide />
+              <InfoRow label="مدى التوافر" value={orNull(req.volunteer_days_availability || req.availability)} wide />
+              {req.volunteer_days && req.volunteer_days.length > 0 && (
+                <div className="py-2">
+                  <p className="mb-1 text-[11px] font-bold text-slate-400">الأيام المتاحة</p>
+                  <Chips items={req.volunteer_days} />
+                </div>
+              )}
+              <InfoRow label="الفترة المناسبة" value={orNull(req.preferred_time_slot)} wide />
+              <InfoRow label="الساعات اليومية" value={orNull(req.daily_hours)} wide />
+              <InfoRow label="المشاركة الحضورية" value={orNull(req.in_person_capable)} wide />
+              <InfoRow label="المشاركة عن بعد" value={orNull(req.remote_capable)} wide />
               {req.opportunity_title ? <InfoRow label="الفرصة المتقدَّم عليها" value={req.opportunity_title} wide /> : null}
               <InfoRow label="تاريخ التقديم" value={req.created_at ? formatDateTime(req.created_at) : null} wide last />
             </CardShell>
+
+            {/* بطاقة تقييم الكفاءات والمواقف */}
+            {(req.personal_skills?.length || req.technical_tools?.length || req.situational_responses || req.department_skills?.length) && (
+              <CardShell title="تقييم الكفاءات والمواقف العملية" icon={GraduationCap}>
+                <div className="space-y-3">
+                  {req.personal_skills && req.personal_skills.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold text-slate-400">المهارات الشخصية (تقييم ذاتي: {req.skill_level_rating ?? '3'}/5)</p>
+                      <Chips items={req.personal_skills} />
+                    </div>
+                  )}
+
+                  {req.department_skills && req.department_skills.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold text-slate-400">المهارات التخصصية في الإدارة</p>
+                      <Chips items={req.department_skills} />
+                    </div>
+                  )}
+
+                  {req.technical_tools && req.technical_tools.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold text-slate-400">الأدوات التقنية والبرامج</p>
+                      <Chips items={req.technical_tools} />
+                    </div>
+                  )}
+
+                  {req.value_add_contributions && (
+                    <InfoRow label="ما يقدمه للمؤسسة" value={req.value_add_contributions} preserveLineBreaks />
+                  )}
+
+                  {req.portfolio_url && (
+                    <InfoRow
+                      label="رابط الأعمال / Portfolio"
+                      value={
+                        <a href={req.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-customBlue hover:underline flex items-center gap-1">
+                          {req.portfolio_url} <ExternalLink size={12} />
+                        </a>
+                      }
+                    />
+                  )}
+
+                  {req.situational_responses && Object.keys(req.situational_responses).length > 0 && (
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <p className="text-[11px] font-black text-slate-500">إجابات المواقف العملية:</p>
+                      {Object.entries(req.situational_responses).map(([sitId, answer], i) => (
+                        <div key={sitId} className="rounded-lg bg-slate-50 p-2 text-[11px] text-slate-700">
+                          <span className="font-bold text-deepBlue">الموقف {i + 1}: </span>
+                          <span>{answer}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardShell>
+            )}
 
             <CardShell title="الوثائق" icon={FileText}>
               {cvViewUrl ? <DocumentCard name="السيرة الذاتية" meta="ملف مرفوع من المتقدم · رابط معاينة مؤقت" href={cvViewUrl} /> : <p className="text-[12px] font-semibold text-slate-300">غير متوفر</p>}
