@@ -41,6 +41,12 @@ export const ASSIGNABLE_CANONICAL_ROLES = [
   'support_agent',
 ] as const
 
+/**
+ * Roles that a department can NEVER confer. Choosing a department for a manager must not silently store a technical or
+ * executive administrator role (the backend refuses the same mapping): those are assigned deliberately, as roles.
+ */
+export const DEPARTMENT_NEVER_GRANTS = ['super_admin', 'admin', 'tech_admin', 'executive_admin'] as const
+
 export const ALL_SPECIALIZED_MANAGER_ROLES = [
   'hr_manager',
   'finance_manager',
@@ -50,12 +56,10 @@ export const ALL_SPECIALIZED_MANAGER_ROLES = [
   'partnerships_manager',
   'quality_manager',
   'community_manager',
-  'tech_admin',
   'ai_manager',
   'strategy_planning_manager',
   'digital_ambassadors_manager',
   'advisors_manager',
-  'executive_admin',
 ] as const
 
 export function isSpecializedManagerRole(role?: string | null): boolean {
@@ -75,13 +79,11 @@ export const DEPARTMENT_SPECIALIZED_ROLES_MAP: Record<string, string> = {
   'partnerships': 'partnerships_manager',
   'quality-governance': 'quality_manager',
   'community-health': 'community_manager',
-  'technology': 'tech_admin',
   'ai-digital-transformation': 'ai_manager',
   'ai-transformation': 'ai_manager',
   'strategy-planning': 'strategy_planning_manager',
   'digital-ambassadors': 'digital_ambassadors_manager',
   'advisors': 'advisors_manager',
-  'executive-management': 'executive_admin',
 }
 
 export const DEPARTMENT_NAME_TO_SPECIALIZED_ROLE: Record<string, string> = {
@@ -102,21 +104,18 @@ export const DEPARTMENT_NAME_TO_SPECIALIZED_ROLE: Record<string, string> = {
   'إدارة المجتمع والصحة النفسية والوعي': 'community_manager',
   'إدارة المجتمع والصحة': 'community_manager',
   'إدارة الصحة النفسية والوعي': 'community_manager',
-  'إدارة التقنية والدعم الفني': 'tech_admin',
-  'إدارة التقنية': 'tech_admin',
   'إدارة الذكاء الاصطناعي والتحول الرقمي': 'ai_manager',
   'إدارة الذكاء الاصطناعي': 'ai_manager',
   'إدارة الاستراتيجية والتخطيط المؤسسي': 'strategy_planning_manager',
   'إدارة سفراء التحول الرقمي': 'digital_ambassadors_manager',
   'إدارة الاستشارات والمستشارين': 'advisors_manager',
-  'الإدارة العليا': 'executive_admin',
 }
 
 export function getSpecializedRoleForDepartment(
   dept?: { id?: number | string; slug?: string; name_ar?: string; name?: string } | string | null,
 ): { role: string; labelAr: string } | null {
   if (!dept) return null
-  let roleSlug: string | null = null
+  let roleSlug: string | null
   if (typeof dept === 'string') {
     const trimmed = dept.trim()
     roleSlug = DEPARTMENT_NAME_TO_SPECIALIZED_ROLE[trimmed] || DEPARTMENT_SPECIALIZED_ROLES_MAP[trimmed] || null
@@ -128,7 +127,7 @@ export function getSpecializedRoleForDepartment(
       roleSlug = DEPARTMENT_NAME_TO_SPECIALIZED_ROLE[name] || null
     }
   }
-  if (!roleSlug) return null
+  if (!roleSlug || (DEPARTMENT_NEVER_GRANTS as readonly string[]).includes(roleSlug)) return null
   return {
     role: roleSlug,
     labelAr: ROLE_LABEL_AR[roleSlug as (typeof EMC_DASHBOARD_ROLES)[number]] ?? roleSlug,

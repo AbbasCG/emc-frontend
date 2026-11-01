@@ -5,6 +5,9 @@ import {
   getAssignableRoleOptions,
   adminRoleLabelAr,
   ALL_SPECIALIZED_MANAGER_ROLES,
+  DEPARTMENT_NEVER_GRANTS,
+  DEPARTMENT_NAME_TO_SPECIALIZED_ROLE,
+  DEPARTMENT_SPECIALIZED_ROLES_MAP,
 } from '@/pages/super-admin/users/assignableRoles'
 
 describe('Specialized Department Role Auto-Link', () => {
@@ -61,11 +64,8 @@ describe('Specialized Department Role Auto-Link', () => {
       labelAr: 'مدير الصحة النفسية والوعي',
     })
 
-    // Technology
-    expect(getSpecializedRoleForDepartment({ slug: 'technology', name_ar: 'إدارة التقنية والدعم الفني' })).toEqual({
-      role: 'tech_admin',
-      labelAr: 'مدير التقنية',
-    })
+    // Technology: a department never confers the technical administrator role (assigned deliberately, as a role)
+    expect(getSpecializedRoleForDepartment({ slug: 'technology', name_ar: 'إدارة التقنية والدعم الفني' })).toBeNull()
 
     // AI
     expect(getSpecializedRoleForDepartment({ slug: 'ai-digital-transformation', name_ar: 'إدارة الذكاء الاصطناعي والتحول الرقمي' })).toEqual({
@@ -95,11 +95,24 @@ describe('Specialized Department Role Auto-Link', () => {
       labelAr: 'مدير الاستشارات والمستشارين',
     })
 
-    // Executive Management
-    expect(getSpecializedRoleForDepartment({ slug: 'executive-management', name_ar: 'الإدارة العليا' })).toEqual({
-      role: 'executive_admin',
-      labelAr: 'مشرف تنفيذي',
-    })
+    // Executive Management: likewise never confers the executive administrator role
+    expect(getSpecializedRoleForDepartment({ slug: 'executive-management', name_ar: 'الإدارة العليا' })).toBeNull()
+  })
+
+  it('never lets a department, by slug or by name, produce an administrator role', () => {
+    const slugs = [...Object.keys(DEPARTMENT_SPECIALIZED_ROLES_MAP), 'technology', 'executive-management', 'admin', 'super-admin']
+    const names = [...Object.keys(DEPARTMENT_NAME_TO_SPECIALIZED_ROLE), 'إدارة التقنية', 'إدارة التقنية والدعم الفني', 'الإدارة العليا', 'tech_admin', 'executive_admin']
+    const produced = [
+      ...slugs.map((slug) => getSpecializedRoleForDepartment({ slug })),
+      ...names.map((name) => getSpecializedRoleForDepartment(name)),
+      ...names.map((name_ar) => getSpecializedRoleForDepartment({ name_ar })),
+    ].flatMap((r) => (r ? [r.role] : []))
+
+    expect(produced.length).toBeGreaterThan(0)
+    for (const forbidden of DEPARTMENT_NEVER_GRANTS) expect(produced).not.toContain(forbidden)
+    for (const role of Object.values(DEPARTMENT_SPECIALIZED_ROLES_MAP).concat(Object.values(DEPARTMENT_NAME_TO_SPECIALIZED_ROLE))) {
+      expect(DEPARTMENT_NEVER_GRANTS as readonly string[]).not.toContain(role)
+    }
   })
 
   it('correctly identifies specialized manager roles', () => {
@@ -107,6 +120,8 @@ describe('Specialized Department Role Auto-Link', () => {
     for (const r of ALL_SPECIALIZED_MANAGER_ROLES) {
       expect(isSpecializedManagerRole(r)).toBe(true)
     }
+    expect(isSpecializedManagerRole('tech_admin')).toBe(false)
+    expect(isSpecializedManagerRole('executive_admin')).toBe(false)
     expect(isSpecializedManagerRole('student')).toBe(false)
     expect(isSpecializedManagerRole('instructor')).toBe(false)
     expect(isSpecializedManagerRole('volunteer')).toBe(false)
