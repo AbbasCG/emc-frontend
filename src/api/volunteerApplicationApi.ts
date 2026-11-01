@@ -211,7 +211,7 @@ export async function submitVolunteerApplication(data: VolunteerApplicationInput
   // الحقول العامة السابقة لضمان التوافق الكامل
   fd.append('desired_department', data.desired_department || data.primary_value_department || 'غير محدد')
   if (data.experience_level) fd.append('experience_level', data.experience_level)
-  if (data.skills) fd.append('skills', data.skills.trim())
+  if (data.skills?.trim()) fd.append('skills', data.skills.trim())
   if (data.availability) fd.append('availability', data.availability)
   if (data.motivation) fd.append('motivation', data.motivation.trim())
   if (data.previous_experience?.trim()) fd.append('previous_experience', data.previous_experience.trim())
