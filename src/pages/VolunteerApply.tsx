@@ -22,6 +22,7 @@ import { CvFileField } from '@/components/ui/CvFileField'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
 import { countryFromPhone } from '@/lib/countryFromPhone'
 import { submitVolunteerApplication } from '@/api/volunteerApplicationApi'
+import { assessmentLegacyFields } from '@/utils/volunteerApplyLegacyFields'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import toast from '@/lib/toast'
 import {
@@ -551,12 +552,8 @@ export default function VolunteerApply() {
         notes: form.notes || null,
         agree_terms: form.agree_terms,
 
-        // Backward compatibility mappings
-        experience_level: form.education_level || 'غير محدد',
-        skills: form.personal_skills.join(', '),
-        availability: form.volunteer_days_availability,
-        motivation: form.value_add_contributions || 'الرغبة في المساهمة في خدمة المجتمع وتطوير المهارات',
-        previous_experience: form.volunteering_organizations || undefined,
+        // Older fields HR screens and matching read: only answers that mean the same thing, nothing invented.
+        ...assessmentLegacyFields(form),
       })
 
       localStorage.removeItem(DRAFT_KEY)
