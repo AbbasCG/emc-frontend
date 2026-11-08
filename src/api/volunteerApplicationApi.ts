@@ -157,6 +157,9 @@ export type VolunteerApplicationInput = {
   agree_terms: boolean
 }
 
+/** Sending the application, with a CV, over a slow connection. */
+export const SUBMIT_TIMEOUT_MS = 60_000
+
 export async function submitVolunteerApplication(data: VolunteerApplicationInput): Promise<void> {
   const fd = new FormData()
   fd.append('full_name', data.full_name.trim())
@@ -230,7 +233,8 @@ export async function submitVolunteerApplication(data: VolunteerApplicationInput
     console.groupEnd()
   }
 
-  await apiClient.post('/volunteer-requests', fd, { skipErrorToast: true })
+  // The form shows its own errors, and a CV upload over a slow mobile connection needs more than the default 20 seconds.
+  await apiClient.post('/volunteer-requests', fd, { skipErrorToast: true, timeout: SUBMIT_TIMEOUT_MS })
 }
 
 function parseBool(v: unknown): boolean | null {

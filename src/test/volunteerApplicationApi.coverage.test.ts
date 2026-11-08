@@ -60,7 +60,7 @@ describe('submitVolunteerApplication', () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       '/volunteer-requests',
       expect.any(FormData),
-      { skipErrorToast: true },
+      { skipErrorToast: true, timeout: 60_000 }, // the form shows its own errors; a CV upload on a slow phone needs a minute
     )
     const fd = mockedApi.post.mock.calls[0][1] as FormData
     const entries = fdEntries(fd)
