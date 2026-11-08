@@ -90,8 +90,12 @@ export type AcceptedVolunteersMeta = {
   top_department: string | null
 }
 
+/**
+ * The general volunteer application. It carries no `opportunity_id`: the server refuses it here, because an
+ * application to a specific opportunity must go through `applyToOpportunity` (volunteerOpportunitiesApi), which is
+ * where the opportunity's open/closed state and the one-application-per-person rule are enforced.
+ */
 export type VolunteerApplicationInput = {
-  opportunity_id?: number | null
   full_name: string
   email: string
   phone: string
@@ -155,7 +159,6 @@ export type VolunteerApplicationInput = {
 
 export async function submitVolunteerApplication(data: VolunteerApplicationInput): Promise<void> {
   const fd = new FormData()
-  if (data.opportunity_id) fd.append('opportunity_id', String(data.opportunity_id))
   fd.append('full_name', data.full_name.trim())
   fd.append('email', data.email.trim())
   fd.append('phone', data.phone.trim())
