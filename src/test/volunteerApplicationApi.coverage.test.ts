@@ -101,6 +101,15 @@ describe('submitVolunteerApplication', () => {
     expect(entries.availability).toBe('weekends')
   })
 
+  it('never sends an opportunity_id: the server refuses it on the general endpoint, applications to an opportunity use their own', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: { success: true } })
+    // A stale caller that still passes one (no longer allowed by the type) must not put it on the wire.
+    await submitVolunteerApplication({ ...baseInput, opportunity_id: 7 } as unknown as VolunteerApplicationInput)
+
+    const fd = mockedApi.post.mock.calls[0][1] as FormData
+    expect(fd.has('opportunity_id')).toBe(false)
+  })
+
   it('propagates a rejection from the API', async () => {
     mockedApi.post.mockRejectedValueOnce(new Error('422'))
     await expect(submitVolunteerApplication(baseInput)).rejects.toThrow('422')
