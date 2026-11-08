@@ -352,7 +352,7 @@ export default function VolunteerApply() {
               <CheckCircle2 size={44} strokeWidth={2.5} />
             </div>
 
-            <h1 className="font-display text-2xl font-black text-deepBlue sm:text-3xl">
+            <h1 className="font-display text-2xl font-semibold text-deepBlue sm:text-3xl">
               تم استلام طلب التطوع وتقييم الكفاءات بنجاح
             </h1>
 
@@ -363,7 +363,7 @@ export default function VolunteerApply() {
             <div className="mt-8 rounded-2xl bg-paper2 p-4 text-xs font-bold text-foreground/75 text-right space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-foreground/50">الإدارة المختارة:</span>
-                <span className="text-deepBlue font-black">{form.primary_value_department}</span>
+                <span className="text-deepBlue font-semibold">{form.primary_value_department}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-foreground/50">البريد الإلكتروني:</span>
@@ -374,13 +374,13 @@ export default function VolunteerApply() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 to="/"
-                className="rounded-2xl bg-deepBlue px-7 py-3 text-xs font-black text-white shadow-emc-md transition hover:bg-deepBlue/90"
+                className="rounded-2xl bg-deepBlue px-7 py-3 text-sm font-semibold text-white shadow-emc-md transition hover:bg-deepBlue/90"
               >
                 العودة للرئيسية
               </Link>
               <Link
                 to="/volunteer"
-                className="rounded-2xl border border-line bg-white px-7 py-3 text-xs font-black text-deepBlue transition hover:bg-paper2"
+                className="rounded-2xl border border-line bg-white px-7 py-3 text-sm font-semibold text-deepBlue transition hover:bg-paper2"
               >
                 صفحة التطوع
               </Link>
