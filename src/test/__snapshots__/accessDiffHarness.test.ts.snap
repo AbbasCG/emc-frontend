@@ -4,19 +4,19 @@ exports[`BASELINE DIFF REPORT > lists every CRITICAL and HIGH mismatch individua
 
 exports[`BASELINE DIFF REPORT > per-role NEWLY_DENIED counts for the unseeded scenario > unseeded-newly-denied-by-persona 1`] = `
 {
-  "admin__none": 57,
+  "admin__none": 58,
   "advisors_manager__none": 9,
-  "ai_manager__leader": 10,
-  "ai_manager__member": 10,
-  "ai_manager__none": 10,
+  "ai_manager__leader": 11,
+  "ai_manager__member": 11,
+  "ai_manager__none": 11,
   "community_manager__none": 14,
   "department_manager__leader": 11,
   "department_manager__member": 11,
   "department_manager__none": 11,
   "digital_ambassadors_manager__none": 9,
-  "executive_admin__none": 13,
-  "finance_manager__none": 22,
-  "hr_manager__none": 21,
+  "executive_admin__none": 14,
+  "finance_manager__none": 23,
+  "hr_manager__none": 23,
   "instructor__none": 9,
   "marketing_manager__none": 10,
   "operations_manager__leader": 13,
@@ -48,20 +48,20 @@ exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seede
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 2130,
+    "EXPECTED": 2226,
     "HIGH": 0,
     "LOW": 28,
-    "MEDIUM": 103,
+    "MEDIUM": 109,
   },
   "counts": {
-    "MATCH_ALLOWED": 368,
-    "MATCH_DENIED": 1664,
+    "MATCH_ALLOWED": 380,
+    "MATCH_DENIED": 1748,
     "NEWLY_ALLOWED": 16,
-    "NEWLY_DENIED": 213,
+    "NEWLY_DENIED": 219,
     "UNMAPPED": 0,
   },
   "personas": 17,
-  "totalComparisons": 2261,
+  "totalComparisons": 2363,
 }
 `;
 
@@ -69,20 +69,20 @@ exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — determi
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 4606,
+    "EXPECTED": 4820,
     "HIGH": 0,
     "LOW": 57,
-    "MEDIUM": 258,
+    "MEDIUM": 266,
   },
   "counts": {
-    "MATCH_ALLOWED": 477,
-    "MATCH_DENIED": 3944,
+    "MATCH_ALLOWED": 489,
+    "MATCH_DENIED": 4146,
     "NEWLY_ALLOWED": 34,
-    "NEWLY_DENIED": 466,
+    "NEWLY_DENIED": 474,
     "UNMAPPED": 0,
   },
   "personas": 37,
-  "totalComparisons": 4921,
+  "totalComparisons": 5143,
 }
 `;
 
@@ -114,7 +114,7 @@ exports[`cutover readiness gates > evaluates all gates against the seeded scenar
     "pass": true,
   },
   {
-    "actual": 213,
+    "actual": 219,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },
@@ -149,7 +149,7 @@ exports[`cutover readiness gates > evaluates all gates against the unseeded (pro
     "pass": true,
   },
   {
-    "actual": 466,
+    "actual": 474,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },
