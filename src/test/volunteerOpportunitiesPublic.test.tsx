@@ -381,14 +381,18 @@ describe('the two volunteer forms ask the same questions', () => {
     expect(screen.queryByLabelText('القسم الذي ترغب بالتطوع فيه')).toBeNull()
   })
 
-  it('both forms use the same option lists and wording (one shared spec)', async () => {
+  it('both forms still draw on one shared spec (consent wording and the opportunity form labels)', async () => {
     const spec = await import('@/components/volunteerOpportunities/volunteerFormSpec')
     const source = (await import('node:fs')).readFileSync('src/pages/VolunteerApply.tsx', 'utf8')
 
     expect(source).toContain("from '@/components/volunteerOpportunities/volunteerFormSpec'")
-    for (const label of [spec.FORM_LABELS.motivation, spec.FORM_LABELS.availability, spec.FORM_LABELS.previousExperience, spec.FORM_LABELS.notes, spec.FORM_LABELS.cv]) expect(source).toContain(label)
+    // The general form was redesigned as a multi-level assessment with its own questions, so it no longer repeats the opportunity
+    // form's field labels; what stays shared is the consent wording and the spec module itself.
+    expect(Object.keys(spec.FORM_LABELS)).toEqual(expect.arrayContaining(['motivation', 'availability', 'cv', 'notes']))
+    expect(spec.MOTIVATION_MIN).toBe(20)
     expect(spec.CONSENT_TEXT).toBe('أوافق على استخدام بياناتي لغرض مراجعة طلب التطوع والتواصل معي.')
-    expect(source).toContain(spec.CONSENT_TEXT)
+    // the general form now imports the shared text instead of repeating it
+    expect(source).toContain('{CONSENT_TEXT}')
   })
 
   it('refuses a Word CV in the opportunity form too (PDF only), and sends no file', async () => {

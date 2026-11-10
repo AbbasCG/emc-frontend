@@ -1,5 +1,5 @@
 {
-  "total": 4891,
+  "total": 4873,
   "files": {
     "src/components/admin/AmbassadorApplicationFiles.tsx": 18,
     "src/components/ai/AiConversationSidebar.tsx": 1,
@@ -226,8 +226,7 @@
     "src/pages/FakePayment.tsx": 1,
     "src/pages/finance/ChartOfAccountsPage.tsx": 9,
     "src/pages/finance/FinanceManualPaymentsPage.tsx": 5,
-    "src/pages/hr/HrDashboardPage.tsx": 25,
-    "src/pages/hr/HrMyRequestsPage.tsx": 10,
+    "src/pages/hr/HrDashboardPage.tsx": 17,
     "src/pages/intelligence/admin/FinanceInvoicesPage.tsx": 12,
     "src/pages/intelligence/admin/FinanceOrdersPage.tsx": 18,
     "src/pages/intelligence/admin/FinanceTransactionsPage.tsx": 5,

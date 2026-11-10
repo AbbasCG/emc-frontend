@@ -78,7 +78,7 @@ function QuickAction({ label, href, icon: Icon, accent }: { label: string; href:
   return (
     <Link
       to={href}
-      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#0C2A4B] shadow-sm transition hover:border-[#0077B6]/40 hover:bg-sky-50/50 hover:shadow-md"
+      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#0C2A4B] shadow-sm transition hover:border-customBlue/40 hover:bg-sky-50/50 hover:shadow-md"
     >
       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accent}`}>
         <Icon size={16} />
@@ -146,7 +146,7 @@ export default function HrDashboardPage() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-[#0077B6]">EMC الموارد البشرية</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">EMC الموارد البشرية</p>
               <h1 className="mt-1 text-2xl font-black text-[#0C2A4B]">قطاع الموارد البشرية</h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
                 إدارة الأعضاء، المدربين، المتطوعين، والطلبات الداخلية
@@ -271,6 +271,7 @@ export default function HrDashboardPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-sm font-black text-[#0C2A4B]">الإجراءات السريعة</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <QuickAction label="اعتماد نقاط المتطوعين"   href="/dashboard/hr/volunteer-points-approval" icon={Award}           accent="bg-sky-100 text-customBlue"     />
             <QuickAction label="مراجعة طلبات التطوع"     href="/dashboard/hr/volunteer-requests" icon={HeartHandshake}  accent="bg-amber-100 text-amber-700"   />
             <QuickAction label="عرض المتطوعين المقبولين"  href="/dashboard/volunteer"             icon={CheckCircle2}    accent="bg-emerald-100 text-emerald-700" />
             <QuickAction label="إدارة المدربين"           href="/dashboard/hr/instructors"        icon={GraduationCap}   accent="bg-indigo-100 text-indigo-700"  />
@@ -286,7 +287,7 @@ export default function HrDashboardPage() {
             {/* Recent Volunteer Requests */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <Link to="/dashboard/hr/volunteer-requests" className="flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline">
+                <Link to="/dashboard/hr/volunteer-requests" className="flex items-center gap-1 text-[11px] font-black text-customBlue hover:underline">
                   عرض الكل <ArrowLeft size={12} />
                 </Link>
                 <h3 className="text-sm font-black text-[#0C2A4B]">آخر طلبات التطوع</h3>
@@ -311,7 +312,7 @@ export default function HrDashboardPage() {
             {/* Accepted volunteers pending conversion */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <Link to="/dashboard/volunteer" className="flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline">
+                <Link to="/dashboard/volunteer" className="flex items-center gap-1 text-[11px] font-black text-customBlue hover:underline">
                   عرض الكل <ArrowLeft size={12} />
                 </Link>
                 <h3 className="text-sm font-black text-[#0C2A4B]">مقبولون بانتظار التحويل</h3>
@@ -336,7 +337,7 @@ export default function HrDashboardPage() {
             {/* Recent Instructors */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <Link to="/dashboard/hr/instructors" className="flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline">
+                <Link to="/dashboard/hr/instructors" className="flex items-center gap-1 text-[11px] font-black text-customBlue hover:underline">
                   عرض الكل <ArrowLeft size={12} />
                 </Link>
                 <h3 className="text-sm font-black text-[#0C2A4B]">آخر المدربين</h3>
@@ -364,7 +365,7 @@ export default function HrDashboardPage() {
             {/* Department breakdown */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <Link to="/dashboard/hr/departments" className="flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline">
+                <Link to="/dashboard/hr/departments" className="flex items-center gap-1 text-[11px] font-black text-customBlue hover:underline">
                   عرض الكل <ArrowLeft size={12} />
                 </Link>
                 <h3 className="text-sm font-black text-[#0C2A4B]">توزيع الأعضاء بالإدارات</h3>
@@ -383,7 +384,7 @@ export default function HrDashboardPage() {
                           <span className="font-semibold text-slate-600">{d.name}</span>
                         </div>
                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full rounded-full bg-[#0077B6] transition-all" style={{ width: `${pct}%` }} />
+                          <div className="h-full rounded-full bg-customBlue transition-all" style={{ width: `${pct}%` }} />
                         </div>
                       </li>
                     )
@@ -396,7 +397,7 @@ export default function HrDashboardPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={28} className="animate-spin text-[#0077B6]" />
+            <Loader2 size={28} className="animate-spin text-customBlue" />
           </div>
         )}
 
