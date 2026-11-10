@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
@@ -112,6 +112,9 @@ function HomeCourseCard({ course }: Props) {
     course.cover_image
 
   const imgSrc = rawImg ? (resolvePublicAssetUrl(rawImg) ?? rawImg) : null
+  // Remember which URL failed so a new image URL gets a fresh attempt.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const showImg = imgSrc != null && imgSrc !== failedSrc
 
   const isFree = course.type === 'free' || Boolean(course.is_free) || Number(course.price) === 0
   const isOnline = Boolean(course.is_online)
@@ -195,10 +198,11 @@ function HomeCourseCard({ course }: Props) {
         {/* Thumbnail & Title Layout */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 border border-slate-100 sm:w-32">
-            {imgSrc ? (
+            {showImg ? (
               <img
                 src={imgSrc}
                 alt={course.title}
+                onError={() => setFailedSrc(imgSrc)}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
