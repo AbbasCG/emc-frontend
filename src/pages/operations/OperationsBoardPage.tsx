@@ -2,11 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react
 import {
   AlertCircle,
   ArrowRightLeft,
-  Award,
   Calendar,
   CheckCircle,
   Clock,
-  FileText,
   KanbanSquare,
   List,
   Lock,
@@ -18,7 +16,6 @@ import {
   Sparkles,
   Star,
   User,
-  UserCheck,
   Users,
   XCircle,
 } from 'lucide-react'
@@ -36,7 +33,7 @@ import {
   type BoardColumns,
   type BoardTask,
 } from '@/api/operationsBoardApi'
-import TaskCreateModal, { TASK_SCOPE_RULES } from '@/components/operations/TaskCreateModal'
+import TaskCreateModal from '@/components/operations/TaskCreateModal'
 import TaskEvaluationModal from '@/components/operations/TaskEvaluationModal'
 import TaskRejectModal from '@/components/operations/TaskRejectModal'
 import TaskReassignModal from '@/components/operations/TaskReassignModal'
@@ -77,9 +74,6 @@ const SCOPE_BADGES: Record<
   large: { label: 'كبيرة', badgeCls: 'bg-purple-50 text-purple-700 border-purple-200/60' },
   strategic: { label: 'استراتيجية', badgeCls: 'bg-amber-50 text-amber-800 border-amber-200/60' },
 }
-
-const fieldClass =
-  'rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue outline-none transition-colors focus:border-customBlue'
 
 function isOverdue(task: BoardTask): boolean {
   if (!task.due_date || ['completed', 'cancelled'].includes(task.status)) return false
@@ -564,7 +558,7 @@ export default function OperationsBoardPage() {
             title="تحديث اللوحة"
             className="rounded-xl border border-slate-200 bg-white p-2.5 text-deepBlue hover:bg-slate-50 transition"
           >
-            <RefreshCw size={15} />
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           </button>
 
           {/* زر إسناد مهمة جديدة للمدراء */}

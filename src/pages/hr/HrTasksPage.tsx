@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Award, CheckCircle2, ClipboardList, Clock, Sparkles, Star } from 'lucide-react'
+import { Award, CheckCircle2, Clock, Sparkles, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import apiClient from '@/api/axios'
 import { asList } from '@/api/lmsApi'

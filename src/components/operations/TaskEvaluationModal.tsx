@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Award, CheckCircle2, Clock, Info, ShieldCheck, Star, X } from 'lucide-react'
+import { Award, CheckCircle2, Info, ShieldCheck, Star, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { evaluateTask, type BoardTask } from '@/api/operationsBoardApi'
 

@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
-  AlertCircle,
-  Award,
   CheckCircle,
   Clock,
   ExternalLink,
@@ -41,19 +39,15 @@ export default function OpsTasksMyPage() {
   } = useTasksWorkspace('mine')
 
   const [pendingTasks, setPendingTasks] = useState<BoardTask[]>([])
-  const [loadingPending, setLoadingPending] = useState(true)
   const [rejectingTask, setRejectingTask] = useState<BoardTask | null>(null)
   const [actingId, setActingId] = useState<number | null>(null)
 
   const loadPending = async () => {
     try {
-      setLoadingPending(true)
       const data = await fetchPendingAcceptanceTasks()
       setPendingTasks(data)
     } catch {
       setPendingTasks([])
-    } finally {
-      setLoadingPending(false)
     }
   }
 
@@ -74,11 +68,6 @@ export default function OpsTasksMyPage() {
       setActingId(null)
     }
   }
-
-  // Calculate cumulative hours for accepted/completed tasks
-  const totalCompletedHours = tasks
-    .filter((t) => t.status === 'done')
-    .reduce((acc, t) => acc + (t.estimated_hours ?? 0), 0)
 
   if (loading) return <OpsPageSkeleton />
 

@@ -1,13 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  AlertCircle,
   Calendar,
   Clock,
   FileUp,
   Globe,
   Info,
-  Layers,
   Paperclip,
   Sparkles,
   Users,
@@ -371,11 +369,14 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                       className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue"
                     >
                       <option value="">-- اختر العضو المكلف --</option>
-                      {members.map((m) => (
-                        <option key={m.user_id} value={m.user_id}>
-                          {m.name} ({m.role ?? 'عضو'})
-                        </option>
-                      ))}
+                      {members.map((m) => {
+                        const memberId = m.user_id ?? m.id
+                        return (
+                          <option key={memberId} value={memberId}>
+                            {m.name} ({m.role ?? 'عضو'})
+                          </option>
+                        )
+                      })}
                     </select>
                   </div>
                 )}
@@ -394,12 +395,13 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                   ) : (
                     <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
                       {members.map((m) => {
-                        const isSelected = selectedMembers.includes(m.user_id)
+                        const memberId = m.user_id ?? m.id
+                        const isSelected = selectedMembers.includes(memberId)
                         return (
                           <button
-                            key={m.user_id}
+                            key={memberId}
                             type="button"
-                            onClick={() => handleMemberToggle(m.user_id)}
+                            onClick={() => handleMemberToggle(memberId)}
                             className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
                               isSelected
                                 ? 'border-customBlue bg-customBlue text-white shadow-sm'
@@ -407,7 +409,7 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                             }`}
                           >
                             <span>{m.name}</span>
-                            <span className="text-[10px] opacity-80">({m.job_title ?? 'عضو'})</span>
+                            <span className="text-[10px] opacity-80">({m.job_title ?? m.role ?? 'عضو'})</span>
                           </button>
                         )
                       })}

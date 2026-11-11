@@ -1,28 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ArrowUpDown,
-  Award,
-  Building2,
-  Calendar,
-  CheckCircle2,
   Coins,
-  Crown,
   Eye,
-  Filter,
   HeartHandshake,
   Loader2,
   MoreVertical,
   RefreshCw,
   Search,
-  Shield,
   ShieldAlert,
-  Sparkles,
   Star,
   TrendingDown,
   TrendingUp,
-  UserCheck,
   Users,
-  X,
 } from 'lucide-react'
 import {
   fetchVolunteersHub,
@@ -34,14 +24,6 @@ import {
 import VolunteerStatusModal from '@/components/operations/VolunteerStatusModal'
 import VolunteerDetailDrawer from '@/components/operations/VolunteerDetailDrawer'
 import { useAuth } from '@/contexts/AuthContext'
-
-const STATUS_FILTER_OPTIONS: Array<{ key: VolunteerStatus | 'all'; label: string; cls: string; activeCls: string }> = [
-  { key: 'all', label: 'الكل', cls: 'bg-slate-100 text-slate-700 border-slate-200', activeCls: 'bg-[#0C2A4B] text-white border-[#0C2A4B]' },
-  { key: 'active', label: 'نشط', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', activeCls: 'bg-emerald-600 text-white border-emerald-600' },
-  { key: 'inactive', label: 'منقطع', cls: 'bg-slate-100 text-slate-700 border-slate-200', activeCls: 'bg-slate-700 text-white border-slate-700' },
-  { key: 'on_leave', label: 'في إجازة', cls: 'bg-amber-50 text-amber-800 border-amber-200', activeCls: 'bg-amber-600 text-white border-amber-600' },
-  { key: 'withdrawn', label: 'انسحب', cls: 'bg-rose-50 text-rose-700 border-rose-200', activeCls: 'bg-rose-600 text-white border-rose-600' },
-]
 
 export default function HrVolunteersPage() {
   const { user } = useAuth()

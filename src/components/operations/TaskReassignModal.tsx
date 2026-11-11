@@ -121,11 +121,14 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
                   className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-deepBlue"
                 >
                   <option value="">-- اختر العضو الجديد --</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>
-                      {m.name} ({m.job_title ?? m.role ?? 'عضو'})
-                    </option>
-                  ))}
+                  {members.map((m) => {
+                    const memberId = m.user_id ?? m.id
+                    return (
+                      <option key={memberId} value={memberId}>
+                        {m.name} ({m.job_title ?? m.role ?? 'عضو'})
+                      </option>
+                    )
+                  })}
                 </select>
               )}
             </div>
