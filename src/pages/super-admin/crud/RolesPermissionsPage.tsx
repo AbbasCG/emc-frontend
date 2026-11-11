@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import {
   AlertTriangle,
   BookOpen,
   Check,
   ChevronDown,
   ChevronUp,
+  ClipboardCheck,
+  ClipboardList,
   DollarSign,
   Handshake,
+  KanbanSquare,
+  KeyRound,
   Lock,
   RefreshCw,
   Search,
@@ -358,6 +363,27 @@ export default function RolesPermissionsPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/dashboard/super-admin/access-control"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <KeyRound className="h-4 w-4" aria-hidden />
+              إدارة الوصول
+            </Link>
+            <Link
+              to="/dashboard/admin/tasks/my"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <ClipboardList className="h-4 w-4" aria-hidden />
+              مهامي
+            </Link>
+            <Link
+              to="/dashboard/hr/tasks"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <ClipboardCheck className="h-4 w-4" aria-hidden />
+              مهام واعتماد
+            </Link>
             <button
               type="button"
               onClick={loadUsers}
@@ -385,6 +411,39 @@ export default function RolesPermissionsPage() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── Quick Access Bar ─────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <span className="text-xs font-black text-[#0C2A4B]">انتقال سريع:</span>
+        <Link
+          to="/dashboard/super-admin/access-control"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-customBlue/10 hover:text-customBlue hover:border-customBlue/30"
+        >
+          <KeyRound className="h-3.5 w-3.5 text-customBlue" />
+          شاشة إدارة الوصول والصلاحيات
+        </Link>
+        <Link
+          to="/dashboard/admin/tasks/my"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+        >
+          <ClipboardList className="h-3.5 w-3.5 text-emerald-600" />
+          شاشة مهامي
+        </Link>
+        <Link
+          to="/dashboard/hr/tasks"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
+        >
+          <ClipboardCheck className="h-3.5 w-3.5 text-amber-600" />
+          شاشة مهام واعتماد
+        </Link>
+        <Link
+          to="/dashboard/operations/board"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300"
+        >
+          <KanbanSquare className="h-3.5 w-3.5 text-indigo-600" />
+          لوحة الأجايل (Kanban)
+        </Link>
       </div>
 
       {/* ── KPI strip ────────────────────────────────────────────────── */}

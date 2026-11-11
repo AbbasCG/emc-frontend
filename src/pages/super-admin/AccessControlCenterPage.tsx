@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import {
   Building2,
+  ClipboardCheck,
+  ClipboardList,
   Crown,
   Info,
+  KanbanSquare,
   KeyRound,
   Layers,
   Search,
@@ -503,7 +506,7 @@ export default function AccessControlCenterPage() {
 
   return (
     <SaPageRoot>
-      <header className="mb-6">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-navy text-white">
             <KeyRound className="h-5 w-5" aria-hidden="true" />
@@ -514,6 +517,37 @@ export default function AccessControlCenterPage() {
               إدارة وصول الأقسام والأدوار والمستخدمين إلى صفحات المنصة من مكان واحد.
             </p>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/dashboard/super-admin/crud/roles-permissions"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-customBlue/10 hover:text-customBlue hover:border-customBlue/30"
+          >
+            <ShieldCheck className="h-4 w-4 text-customBlue" />
+            الأدوار والصلاحيات
+          </Link>
+          <Link
+            to="/dashboard/admin/tasks/my"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+          >
+            <ClipboardList className="h-4 w-4 text-emerald-600" />
+            شاشة مهامي
+          </Link>
+          <Link
+            to="/dashboard/hr/tasks"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
+          >
+            <ClipboardCheck className="h-4 w-4 text-amber-600" />
+            شاشة مهام واعتماد
+          </Link>
+          <Link
+            to="/dashboard/operations/board"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300"
+          >
+            <KanbanSquare className="h-4 w-4 text-indigo-600" />
+            لوحة الأجايل
+          </Link>
         </div>
       </header>
 
