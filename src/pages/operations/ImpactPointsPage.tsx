@@ -176,7 +176,7 @@ export default function ImpactPointsPage() {
           <p className="text-[11px] font-black tracking-[0.2em] text-accent-700">التقدير والمكافآت</p>
           <h1 className="mt-1 text-2xl font-black text-navy">نقاط الأثر</h1>
           <p className="mt-1 text-sm font-semibold text-muted-500">
-            كل مساهمة تُحسب، وكل أثر يُقدَّر — 1,000 نقطة = 10 يورو رصيداً تعليمياً داخلياً
+            كل مساهمة تُحسب، وكل أثر يُقدَّر — 1,000 نقطة = 10 يورو رصيداً تعليمياً داخلياً · سقف الأعمال الداخلية 2,500 نقطة شهرياً (مع استثناء المبادرات والمعسكرات والجوائز)
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

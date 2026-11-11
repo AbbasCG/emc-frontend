@@ -45,6 +45,32 @@ export type PointsSummary = {
   monthly_cap?: number
 }
 
+/**
+ * التصنيفات والأنشطة المستثناة من السقف الشهري (2500 نقطة للأعمال الداخلية).
+ * تشمل: المبادرات، المعسكرات، الجوائز الشهرية، والجوائز الاستثنائية.
+ */
+export const EXEMPT_CATEGORIES = [
+  'initiatives_institutional',
+  'initiative',
+  'institutional',
+  'camps',
+  'camp',
+  'monthly_awards',
+  'best_of_department',
+  'best_of_center',
+  'exceptional_continuity',
+  'exceptional_impact',
+  'continuity',
+]
+
+export function isExemptCategory(categoryKey?: string | null): boolean {
+  if (!categoryKey) return false
+  const c = categoryKey.toLowerCase().trim()
+  if (EXEMPT_CATEGORIES.includes(c)) return true
+  if (c.includes('مبادر') || c.includes('معسكر') || c.includes('شهري') || c.includes('استثنائ')) return true
+  return false
+}
+
 /** A member the current user may award — an active EMC team member in scope. */
 export type PointRecipient = {
   user_id: number

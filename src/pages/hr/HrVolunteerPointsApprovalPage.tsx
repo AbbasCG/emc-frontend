@@ -20,6 +20,7 @@ import {
   fetchPointsActivities,
   fetchPointsRequestDetail,
   fetchPointsRequests,
+  isExemptCategory,
   rejectPointsRequest,
   returnPointsRequestForRevision,
   type PointCategoryGroup,
@@ -489,14 +490,21 @@ export default function HrVolunteerPointsApprovalPage() {
                         <span className="font-black">{formatNumber(requestDetail.volunteer_summary.lifetime_points)}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 font-medium">نقاط هذا الشهر: </span>
+                        <span className="text-slate-500 font-medium">أعمال داخلية هذا الشهر: </span>
                         <span className="font-black">{formatNumber(requestDetail.volunteer_summary.month_points)}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 font-medium">المتبقي من السقف: </span>
+                        <span className="text-slate-500 font-medium">متبقي سقف الأعمال: </span>
                         <span className="font-black text-accent-700">{formatNumber(requestDetail.volunteer_summary.monthly_cap_left)} نقطة</span>
                       </div>
                     </div>
+
+                    {isExemptCategory(requestDetail.data.category_key) && (
+                      <div className="mt-2 flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-800">
+                        <Sparkles size={13} className="text-emerald-600" />
+                        <span>هذا النشاط مستثنى بالكامل من سقف الـ 2,500 نقطة للأعمال الداخلية.</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* معلومات الطلب الأساسية */}

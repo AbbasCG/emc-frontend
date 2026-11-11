@@ -8,6 +8,7 @@ import {
   Info,
   Search,
   Send,
+  Sparkles,
   Trash2,
   UserCheck,
 } from 'lucide-react'
@@ -15,6 +16,7 @@ import toast from '@/lib/toast'
 import {
   fetchPointRecipients,
   fetchPointsActivities,
+  isExemptCategory,
   submitPointsRequest,
   type PointActivity,
   type PointCategoryGroup,
@@ -223,16 +225,21 @@ export default function QuickAwardForm({
       }
     }
 
-    // فحص السقف الشهري
-    if (currentVolunteer) {
-      const remaining = Math.max(0, monthlyCap - currentVolunteer.month_points)
+    // فحص السقف الشهري (2500 نقطة للأعمال الداخلية فقط)
+    // المبادرات، المعسكرات، الجوائز الشهرية، والجوائز الاستثنائية مستثناة بالكامل
+    const isExempt = isExemptCategory(selectedCategoryKey || currentActivity?.category_key)
+    if (!isExempt && currentVolunteer) {
+      const remaining = Math.max(0, monthlyCap - (currentVolunteer.month_points ?? 0))
       if (p > remaining) {
-        return { valid: false, error: `تجاوز السقف الشهري! المتبقي للمتطوع ${formatNumber(remaining)} نقطة فقط` }
+        return {
+          valid: false,
+          error: `تجاوز السقف الشهري للأعمال الداخلية! المتبقي للمتطوع ${formatNumber(remaining)} نقطة فقط من سقف ${formatNumber(monthlyCap)} نقطة شهرياً`,
+        }
       }
     }
 
     return { valid: true, error: null }
-  }, [currentActivity, pointsInput, currentVolunteer, monthlyCap])
+  }, [currentActivity, pointsInput, currentVolunteer, monthlyCap, selectedCategoryKey])
 
   // إرسال الطلب للاعتماد
   async function handleSubmit(e: React.FormEvent) {
@@ -414,7 +421,7 @@ export default function QuickAwardForm({
                 )}
               </div>
               <div className="tabular-nums">
-                رصيد الشهر:{' '}
+                سقف الأعمال الداخلية:{' '}
                 <span className="font-black text-navy">{formatNumber(currentVolunteer.month_points)}</span> /{' '}
                 {formatNumber(monthlyCap)} · المتبقي:{' '}
                 <span className="font-black text-accent-700">
@@ -484,12 +491,25 @@ export default function QuickAwardForm({
                     </span>
                   </div>
 
-                  {currentActivity.requires_attachment && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[10.5px] font-black text-amber-800">
-                      <FileCheck2 size={12} />
-                      يتطلب إثبات / مرفق إلزامي
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {isExemptCategory(selectedCategoryKey || currentActivity.category_key) ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10.5px] font-black text-emerald-800 shadow-sm">
+                        <Sparkles size={11} />
+                        مستثنى من سقف الـ 2,500 نقطة للأعمال الداخلية
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2.5 py-0.5 text-[10.5px] font-black text-sky-800">
+                        خاضع لسقف الأعمال الداخلية (2,500 نقطة/شهر)
+                      </span>
+                    )}
+
+                    {currentActivity.requires_attachment && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[10.5px] font-black text-amber-800">
+                        <FileCheck2 size={12} />
+                        يتطلب إثبات / مرفق إلزامي
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {currentActivity.description_ar && (
