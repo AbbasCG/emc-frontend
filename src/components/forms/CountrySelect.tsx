@@ -88,13 +88,17 @@ type Props = {
   onChange: (country: Country) => void
   error?: string
   instanceId?: string
+  /** The form shows the message itself (next to its label), so only mark the control as invalid here. */
+  hideErrorMessage?: boolean
+  /** A clearer control for long forms: a darker border, a visible focus ring and 16px text so phones do not zoom. */
+  strong?: boolean
 }
 
-export default function CountrySelect({ value, onChange, error, instanceId = 'emc-country-select' }: Props) {
+export default function CountrySelect({ value, onChange, error, instanceId = 'emc-country-select', hideErrorMessage = false, strong = false }: Props) {
   const selected = value ? (OPTIONS.find((o) => o.code === value.code) ?? null) : null
 
   return (
-    <div dir="rtl" className={error ? 'rounded-xl ring-2 ring-red-300' : undefined}>
+    <div dir="rtl" className={error && !strong ? 'rounded-xl ring-2 ring-red-300' : undefined}>
       <Select<CountryOption, false>
         instanceId={instanceId}
         options={OPTIONS}
@@ -108,11 +112,31 @@ export default function CountrySelect({ value, onChange, error, instanceId = 'em
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
         aria-label="اختر الدولة"
+        aria-invalid={error ? true : undefined}
         styles={{
           ...rtlStyles,
           control: (base, state) => ({
             ...(rtlStyles.control?.(base, state) ?? base),
-            borderColor: error ? '#f87171' : state.isFocused ? '#0077B6' : '#e2e8f0',
+            borderColor: strong
+              ? error
+                ? 'rgb(239 68 68)'
+                : state.isFocused
+                  ? 'rgb(0 119 182)'
+                  : 'rgb(148 163 184)'
+              : error
+                ? '#f87171'
+                : state.isFocused
+                  ? '#0077B6'
+                  : '#e2e8f0',
+            ...(strong
+              ? {
+                  minHeight: '3.25rem',
+                  fontSize: '1rem',
+                  backgroundColor: error ? 'rgb(254 242 242 / 0.4)' : 'rgb(255 255 255)',
+                  boxShadow: state.isFocused ? '0 0 0 4px rgb(0 119 182 / 0.15)' : 'none',
+                  '&:hover': { borderColor: error ? 'rgb(239 68 68)' : state.isFocused ? 'rgb(0 119 182)' : 'rgb(100 116 139)' },
+                }
+              : {}),
           }),
         }}
         filterOption={(option, input) => matchesQuery(option.data, input)}
@@ -124,7 +148,7 @@ export default function CountrySelect({ value, onChange, error, instanceId = 'em
           </span>
         )}
       />
-      {error ? <p className="mt-1.5 text-xs font-bold text-red-600">{error}</p> : null}
+      {error && !hideErrorMessage ? <p className="mt-1.5 text-xs font-bold text-red-600">{error}</p> : null}
     </div>
   )
 }

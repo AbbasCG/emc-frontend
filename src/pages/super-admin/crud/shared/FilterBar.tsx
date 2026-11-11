@@ -23,7 +23,7 @@ export function CrudFilterBar({
       dir="rtl"
       className={cn('flex flex-col gap-2.5 sm:flex-row sm:items-center', className)}
     >
-      <label className={cn('relative block w-full sm:w-auto sm:min-w-[12rem] sm:max-w-[18rem]', searchClassName)}>
+      <label className={cn('relative block w-full sm:w-auto sm:min-w-[16rem] sm:flex-1 sm:max-w-[28rem]', searchClassName)}>
         <Search
           className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
           aria-hidden
@@ -65,7 +65,7 @@ export function MiniSelect(props: {
       disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        'h-10 min-w-[6.5rem] cursor-pointer rounded-xl border px-2.5 pe-7 text-right text-[12.5px] font-semibold outline-none transition appearance-none',
+        'h-10 min-w-[7.5rem] cursor-pointer rounded-xl border px-3 pe-7 text-right text-[12.5px] font-semibold outline-none transition appearance-none',
         isActive
           ? 'border-[#0077B6]/40 bg-[#0077B6]/8 text-[#1a6e9a] font-black'
           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',

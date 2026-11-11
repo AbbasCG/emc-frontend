@@ -271,5 +271,25 @@ export const QUIT_REASONS_OPTIONS = [
 export const CONSENT_TEXT = 'أوافق على استخدام بياناتي لغرض مراجعة طلب التطوع والتواصل معي.'
 
 // Backwards-compatible legacy exports
+/** Field labels shared with the opportunity application form (kept from before the general form was redesigned). */
+export const FORM_LABELS = {
+  fullName: 'الاسم الكامل',
+  email: 'البريد الإلكتروني',
+  phone: 'رقم الجوال',
+  country: 'الدولة',
+  city: 'المدينة',
+  gender: 'الجنس',
+  department: 'القسم الذي ترغب بالتطوع فيه',
+  experienceLevel: 'مستوى الخبرة',
+  availability: 'التوفر الأسبوعي',
+  skills: 'المهارات',
+  motivation: 'لماذا ترغب بالتطوع مع EMC؟',
+  previousExperience: 'هل لديك خبرة سابقة في التطوع؟',
+  cv: 'السيرة الذاتية',
+  notes: 'ملاحظات إضافية',
+} as const
+
+export const MOTIVATION_MIN = 20
+
 export const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
 export const AVAILABILITY_OPTIONS = ['أقل من 3 ساعات أسبوعيًا', '3-5 ساعات أسبوعيًا', '5-10 ساعات أسبوعيًا', 'أكثر من 10 ساعات أسبوعيًا']

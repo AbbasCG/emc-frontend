@@ -90,8 +90,12 @@ export type AcceptedVolunteersMeta = {
   top_department: string | null
 }
 
+/**
+ * The general volunteer application. It carries no `opportunity_id`: the server refuses it here, because an
+ * application to a specific opportunity must go through `applyToOpportunity` (volunteerOpportunitiesApi), which is
+ * where the opportunity's open/closed state and the one-application-per-person rule are enforced.
+ */
 export type VolunteerApplicationInput = {
-  opportunity_id?: number | null
   full_name: string
   email: string
   phone: string
@@ -153,9 +157,11 @@ export type VolunteerApplicationInput = {
   agree_terms: boolean
 }
 
+/** Sending the application, with a CV, over a slow connection. */
+export const SUBMIT_TIMEOUT_MS = 60_000
+
 export async function submitVolunteerApplication(data: VolunteerApplicationInput): Promise<void> {
   const fd = new FormData()
-  if (data.opportunity_id) fd.append('opportunity_id', String(data.opportunity_id))
   fd.append('full_name', data.full_name.trim())
   fd.append('email', data.email.trim())
   fd.append('phone', data.phone.trim())
@@ -211,7 +217,7 @@ export async function submitVolunteerApplication(data: VolunteerApplicationInput
   // الحقول العامة السابقة لضمان التوافق الكامل
   fd.append('desired_department', data.desired_department || data.primary_value_department || 'غير محدد')
   if (data.experience_level) fd.append('experience_level', data.experience_level)
-  if (data.skills) fd.append('skills', data.skills.trim())
+  if (data.skills?.trim()) fd.append('skills', data.skills.trim())
   if (data.availability) fd.append('availability', data.availability)
   if (data.motivation) fd.append('motivation', data.motivation.trim())
   if (data.previous_experience?.trim()) fd.append('previous_experience', data.previous_experience.trim())
@@ -227,7 +233,8 @@ export async function submitVolunteerApplication(data: VolunteerApplicationInput
     console.groupEnd()
   }
 
-  await apiClient.post('/volunteer-requests', fd, { skipErrorToast: true })
+  // The form shows its own errors, and a CV upload over a slow mobile connection needs more than the default 20 seconds.
+  await apiClient.post('/volunteer-requests', fd, { skipErrorToast: true, timeout: SUBMIT_TIMEOUT_MS })
 }
 
 function parseBool(v: unknown): boolean | null {

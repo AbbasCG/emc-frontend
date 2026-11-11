@@ -60,7 +60,7 @@ describe('submitVolunteerApplication', () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       '/volunteer-requests',
       expect.any(FormData),
-      { skipErrorToast: true },
+      { skipErrorToast: true, timeout: 60_000 }, // the form shows its own errors; a CV upload on a slow phone needs a minute
     )
     const fd = mockedApi.post.mock.calls[0][1] as FormData
     const entries = fdEntries(fd)
@@ -81,7 +81,7 @@ describe('submitVolunteerApplication', () => {
     expect(entries.agree_terms).toBe('1') // always sent as '1'
   })
 
-  it('omits the optional fields when blank, but always sends the select-style fields', async () => {
+  it('omits the optional fields when blank, and sends unspecified (the backend default) for a blank gender', async () => {
     mockedApi.post.mockResolvedValueOnce({ data: { success: true } })
     await submitVolunteerApplication({
       ...baseInput,
@@ -96,9 +96,18 @@ describe('submitVolunteerApplication', () => {
     expect(entries.previous_experience).toBeUndefined()
     expect(entries.cv_file).toBeUndefined()
     expect(entries.notes).toBeUndefined()
-    // gender/department/level/availability are appended unconditionally, even empty
-    expect(entries.gender).toBe('')
+    // a blank gender is sent as 'unspecified', the value the backend itself defaults to; the answered fields still travel
+    expect(entries.gender).toBe('unspecified')
     expect(entries.availability).toBe('weekends')
+  })
+
+  it('never sends an opportunity_id: the server refuses it on the general endpoint, applications to an opportunity use their own', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: { success: true } })
+    // A stale caller that still passes one (no longer allowed by the type) must not put it on the wire.
+    await submitVolunteerApplication({ ...baseInput, opportunity_id: 7 } as unknown as VolunteerApplicationInput)
+
+    const fd = mockedApi.post.mock.calls[0][1] as FormData
+    expect(fd.has('opportunity_id')).toBe(false)
   })
 
   it('propagates a rejection from the API', async () => {

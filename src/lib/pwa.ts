@@ -28,44 +28,16 @@ export function isIos(): boolean {
   return /iphone|ipad|ipod/.test(userAgent)
 }
 
-/** Registers the service worker with automatic update checks */
+/**
+ * Registers the service worker with automatic update checks.
+ *
+ * Production only: the worker serves cached same-origin modules while it refreshes them in the background, which would hand a
+ * developer stale Vite modules (and break hot reload) on localhost. The install prompt below is captured either way.
+ */
 export function registerPwaServiceWorker(): void {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
 
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
-      .then((registration) => {
-        // Periodically check for service worker updates (every 30 mins)
-        setInterval(() => {
-          registration.update().catch(() => {})
-        }, 1000 * 60 * 30)
-
-        // When a new SW is waiting to activate
-        registration.addEventListener('updatefound', () => {
-          const installingWorker = registration.installing
-          if (installingWorker) {
-            installingWorker.addEventListener('statechange', () => {
-              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[PWA] New update available, auto-activating...')
-              }
-            })
-          }
-        })
-      })
-      .catch((err) => {
-        console.warn('[PWA] SW registration failed:', err)
-      })
-
-    // Listen for controlling service worker change to reload page smoothly
-    let refreshing = false
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true
-        window.location.reload()
-      }
-    })
-  })
+  if (import.meta.env.PROD) registerServiceWorker()
 
   // Capture install prompt event for Android & Desktop Chrome/Edge
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -77,7 +49,35 @@ export function registerPwaServiceWorker(): void {
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null
     promptListeners.forEach((listener) => listener(false))
-    console.log('[PWA] EMC Platform installed successfully!')
+  })
+}
+
+function registerServiceWorker(): void {
+  window.addEventListener('load', () => {
+    // A page that already had a controller is being UPGRADED to a newer worker; a first visit has none. Only an upgrade
+    // reloads: on a first visit the new worker claims the page, and reloading then would interrupt whatever the visitor is doing.
+    const hadController = Boolean(navigator.serviceWorker.controller)
+
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((registration) => {
+        // Periodically check for service worker updates (every 30 mins)
+        setInterval(() => {
+          registration.update().catch(() => {})
+        }, 1000 * 60 * 30)
+
+      })
+      .catch(() => {
+        // Registration is best effort: without a worker the site simply works online as before.
+      })
+
+    // Reload onto the new worker once it takes control, but only when upgrading an existing one.
+    let refreshing = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || refreshing) return
+      refreshing = true
+      window.location.reload()
+    })
   })
 }
 
@@ -99,8 +99,7 @@ export async function promptInstallApp(): Promise<'accepted' | 'dismissed' | 'un
     deferredPrompt = null
     promptListeners.forEach((listener) => listener(false))
     return choice.outcome
-  } catch (err) {
-    console.warn('[PWA] prompt error:', err)
+  } catch {
     return 'unsupported'
   }
 }

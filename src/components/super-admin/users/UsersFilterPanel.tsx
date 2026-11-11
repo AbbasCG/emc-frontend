@@ -49,7 +49,7 @@ export function UsersFilterPanel({
       searchValue={query}
       onSearchChange={onQueryChange}
       searchPlaceholder="بحث سريع بالاسم، البريد…"
-      searchClassName="w-full sm:w-44 md:w-52 lg:w-56 shrink-0"
+      searchClassName="w-full sm:w-52 md:w-60 lg:w-64 shrink-0"
       innerClassName="rounded-3xl border-slate-200/90 shadow-[0_8px_32px_-12px_rgba(12,42,75,0.12)]"
     >
       <div className="flex w-full flex-col gap-2.5 lg:w-auto lg:flex-row lg:items-center lg:justify-between">
@@ -61,13 +61,6 @@ export function UsersFilterPanel({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MiniSelect label="الدور" value={roleFilter} onChange={onRoleFilterChange} options={roleOptions} />
-          <MiniSelect
-            label="الإدارة"
-            value={departmentFilter}
-            onChange={onDepartmentFilterChange}
-            options={departmentOptions}
-            className="max-w-[11rem]"
-          />
           <MiniSelect
             label="الحالة"
             value={statusFilter}
@@ -88,6 +81,13 @@ export function UsersFilterPanel({
               { value: 'verified', labelAr: 'موثّق' },
               { value: 'unverified', labelAr: 'غير موثّق' },
             ]}
+          />
+          <MiniSelect
+            label="الإدارة"
+            value={departmentFilter}
+            onChange={onDepartmentFilterChange}
+            options={departmentOptions}
+            className="max-w-[11rem]"
           />
           <MiniSelect
             label="تاريخ الانضمام"

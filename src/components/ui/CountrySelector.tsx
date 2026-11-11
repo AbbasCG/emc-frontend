@@ -10,14 +10,18 @@ type Props = {
   value: Country | null
   onChange: (country: Country) => void
   error?: string
+  hideErrorMessage?: boolean
+  strong?: boolean
 }
 
-export default function CountrySelector({ value, onChange, error }: Props) {
+export default function CountrySelector({ value, onChange, error, hideErrorMessage, strong }: Props) {
   return (
     <CountrySelect
       value={value}
       onChange={onChange}
       error={error}
+      hideErrorMessage={hideErrorMessage}
+      strong={strong}
       instanceId="emc-volunteer-country-select"
     />
   )
