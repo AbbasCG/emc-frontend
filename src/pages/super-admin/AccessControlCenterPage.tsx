@@ -11,6 +11,7 @@ import {
   Layers,
   Search,
   ShieldCheck,
+  UserCheck,
   UserCog,
   Users,
 } from 'lucide-react'
@@ -520,6 +521,13 @@ export default function AccessControlCenterPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/dashboard/ops/volunteers"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300"
+          >
+            <UserCheck className="h-4 w-4 text-rose-600" />
+            شاشة المتطوعين
+          </Link>
           <Link
             to="/dashboard/super-admin/crud/roles-permissions"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-customBlue/10 hover:text-customBlue hover:border-customBlue/30"

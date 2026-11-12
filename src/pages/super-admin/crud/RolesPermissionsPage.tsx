@@ -371,6 +371,13 @@ export default function RolesPermissionsPage() {
               إدارة الوصول
             </Link>
             <Link
+              to="/dashboard/ops/volunteers"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <UserCheck className="h-4 w-4" aria-hidden />
+              المتطوعون
+            </Link>
+            <Link
               to="/dashboard/admin/tasks/my"
               className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/20"
             >

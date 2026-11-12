@@ -180,6 +180,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       items: [
         { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
         { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+        { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
         { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
         { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
       ],
@@ -275,7 +276,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
 
         { label: 'الدعم / التذاكر العامة', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
-        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',               icon: UserCheck      },
+        { label: 'المتطوعون',               href: '/dashboard/ops/volunteers',               icon: UserCheck      },
         { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval', icon: Award          },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
         { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
@@ -334,6 +335,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
         { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+        { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
         { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
         { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
       ],
@@ -366,6 +368,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الورش', href: '/dashboard/super-admin/crud/workshops', icon: Sparkles },
         { label: 'التسجيلات', href: '/dashboard/super-admin/crud/registrations', icon: ClipboardList },
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
+        { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'اعتماد نقاط المتطوعين', href: '/dashboard/hr/volunteer-points-approval', icon: Award },
         { label: 'سفراء التحول الرقمي', href: '/dashboard/super-admin/ambassador-applications', icon: Star },
@@ -396,7 +399,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الإعلام والتسويق',        href: '/dashboard/marketing',           icon: Megaphone       },
         { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
         { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
-        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',       icon: UserCheck       },
+        { label: 'المتطوعون',               href: '/dashboard/ops/volunteers',       icon: UserCheck       },
         { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval', icon: Award          },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',           icon: Users           },
         { label: 'مساحة الإدارات',          href: '/dashboard/department',          icon: Building2       },
@@ -638,6 +641,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
@@ -656,6 +660,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -698,6 +703,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -768,6 +774,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -827,6 +834,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -903,6 +911,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -988,6 +997,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1119,6 +1129,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1140,6 +1151,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1176,6 +1188,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1208,6 +1221,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1223,7 +1237,8 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
       {
         title: 'المجتمع والنشاطات',
         items: [
-          { label: 'المتطوعون', href: '/dashboard/admin/volunteers', icon: Users         },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
+          { label: 'طلبات التطوع', href: '/dashboard/admin/volunteers', icon: HeartHandshake },
           { label: 'المهام',    href: '/dashboard/admin/tasks',      icon: ClipboardList },
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
           { label: 'النماذج',   href: '/dashboard/admin/forms',     icon: FileText      },
@@ -1244,6 +1259,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1280,6 +1296,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
@@ -1320,6 +1337,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
