@@ -13,6 +13,8 @@ export type DepartmentMember = {
   role: string | null
   role_title: string | null
   kind: 'leader' | 'deputy_leader' | 'operational' | 'team'
+  user_id?: number | null
+  job_title?: string | null
 }
 
 export async function fetchDepartmentMembers(departmentId: number): Promise<DepartmentMember[]> {

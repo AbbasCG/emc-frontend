@@ -301,6 +301,7 @@ export type AdminUsersQuery = {
   status?: 'all' | 'active' | 'inactive' | 'deleted'
   department?: string
   verified?: 'all' | 'verified' | 'unverified'
+  joined?: 'all' | 'month' | 'quarter' | 'year'
 }
 
 export type AdminUsersSummary = {
@@ -384,6 +385,7 @@ function buildUsersQueryParams(q: AdminUsersQuery): Record<string, string | numb
   if (q.department && q.department !== 'all') params.department = q.department
   if (q.verified === 'verified') params.verified = '1'
   else if (q.verified === 'unverified') params.verified = '0'
+  if (q.joined && q.joined !== 'all') params.joined = q.joined
   return params
 }
 
@@ -434,6 +436,8 @@ export function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQu
       if (q.role === 'department_manager') {
         const isMgr = uRole === 'department_manager' || isSpecializedManagerRole(u.role)
         if (!isMgr) return false
+      } else if (q.role === 'department_member') {
+        if (uRole !== 'department_member' && !u.department) return false
       } else if (q.role === 'instructor') {
         if (uRole !== 'instructor' && uRole !== 'teacher') return false
       } else if (uRole !== q.role) {
@@ -444,6 +448,22 @@ export function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQu
     if (q.status === 'active' && (u.is_active === false || u.deleted_at)) return false
     if (q.status === 'inactive' && (u.is_active !== false || u.deleted_at)) return false
     if (q.status === 'deleted' && !u.deleted_at) return false
+
+    if (q.joined && q.joined !== 'all') {
+      if (!u.created_at) return false
+      const t = new Date(u.created_at).getTime()
+      const now = new Date()
+      if (q.joined === 'month') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+        if (t < startOfMonth) return false
+      } else if (q.joined === 'quarter') {
+        const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000
+        if (t < ninetyDaysAgo) return false
+      } else if (q.joined === 'year') {
+        const startOfYear = new Date(now.getFullYear(), 0, 1).getTime()
+        if (t < startOfYear) return false
+      }
+    }
 
     if (q.department && q.department !== 'all') {
       const uDept = (u.department?.trim() ?? '').toLowerCase()

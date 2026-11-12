@@ -96,7 +96,9 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/partners',      roles: ['admin', 'super_admin', 'partnerships_manager'] },
   { prefix: '/dashboard/admin/meetings',      roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
   { prefix: '/dashboard/admin/reports',       roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager'] },
-  { prefix: '/dashboard/admin/tasks',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/hr/tasks',            roles: ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'operations_manager', 'department_manager'] },
+  { prefix: '/dashboard/admin/tasks/my',      roles: ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'operations_manager', 'community_manager', 'volunteer', 'department_member', 'department_manager', 'programs_manager', 'instructor', 'finance_manager', 'marketing_manager', 'quality_manager', 'support_agent', 'partnerships_manager', 'ai_manager', 'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
+  { prefix: '/dashboard/admin/tasks',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager', 'department_manager'] },
   { prefix: '/dashboard/admin/forms',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
   { prefix: '/dashboard/admin/departments',   roles: ['admin', 'super_admin', 'operations_manager'] },
   { prefix: '/dashboard/admin/kpi',              roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
@@ -373,6 +375,16 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   /* Resource Center (مركز الموارد) — read-only course library for internal staff */
   if (path === '/dashboard/resources' || path.startsWith('/dashboard/resources/')) {
     return [...RESOURCE_CENTER_ROLES]
+  }
+
+  /* My Tasks — any authenticated team member */
+  if (path === '/dashboard/admin/tasks/my' || path.startsWith('/dashboard/admin/tasks/my/')) {
+    return 'authenticated'
+  }
+
+  /* Tasks & Approvals */
+  if (path === '/dashboard/hr/tasks' || path.startsWith('/dashboard/hr/tasks/')) {
+    return ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'operations_manager', 'department_manager']
   }
 
   for (const rule of DASHBOARD_NAMESPACE_RULES) {

@@ -25,6 +25,7 @@ import {
   GraduationCap,
   HeartHandshake,
   Inbox,
+  KanbanSquare,
   LayoutDashboard,
   Layers,
   Mail,
@@ -171,6 +172,19 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }],
     },
 
+    // ── المهام والعمليات ──────────────────────────────────────────────────────
+    {
+      title: 'المهام والعمليات',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+        { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+        { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+        { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+      ],
+    },
+
     // ── 2. التعليم والبرامج ───────────────────────────────────────────────────
     {
       title: 'التعليم والبرامج',
@@ -261,12 +275,10 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
 
         { label: 'الدعم / التذاكر العامة', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
-        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',               icon: UserCheck      },
-        { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval', icon: Award          },
-        { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
-        { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
+        { label: 'الشراكات',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
         { label: 'النماذج',                 href: '/dashboard/admin/forms',                 icon: FileText       },
+        { label: 'المتطوعون',               href: '/dashboard/ops/volunteers',               icon: UserCheck      },
       ],
     },
 
@@ -314,6 +326,17 @@ function superMasterSidebar(): SidebarNavGroup[] {
       ],
     },
     {
+      title: 'المهام والعمليات',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+        { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+        { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+        { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+      ],
+    },
+    {
       title: 'متابعة التقارير التشغيلية',
       collapsible: true,
       defaultOpen: true,
@@ -341,6 +364,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الورش', href: '/dashboard/super-admin/crud/workshops', icon: Sparkles },
         { label: 'التسجيلات', href: '/dashboard/super-admin/crud/registrations', icon: ClipboardList },
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
+        { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'اعتماد نقاط المتطوعين', href: '/dashboard/hr/volunteer-points-approval', icon: Award },
         { label: 'سفراء التحول الرقمي', href: '/dashboard/super-admin/ambassador-applications', icon: Star },
@@ -371,7 +395,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الإعلام والتسويق',        href: '/dashboard/marketing',           icon: Megaphone       },
         { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
         { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
-        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',       icon: UserCheck       },
+        { label: 'المتطوعون',               href: '/dashboard/ops/volunteers',       icon: UserCheck       },
         { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval', icon: Award          },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',           icon: Users           },
         { label: 'مساحة الإدارات',          href: '/dashboard/department',          icon: Building2       },
@@ -474,7 +498,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'سفراء التحول الرقمي',    href: '/dashboard/super-admin/ambassador-applications',    icon: Star           },
         { label: 'طلبات انضمام الخبراء',   href: '/dashboard/admin/ai/expert-applications',           icon: UserPlus       },
         { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications',            icon: GraduationCap  },
-        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',                          icon: UserCheck      },
+        { label: 'المتطوعون',               href: '/dashboard/ops/volunteers',                          icon: UserCheck      },
         { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval',           icon: Award          },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                             icon: Users          },
         { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
@@ -483,6 +507,9 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'طلبات المستشارين',        href: '/dashboard/admin/consultant-applications', icon: UserCheck      },
         { label: 'تحليلات الزوار',          href: '/dashboard/admin/visitor-analytics',       icon: Star           },
         { label: 'استيراد الكتالوج',        href: '/dashboard/admin/catalog-import',          icon: FileText       },
+        { label: 'مهامي',                   href: '/dashboard/admin/tasks/my',                icon: ClipboardList  },
+        { label: 'مهام واعتماد',            href: '/dashboard/hr/tasks',                      icon: ClipboardCheck },
+        { label: 'لوحة الأجايل (Kanban)',    href: '/dashboard/operations/board',              icon: KanbanSquare   },
         { label: 'المهام',                   href: '/dashboard/admin/tasks',                   icon: ClipboardList  },
         { label: 'الاجتماعات',              href: '/dashboard/admin/meetings',                icon: Calendar       },
         { label: 'التقويم',                 href: '/dashboard/admin/calendar',               icon: CalendarDays   },
@@ -610,6 +637,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
+          { label: 'المتطوعون', href: '/dashboard/ops/volunteers', icon: UserCheck },
           { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
@@ -619,6 +647,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
         { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           membersNavItem(),
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
@@ -650,6 +689,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
@@ -711,6 +761,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'الفريق', href: '/dashboard/quality/team', icon: Users },
         ],
       },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
       ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(n, { collapsible: true }),
     ]
@@ -742,7 +803,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         defaultOpen: false,
         items: [
           { label: 'طلبات التطوع',          href: '/dashboard/hr/volunteer-requests',          icon: HeartHandshake },
-          { label: 'المتطوعون',              href: '/dashboard/hr/volunteers',                  icon: UserCheck      },
+          { label: 'المتطوعون',              href: '/dashboard/ops/volunteers',                 icon: UserCheck      },
           { label: 'اعتماد نقاط المتطوعين',  href: '/dashboard/hr/volunteer-points-approval',   icon: Award          },
           { label: 'المتطوعون المقبولون',    href: '/dashboard/volunteer',                      icon: Award          },
           { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
@@ -756,8 +817,18 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         items: [
           { label: 'الإدارات والأدوار',       href: '/dashboard/hr/departments', icon: Building2    },
           { label: 'التأهيل والانضمام',        href: '/dashboard/hr/onboarding',  icon: Rocket       },
-          { label: 'مهام الموارد البشرية',     href: '/dashboard/hr/tasks',       icon: ClipboardCheck },
           { label: 'ملفات الموارد البشرية',    href: '/dashboard/hr/documents',   icon: FolderLock   },
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
@@ -797,7 +868,10 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
       {
         items: [
           { label: 'بياناتي التطوعية', href: '/dashboard/volunteer/hr-profile', icon: UserCheck },
-          { label: 'طلبات التطوع', href: '/dashboard/ops/volunteers', icon: HeartHandshake },
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'فرص التطوع', href: '/volunteer-opportunities', icon: HeartHandshake },
           membersNavItem(),
         ],
       },
@@ -818,11 +892,21 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
           { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: Calendar },
           { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
-          { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
           membersNavItem(),
         ],
       },
       ...(ctx?.hasEnrolledCourses ? learnerBlock() : []),
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
       ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(n),
     ]
@@ -897,6 +981,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
     const deptTitle = ctx?.departmentName ? `إدارتي: ${ctx.departmentName}` : 'إدارتي'
     return [
       { items: [{ label: deptTitle, href: '/dashboard/department', icon: Building2 }] },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
       {
         title: 'التعلّم والبرامج والطلبات',
         items: [
@@ -1018,6 +1113,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         ],
       },
       {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
+      {
         title: 'التواصل',
         collapsible: true,
         defaultOpen: false,
@@ -1025,6 +1131,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'التقويم',       href: '/dashboard/admin/calendar',      icon: CalendarDays },
           { label: 'الإشعارات',     href: '/dashboard/notifications',        icon: Bell         },
           { label: 'الملف الشخصي', href: '/dashboard/profile',              icon: UserCog      },
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
@@ -1052,6 +1169,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           membersNavItem(),
         ],
       },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
       ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(n),
     ]
@@ -1071,6 +1199,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
         { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           membersNavItem(),
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
@@ -1098,6 +1237,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           membersNavItem(),
         ],
       },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
+        ],
+      },
       ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(n),
     ]
@@ -1121,6 +1271,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
           { label: 'طلبات انضمام الخبراء',  href: '/dashboard/admin/ai/expert-applications', icon: UserPlus     },
           { label: 'طلبات انضمام المدربين', href: '/dashboard/admin/trainers/applications', icon: GraduationCap  },
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       {
@@ -1150,6 +1311,17 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
           { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
           { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
           { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
+        ],
+      },
+      {
+        title: 'المهام والعمليات',
+        collapsible: true,
+        defaultOpen: true,
+        items: [
+          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
+          { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         ],
       },
       {

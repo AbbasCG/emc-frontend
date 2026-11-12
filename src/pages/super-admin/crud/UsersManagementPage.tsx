@@ -203,6 +203,7 @@ export default function UsersManagementPage() {
           status: statusFilter,
           department: departmentFilter,
           verified: verifiedFilter,
+          joined: joinedFilter,
         })
         if (!alive) return
         setPageUsers(result.users)
@@ -233,7 +234,7 @@ export default function UsersManagementPage() {
     return () => {
       alive = false
     }
-  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, reloadToken])
+  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, joinedFilter, reloadToken])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300)
@@ -746,6 +747,10 @@ export default function UsersManagementPage() {
           unverified={enterpriseKpis.unverified}
           serverPaginated={serverPaginated}
           loading={loading}
+          statusFilter={statusFilter}
+          verifiedFilter={verifiedFilter}
+          onSelectStatus={(s) => setStatusFilter(s)}
+          onSelectVerified={(v) => setVerifiedFilter(v)}
         />
       : null}
 

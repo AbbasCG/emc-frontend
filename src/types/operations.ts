@@ -13,8 +13,35 @@ export type TaskStatus =
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical'
 
+export type TaskScope = 'simple' | 'medium' | 'large' | 'strategic'
+
+export type TaskAcceptanceStatus = 'pending' | 'accepted' | 'rejected'
+
+export type TaskEvaluationData = {
+  id: number
+  evaluator_id?: number | null
+  delivered_on_time: number
+  quality_of_outputs: number
+  autonomy: number
+  responsiveness: number
+  collaboration?: number | null
+  collaboration_na: boolean
+  final_score?: number | null
+  feedback?: string | null
+  created_at?: string
+}
+
+export type TaskAttachmentData = {
+  id: number
+  file_name: string
+  file_path: string
+  file_size?: number | null
+  mime_type?: string | null
+}
+
 export type OpsTask = {
   id: number
+  parent_task_id?: number | null
   title: string
   description?: string | null
   department_id: string
@@ -23,7 +50,20 @@ export type OpsTask = {
   assignee_name?: string | null
   status: TaskStatus
   priority: TaskPriority
+  task_scope?: TaskScope | null
+  points?: number | null
+  estimated_hours?: number | null
   due_at?: string | null
+  due_datetime?: string | null
+  notes?: string | null
+  acceptance_status?: TaskAcceptanceStatus
+  rejection_reason?: string | null
+  accepted_at?: string | null
+  rejected_at?: string | null
+  manager_approved_at?: string | null
+  manager_approved_by?: number | null
+  hr_approved_at?: string | null
+  hr_approved_by?: number | null
   tags?: string[]
   checklist_done?: number
   checklist_total?: number
@@ -31,6 +71,9 @@ export type OpsTask = {
   checklist?: OpsChecklistItem[]
   related_type?: string | null
   related_label?: string | null
+  evaluation?: TaskEvaluationData | null
+  attachments?: TaskAttachmentData[] | null
+  subtasks?: OpsTask[]
 }
 
 export type OpsChecklistItem = {
