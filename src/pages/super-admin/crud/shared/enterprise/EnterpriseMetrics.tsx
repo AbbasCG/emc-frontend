@@ -18,6 +18,9 @@ export type EnterpriseMetricTileProps = {
   deltaLabel?: ReactNode
   accent?: keyof typeof accentBg
   loading?: boolean
+  onClick?: () => void
+  active?: boolean
+  className?: string
 }
 
 export function EnterpriseMetricTile({
@@ -28,14 +31,34 @@ export function EnterpriseMetricTile({
   deltaLabel,
   accent = 'blue',
   loading,
+  onClick,
+  active,
+  className,
 }: EnterpriseMetricTileProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.22, 0.61, 0.36, 1] }}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(12,42,75,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md',
+        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(12,42,75,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md text-right rtl:text-right select-none',
+        onClick &&
+          'cursor-pointer transition-all duration-200 hover:scale-[1.015] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-customBlue/60 active:scale-[0.985]',
+        active && 'ring-2 ring-customBlue shadow-md bg-blue-50/50',
+        className,
       )}
     >
       <div

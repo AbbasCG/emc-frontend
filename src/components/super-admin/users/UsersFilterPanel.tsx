@@ -39,7 +39,7 @@ export function UsersFilterPanel({
   departmentOptions,
   joinedFilter,
   onJoinedFilterChange,
-  serverPaginated,
+  serverPaginated: _serverPaginated,
   onClearFilters,
   hasActiveFilters,
 }: Props) {
@@ -93,11 +93,10 @@ export function UsersFilterPanel({
             label="تاريخ الانضمام"
             value={joinedFilter}
             onChange={(v) => onJoinedFilterChange(v as Props['joinedFilter'])}
-            disabled={serverPaginated}
             options={[
               { value: 'all', labelAr: 'الكل' },
               { value: 'month', labelAr: 'هذا الشهر' },
-              { value: 'quarter', labelAr: '+90 يوماً' },
+              { value: 'quarter', labelAr: 'آخر 90 يوماً' },
               { value: 'year', labelAr: 'هذا العام' },
             ]}
           />
