@@ -212,6 +212,7 @@ const PREFIX_OWNED: Record<string, string> = {
 const DEAD_PATTERNS: Record<string, string> = {
   '/dashboard/admin/finance/expenses': 'historic alias; the page lives at /dashboard/finance/expenses (registry cleanup)',
   '/dashboard/admin/finance/revenues': 'historic alias; the page lives at /dashboard/finance/revenues (registry cleanup)',
+  '/dashboard/ops/volunteers/:id': 'detail URL registered by the backend catalog; the volunteer detail opens in a drawer on /dashboard/ops/volunteers (registry cleanup)',
 }
 
 /** Sidebar targets outside the registry: shared authenticated pages and placeholders. */
@@ -219,6 +220,7 @@ const SIDEBAR_EXCEPTIONS: Record<string, string> = {
   '/ai': 'shared authenticated workspace outside /dashboard; its API authorizes the caller',
   '/calendar': 'shared authenticated page outside /dashboard; its API authorizes the caller',
   '/documents': 'shared authenticated page outside /dashboard; its API authorizes the caller',
+  '/volunteer-opportunities': 'public opportunities page outside /dashboard (volunteer sidebar link)',
   '/dashboard/registrations': 'AdminComingSoonPage placeholder',
   '/dashboard/users': 'AdminComingSoonPage placeholder',
 }

@@ -56,6 +56,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
     if (!volunteer) return
 
     if (activeTab === 'points' && !pointsData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the ledger request starts, when the points tab first opens
       setLoadingPoints(true)
       fetchVolunteerPointsLedger(volunteer.id)
         .then(setPointsData)
@@ -103,7 +104,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
       <div className="fixed inset-y-0 end-0 flex max-w-full ps-10">
         <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="border-b border-slate-100 bg-[#0C2A4B] p-6 text-white">
+          <div className="border-b border-slate-100 bg-navy p-6 text-white">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 text-white font-black text-lg border border-white/20">
@@ -157,7 +158,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
               onClick={() => setActiveTab('personal')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'personal'
-                  ? 'border-[#0077B6] text-[#0C2A4B]'
+                  ? 'border-customBlue text-navy'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -169,7 +170,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
               onClick={() => setActiveTab('points')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'points'
-                  ? 'border-[#0077B6] text-[#0C2A4B]'
+                  ? 'border-customBlue text-navy'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -181,7 +182,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
               onClick={() => setActiveTab('activity')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'activity'
-                  ? 'border-[#0077B6] text-[#0C2A4B]'
+                  ? 'border-customBlue text-navy'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -193,7 +194,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
               onClick={() => setActiveTab('evaluations')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'evaluations'
-                  ? 'border-[#0077B6] text-[#0C2A4B]'
+                  ? 'border-customBlue text-navy'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -208,7 +209,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             {activeTab === 'personal' && (
               <div className="space-y-6">
                 <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-                  <h4 className="text-sm font-black text-[#0C2A4B]">بطاقة المتطوع</h4>
+                  <h4 className="text-sm font-black text-navy">بطاقة المتطوع</h4>
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="text-slate-400 font-semibold">الاسم الرباعي</span>
@@ -230,7 +231,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                 </div>
 
                 {/* Single Source of Truth link to Volunteer Profiles */}
-                <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 text-xs leading-relaxed text-[#0C2A4B] space-y-3">
+                <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 text-xs leading-relaxed text-navy space-y-3">
                   <div className="flex items-center gap-2 font-black text-sm">
                     <Info className="h-4 w-4 text-customBlue" />
                     المصدر الوحيد لتعديل البيانات الشخصية
@@ -243,7 +244,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                   <div className="pt-2">
                     <Link
                       to="/dashboard/volunteer/hr-profile"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-4 py-2 text-xs font-black text-white shadow-md transition hover:bg-[#005f92]"
+                      className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-xs font-black text-white shadow-md transition hover:bg-brand-600"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       الانتقال إلى صفحة بيانات المتطوع الشخصية
@@ -272,7 +273,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                   </div>
                   <div className="rounded-2xl border border-customBlue/20 bg-customBlue/5 p-4 text-right">
                     <span className="text-[11px] font-bold text-customBlue">الرصيد المتاح</span>
-                    <p className="mt-1 text-2xl font-black text-[#0C2A4B]">
+                    <p className="mt-1 text-2xl font-black text-navy">
                       {pointsData?.balance ?? volunteer.balance}
                     </p>
                   </div>
@@ -411,7 +412,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                           >
                             <span className="text-[11px] font-bold text-slate-500">{m.month_label}</span>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-lg font-black text-[#0C2A4B]">{m.avg_score}</span>
+                              <span className="text-lg font-black text-navy">{m.avg_score}</span>
                               <span className="text-[10px] text-slate-400">/ 10</span>
                               <span className="text-[10px] text-slate-400 me-1 font-semibold">({m.count} أسابيع)</span>
                             </div>
@@ -423,7 +424,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                     {/* Overall Criteria Averages Table (المعايير العشرة) */}
                     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-black text-[#0C2A4B]">
+                        <h4 className="text-xs font-black text-navy">
                           متوسط درجات المتطوع في المعايير العشرة التراكمية:
                         </h4>
                         <div className="flex items-center gap-1 font-black text-sm text-emerald-700">
@@ -441,7 +442,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                               className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100"
                             >
                               <span className="font-semibold text-slate-700">{crit.label}</span>
-                              <span className="font-black text-[#0C2A4B]">
+                              <span className="font-black text-navy">
                                 {val != null ? `${val} / 10` : '—'}
                               </span>
                             </div>

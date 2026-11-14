@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getApiMessageOr } from '@/api/apiErrors'
 import { rejectTask, type BoardTask } from '@/api/operationsBoardApi'
 
 type Props = {
@@ -30,8 +31,8 @@ export default function TaskRejectModal({ task, open, onClose, onRejected }: Pro
       toast.success('تم تسجيل الاعتذار وإشعار المدير لإعادة التوجيه')
       onRejected()
       onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'تعذر تسجيل الاعتذار')
+    } catch (err: unknown) {
+      toast.error(getApiMessageOr(err, 'تعذر تسجيل الاعتذار'))
     } finally {
       setSubmitting(false)
     }

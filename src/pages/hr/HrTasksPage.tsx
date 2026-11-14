@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Award, CheckCircle2, Clock, Sparkles, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getApiMessageOr } from '@/api/apiErrors'
 import apiClient from '@/api/axios'
 import { asList } from '@/api/lmsApi'
 import { fetchPendingHrApprovalTasks, hrApproveTask, type BoardTask } from '@/api/operationsBoardApi'
@@ -42,6 +43,7 @@ export default function HrTasksPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount; the loader sets its own loading state
     void loadPending()
   }, [])
 
@@ -53,8 +55,8 @@ export default function HrTasksPage() {
         `تم اعتماد المهمة بنجاح! أودعت ${task.points ?? 0} نقطة و ${task.estimated_hours ?? 0} ساعة في رصيد المتطوع.`
       )
       await loadPending()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'تعذر اعتماد المهمة')
+    } catch (err: unknown) {
+      toast.error(getApiMessageOr(err, 'تعذر اعتماد المهمة'))
     } finally {
       setApprovingId(null)
     }

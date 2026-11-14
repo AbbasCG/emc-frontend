@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getApiMessageOr } from '@/api/apiErrors'
 import { createAdvancedBoardTask } from '@/api/operationsBoardApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
@@ -25,7 +26,7 @@ type Props = {
 }
 
 // مصفوفة حجم المهام والنقاط والأمثلة التوضيحية
-export const TASK_SCOPE_RULES: Record<
+const TASK_SCOPE_RULES: Record<
   TaskScope,
   { label: string; min: number; max: number; desc: string; examples: string }
 > = {
@@ -109,6 +110,7 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
   // Load members of selected department
   useEffect(() => {
     if (departmentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the members request starts, whenever the department changes
       setLoadingMembers(true)
       fetchDepartmentMembers(Number(departmentId))
         .then((m) => {
@@ -126,6 +128,7 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
   useEffect(() => {
     const rule = TASK_SCOPE_RULES[taskScope]
     if (!exceptionalPoints) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the default points follow the selected scope until exceptional points are chosen
       setPoints(rule.min)
     }
   }, [taskScope, exceptionalPoints])
@@ -222,8 +225,8 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
       )
       onCreated()
       onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'تعذر حفظ المهمة')
+    } catch (err: unknown) {
+      toast.error(getApiMessageOr(err, 'تعذر حفظ المهمة'))
     } finally {
       setSubmitting(false)
     }

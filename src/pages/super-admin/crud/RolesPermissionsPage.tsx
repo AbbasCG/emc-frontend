@@ -422,7 +422,7 @@ export default function RolesPermissionsPage() {
 
       {/* ── Quick Access Bar ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
-        <span className="text-xs font-black text-[#0C2A4B]">انتقال سريع:</span>
+        <span className="text-xs font-black text-navy">انتقال سريع:</span>
         <Link
           to="/dashboard/super-admin/access-control"
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-customBlue/10 hover:text-customBlue hover:border-customBlue/30"
