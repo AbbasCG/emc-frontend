@@ -52,6 +52,7 @@ export default function OpsTasksMyPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount; the loader sets its own loading state
     void loadPending()
   }, [])
 

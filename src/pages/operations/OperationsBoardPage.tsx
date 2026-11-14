@@ -380,6 +380,7 @@ export default function OperationsBoardPage() {
   }, [boardScope, deptFilter])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch whenever the scope or department changes; the loader sets its own loading state
     void load()
   }, [load])
 

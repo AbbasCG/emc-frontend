@@ -77,6 +77,7 @@ export default function HrVolunteersPage() {
   }, [search, departmentId, selectedStatus, sortBy, direction])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch whenever the filters change; the loader sets its own loading state
     loadData()
   }, [loadData])
 
@@ -131,11 +132,11 @@ export default function HrVolunteersPage() {
   return (
     <div className="space-y-6 pb-16" dir="rtl">
       {/* ── Page Hero Header ────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] to-[#173a62] p-8 text-white shadow-xl">
-        <div className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[#0077B6]/20 blur-[80px]" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-navy to-brand-700 p-8 text-white shadow-xl">
+        <div className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-customBlue/20 blur-[80px]" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#0077B6]">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-customBlue">
               <HeartHandshake className="h-4 w-4" />
               <span>مركز إدارة المتطوعين الموحد · Volunteer Command Center</span>
             </div>
@@ -168,7 +169,7 @@ export default function HrVolunteersPage() {
               <Users className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-[#0C2A4B]">{summary.total_volunteers}</p>
+          <p className="mt-2 text-2xl font-black text-navy">{summary.total_volunteers}</p>
           <span className="text-[11px] text-slate-400 font-semibold">حسب نتائج الفلتر الحالية</span>
         </div>
 
@@ -199,12 +200,12 @@ export default function HrVolunteersPage() {
         {/* Available Balance */}
         <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 shadow-sm text-right">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#0C2A4B]">الرصيد المتاح</span>
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#0077B6]/15 text-[#0077B6]">
+            <span className="text-xs font-bold text-navy">الرصيد المتاح</span>
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-customBlue/15 text-customBlue">
               <Coins className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-[#0C2A4B]">{summary.total_balance.toLocaleString()}</p>
+          <p className="mt-2 text-2xl font-black text-navy">{summary.total_balance.toLocaleString()}</p>
           <span className="text-[11px] text-slate-500 font-semibold">الرصيد الصافي القابل للاستخدام</span>
         </div>
 
@@ -325,7 +326,7 @@ export default function HrVolunteersPage() {
             onClick={() => toggleSort('points')}
             className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
               sortBy === 'points'
-                ? 'border-[#0077B6] bg-[#0077B6]/10 text-[#0077B6]'
+                ? 'border-customBlue bg-customBlue/10 text-customBlue'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -337,7 +338,7 @@ export default function HrVolunteersPage() {
             onClick={() => toggleSort('balance')}
             className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
               sortBy === 'balance'
-                ? 'border-[#0077B6] bg-[#0077B6]/10 text-[#0077B6]'
+                ? 'border-customBlue bg-customBlue/10 text-customBlue'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -349,7 +350,7 @@ export default function HrVolunteersPage() {
             onClick={() => toggleSort('last_rating')}
             className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
               sortBy === 'last_rating'
-                ? 'border-[#0077B6] bg-[#0077B6]/10 text-[#0077B6]'
+                ? 'border-customBlue bg-customBlue/10 text-customBlue'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -361,7 +362,7 @@ export default function HrVolunteersPage() {
             onClick={() => toggleSort('name')}
             className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
               sortBy === 'name'
-                ? 'border-[#0077B6] bg-[#0077B6]/10 text-[#0077B6]'
+                ? 'border-customBlue bg-customBlue/10 text-customBlue'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -419,7 +420,7 @@ export default function HrVolunteersPage() {
                     {/* Name + Leader Badge */}
                     <td className="p-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-[#0C2A4B]/10 text-[#0C2A4B] font-black text-sm">
+                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-navy/10 text-navy font-black text-sm">
                           {vol.name.charAt(0)}
                         </div>
                         <div>
@@ -466,7 +467,7 @@ export default function HrVolunteersPage() {
 
                     {/* Available Balance */}
                     <td className="p-4 whitespace-nowrap">
-                      <span className="font-black text-[#0C2A4B] text-sm bg-customBlue/10 px-2.5 py-1 rounded-xl">
+                      <span className="font-black text-navy text-sm bg-customBlue/10 px-2.5 py-1 rounded-xl">
                         {vol.balance.toLocaleString()}
                       </span>
                     </td>

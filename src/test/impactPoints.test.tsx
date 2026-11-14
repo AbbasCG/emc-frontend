@@ -35,7 +35,9 @@ const mockHistory = vi.fn()
 const mockAdjust = vi.fn()
 const mockPointsActivities = vi.fn().mockResolvedValue({ categories: [], activities: [] })
 
-vi.mock('@/api/volunteerPointsApi', () => ({
+vi.mock('@/api/volunteerPointsApi', async (importOriginal) => ({
+  // the pure helpers (isExemptCategory, …) are real; only the network functions are replaced
+  ...(await importOriginal<typeof import('@/api/volunteerPointsApi')>()),
   AWARD_CATEGORIES: [{ value: 'task', label: 'مهمة' }],
   fetchMyPointsSummary: () => mockSummary(),
   fetchMyAwards: () => mockAwards(),
@@ -294,7 +296,7 @@ describe('ImpactPointsPage — HR / management view', () => {
     const volSelect = screen.getByLabelText(/3\. المتطوع المستحق/)
     await waitFor(() => expect(volSelect).not.toBeDisabled())
     await userEvent.selectOptions(volSelect, '11')
-    expect(screen.getByText(/رصيد الشهر:/)).toBeInTheDocument()
+    expect(screen.getByText(/سقف الأعمال الداخلية:/)).toBeInTheDocument()
 
     const catSelect = screen.getByLabelText(/4\. التصنيف الرئيسي/)
     await userEvent.selectOptions(catSelect, 'meetings_commitment')

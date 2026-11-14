@@ -52,9 +52,9 @@ const persona = (scenario: Record<string, BaselinePersona>, id: string): Baselin
 /* ── Fixture integrity ─────────────────────────────────────────────────── */
 
 describe('baseline fixture', () => {
-  it('carries the full 139-entry catalog and both scenarios', () => {
-    expect(baseline.catalog_count).toBe(139)
-    expect(CATALOG).toHaveLength(139)
+  it('carries the full 141-entry catalog and both scenarios', () => {
+    expect(baseline.catalog_count).toBe(141)
+    expect(CATALOG).toHaveLength(141)
     expect(Object.keys(UNSEEDED).length).toBeGreaterThan(30)
     expect(Object.keys(SEEDED).length).toBeGreaterThan(10)
   })
@@ -395,8 +395,8 @@ describe('route guard comparison', () => {
   it('compares canAccessDashboardPath against effective access for every capability', () => {
     const d = diffPersona('finance_manager__none', persona(UNSEEDED, 'finance_manager__none'), CATALOG)
 
-    expect(d.rows).toHaveLength(139)
-    expect(d.counts.MATCH_ALLOWED + d.counts.MATCH_DENIED + d.counts.NEWLY_ALLOWED + d.counts.NEWLY_DENIED).toBe(139)
+    expect(d.rows).toHaveLength(141)
+    expect(d.counts.MATCH_ALLOWED + d.counts.MATCH_DENIED + d.counts.NEWLY_ALLOWED + d.counts.NEWLY_DENIED).toBe(141)
   })
 })
 
@@ -437,7 +437,7 @@ describe('BASELINE DIFF REPORT', () => {
       byRisk: summary.byRisk,
     }).toMatchSnapshot('unseeded-summary')
 
-    expect(summary.totalComparisons).toBe(diffs.length * 139)
+    expect(summary.totalComparisons).toBe(diffs.length * 141)
   })
 
   it('seeded scenario — deterministic counts', () => {

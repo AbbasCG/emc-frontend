@@ -177,10 +177,11 @@ describe('Specialized Department Role Auto-Link', () => {
     expect(hrManagersClean.map((u) => u.id)).toEqual([1, 5])
 
     // 4. Filter by role = department_member AND department = 'إدارة الموارد البشرية'
+    //    «عضو إدارة» = كل من ينتمي للإدارة (لا الدور الحرفي department_member فقط): المدراء الذين لديهم إدارة يُحسبون أعضاءً فيها.
     const hrMembers = filterUsersClientSide(mockUsers, {
       role: 'department_member',
       department: 'إدارة الموارد البشرية',
     })
-    expect(hrMembers.map((u) => u.id)).toEqual([3])
+    expect(hrMembers.map((u) => u.id)).toEqual([1, 3, 5])
   })
 })
