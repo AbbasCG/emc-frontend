@@ -305,7 +305,7 @@ const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/Hr
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
 const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/ResourceCenterCoursesPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
-const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
+const UsersManagementPage         = lazy(() => import('./pages/super-admin/users/hub/UsersHubPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
 const AccessControlCenterPage     = lazy(() => import('./pages/super-admin/AccessControlCenterPage'))
 const AdminPermissionConfigTreePage = lazy(() => import('./pages/super-admin/crud/AdminPermissionConfigTree'))
