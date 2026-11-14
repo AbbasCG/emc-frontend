@@ -28,7 +28,8 @@ export function QueryBoundary<T>({
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <p className="font-medium">{query.forbidden ? 'لا تملك صلاحية عرض هذا القسم' : 'تعذّر تحميل البيانات'}</p>
-          <p className="mt-1 leading-6">{query.error}</p>
+          {/* a permission error's message IS its title: say it once */}
+          {query.forbidden ? null : <p className="mt-1 leading-6">{query.error}</p>}
           {query.forbidden ? null : (
             <button
               type="button"

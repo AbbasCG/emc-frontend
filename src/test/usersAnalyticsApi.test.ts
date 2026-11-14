@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const get = vi.hoisted(() => vi.fn())
 vi.mock('@/api/axios', () => ({ default: { get } }))
 
-import { fetchLastLogins, fetchUsersActivity, fetchUsersOverview } from '@/api/usersAnalyticsApi'
+import { fetchLastLogins, fetchUsersAcquisition, fetchUsersActivity, fetchUsersOverview } from '@/api/usersAnalyticsApi'
 
 beforeEach(() => {
   get.mockReset()
@@ -30,6 +30,29 @@ describe('users analytics client', () => {
     await fetchUsersActivity({ from: '2026-11-10', to: '2026-11-10', compare: false })
 
     expect(get.mock.calls[0][0]).toBe('/admin/users-analytics/activity')
+    expect(get.mock.calls[0][1].params).toEqual({ from: '2026-11-10', to: '2026-11-10', compare: 0 })
+  })
+
+  it('asks the acquisition endpoint for the window and the comparison, silently, and returns its data', async () => {
+    get.mockResolvedValue({ data: { success: true, data: { self_reported: { total_accounts_created: 3 } } } })
+    const signal = new AbortController().signal
+
+    const data = await fetchUsersAcquisition({ from: '2026-11-10', to: '2026-11-16', compare: true }, signal)
+
+    expect(data).toEqual({ self_reported: { total_accounts_created: 3 } })
+    expect(get).toHaveBeenCalledWith('/admin/users-analytics/acquisition', {
+      skipErrorToast: true,
+      params: { from: '2026-11-10', to: '2026-11-16', compare: 1 },
+      signal,
+    })
+  })
+
+  it('sends compare=0 to the acquisition endpoint when the comparison is off', async () => {
+    get.mockResolvedValue({ data: { data: {} } })
+
+    await fetchUsersAcquisition({ from: '2026-11-10', to: '2026-11-10', compare: false })
+
+    expect(get.mock.calls[0][0]).toBe('/admin/users-analytics/acquisition')
     expect(get.mock.calls[0][1].params).toEqual({ from: '2026-11-10', to: '2026-11-10', compare: 0 })
   })
 
