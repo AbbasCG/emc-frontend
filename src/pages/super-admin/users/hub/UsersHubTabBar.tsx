@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useEffect, useRef, type KeyboardEvent } from 'react'
 import { cn } from '@/lib/utils'
 import { hubPanelDomId, hubTabDomId, type UsersHubTabDef, type UsersHubTabId } from './usersHubTabs'
 
@@ -18,6 +18,11 @@ interface Props {
  */
 export function UsersHubTabBar({ tabs, active, onSelect }: Props) {
   const refs = useRef(new Map<UsersHubTabId, HTMLButtonElement>())
+
+  // on a phone the bar scrolls sideways: keep the selected tab in view (also after back/forward)
+  useEffect(() => {
+    refs.current.get(active)?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [active])
 
   const focusAt = (index: number) => {
     const next = tabs[(index + tabs.length) % tabs.length]
