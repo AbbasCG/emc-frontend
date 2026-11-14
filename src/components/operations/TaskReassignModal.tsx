@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, ArrowRightLeft, UserCheck, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getApiMessageOr } from '@/api/apiErrors'
 import { reassignTask, type BoardTask } from '@/api/operationsBoardApi'
 import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
 
@@ -21,6 +22,7 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
 
   useEffect(() => {
     if (open && task?.department?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the members request starts, whenever the task or visibility changes
       setLoadingMembers(true)
       fetchDepartmentMembers(task.department.id)
         .then((m) => {
@@ -49,8 +51,8 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
       toast.success('تمت إعادة إسناد المهمة بنجاح')
       onReassigned()
       onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'تعذر إعادة الإسناد')
+    } catch (err: unknown) {
+      toast.error(getApiMessageOr(err, 'تعذر إعادة الإسناد'))
     } finally {
       setSubmitting(false)
     }

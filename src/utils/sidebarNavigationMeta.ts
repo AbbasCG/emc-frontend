@@ -24,7 +24,7 @@ import {
 
 /**
  * Sidebar links that are not dashboard capabilities in the page-access catalog: a settings
- * landing page and three app-level destinations that live outside `/dashboard`. They have no
+ * landing page and the app-level destinations that live outside `/dashboard`. They have no
  * entry in the manifest by design, so they are the ONLY unmapped links the sidebar keeps.
  *
  * Anything else the manifest has no opinion on is treated as unknown and dropped (fail
@@ -35,6 +35,8 @@ export const STRUCTURAL_SIDEBAR_PATHS: ReadonlySet<string> = new Set([
   '/documents',
   '/ai',
   '/calendar',
+  // Public opportunities page (outside /dashboard), linked from the volunteer sidebar.
+  '/volunteer-opportunities',
 ])
 
 /**

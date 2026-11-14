@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Award, CheckCircle2, Info, ShieldCheck, Star, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getApiMessageOr } from '@/api/apiErrors'
 import { evaluateTask, type BoardTask } from '@/api/operationsBoardApi'
 
 type Props = {
@@ -52,8 +53,8 @@ export default function TaskEvaluationModal({ task, open, onClose, onEvaluated }
 
       onEvaluated()
       onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'تعذر حفظ التقييم')
+    } catch (err: unknown) {
+      toast.error(getApiMessageOr(err, 'تعذر حفظ التقييم'))
     } finally {
       setSubmitting(false)
     }

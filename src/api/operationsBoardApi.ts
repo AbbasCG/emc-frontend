@@ -117,7 +117,7 @@ export async function updateBoardTaskStatus(id: number, status: string): Promise
 }
 
 /** إنشاء مهمة متقدمة مع دعم المرفقات والإسناد الجماعي */
-export async function createAdvancedBoardTask(formData: FormData): Promise<any> {
+export async function createAdvancedBoardTask(formData: FormData): Promise<unknown> {
   const res = await apiClient.post('/admin/tasks', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })

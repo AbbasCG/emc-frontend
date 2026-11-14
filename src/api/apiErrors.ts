@@ -101,6 +101,13 @@ export function getInstructorConflictMessage(error: unknown): string | null {
   return typeof data.message_ar === 'string' && data.message_ar.trim() ? data.message_ar.trim() : getApiErrorMessage(error)
 }
 
+/** The server's own `message` when it sent one, otherwise the caller's fallback (for toasts that must keep the exact server text). */
+export function getApiMessageOr(error: unknown, fallback: string): string {
+  if (!axios.isAxiosError(error)) return fallback
+  const message = (error.response?.data as { message?: unknown } | undefined)?.message
+  return typeof message === 'string' && message.trim() ? message : fallback
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) {
     if (error instanceof Error && error.message) return error.message

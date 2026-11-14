@@ -86,11 +86,11 @@ export default function VolunteerStatusModal({ volunteer, onClose, onSuccess }: 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[#0C2A4B] text-white">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-navy text-white">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-black text-[#0C2A4B]">تعديل حالة المتطوع</h3>
+              <h3 className="text-base font-black text-navy">تعديل حالة المتطوع</h3>
               <p className="text-xs text-slate-500">{volunteer.name}</p>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function VolunteerStatusModal({ volunteer, onClose, onSuccess }: 
             <button
               type="submit"
               disabled={loading || !reason.trim()}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-xs font-black text-white shadow-lg transition hover:bg-[#1a3e68] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl bg-navy px-6 py-2.5 text-xs font-black text-white shadow-lg transition hover:bg-brand-700 disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               حفظ التغيير في سجل النشاط
