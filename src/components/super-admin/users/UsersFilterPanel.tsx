@@ -1,8 +1,14 @@
-import { Filter, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Filter, X } from 'lucide-react'
 import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
+import type { AdminUsersSortDir, AdminUsersSortKey } from '@/api/adminUsersApi'
 
 type Option = { value: string; labelAr: string }
+
+const SORT_BUTTONS: { key: AdminUsersSortKey; labelAr: string }[] = [
+  { key: 'created_at', labelAr: 'تاريخ الإنشاء' },
+  { key: 'last_login_at', labelAr: 'آخر دخول' },
+]
 
 type Props = {
   query: string
@@ -20,6 +26,9 @@ type Props = {
   joinedFilter: 'all' | 'month' | 'quarter' | 'year'
   onJoinedFilterChange: (v: 'all' | 'month' | 'quarter' | 'year') => void
   serverPaginated: boolean
+  sortBy: AdminUsersSortKey | null
+  sortDir: AdminUsersSortDir
+  onSortChange: (key: AdminUsersSortKey) => void
   onClearFilters: () => void
   hasActiveFilters: boolean
 }
@@ -39,7 +48,14 @@ export function UsersFilterPanel({
   departmentOptions,
   joinedFilter,
   onJoinedFilterChange,
+<<<<<<< Updated upstream
   serverPaginated: _serverPaginated,
+=======
+  serverPaginated,
+  sortBy,
+  sortDir,
+  onSortChange,
+>>>>>>> Stashed changes
   onClearFilters,
   hasActiveFilters,
 }: Props) {
@@ -100,6 +116,34 @@ export function UsersFilterPanel({
               { value: 'year', labelAr: 'هذا العام' },
             ]}
           />
+          <div className="flex items-center gap-1.5" role="group" aria-label="ترتيب المستخدمين">
+            {SORT_BUTTONS.map(({ key, labelAr }) => {
+              const active = sortBy === key
+              const Icon = !active ? ArrowUpDown : sortDir === 'desc' ? ArrowDown : ArrowUp
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onSortChange(key)}
+                  aria-pressed={active}
+                  title={
+                    active ?
+                      sortDir === 'desc' ? 'الأحدث أولاً — اضغط للعكس' : 'الأقدم أولاً — اضغط للعكس'
+                    : `ترتيب حسب ${labelAr}`
+                  }
+                  className={
+                    'inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[11px] font-black transition ' +
+                    (active ?
+                      'border-[#0077B6] bg-[#0077B6] text-white shadow-sm hover:bg-[#006399]'
+                    : 'border-slate-200 bg-white text-[#0C2A4B]/80 hover:border-[#0077B6]/40 hover:bg-[#0077B6]/5')
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
+                  {labelAr}
+                </button>
+              )
+            })}
+          </div>
           {hasActiveFilters ? (
             <button
               type="button"
