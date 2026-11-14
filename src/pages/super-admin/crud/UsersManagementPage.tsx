@@ -55,7 +55,6 @@ import {
   canOfferSuperAdminRoleOption,
 } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { UsersEnterpriseDetailDrawer } from '@/pages/super-admin/users/UsersEnterpriseDetailDrawer'
-import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import type { MenuAction } from '@/pages/super-admin/crud/shared/RowActions'
 import {
@@ -707,7 +706,7 @@ export default function UsersManagementPage() {
   )
 
   return (
-    <SaPageRoot className="space-y-8">
+    <div className="space-y-8">
       <EnterpriseCrudHero
         eyebrow="Identity & Access · Enterprise CRM"
         title="مركز المستخدمين EMC"
@@ -1112,7 +1111,7 @@ export default function UsersManagementPage() {
           </span>
         </label>
       </CrudModal>
-    </SaPageRoot>
+    </div>
   )
 }
 
