@@ -515,7 +515,11 @@ export default function InstructorSubmissionsPage() {
                         {formatGrade(row)}
                       </td>
                       <td className="px-4 py-3 text-[11px] font-semibold text-slate-500">
-                        {row.file_url ? 'ملف' : row.body_preview?.trim() ? 'نص' : '—'}
+                        {row.attachments && row.attachments.length > 1 ?
+                          `${row.attachments.length} ملفات`
+                        : row.file_url || (row.attachments && row.attachments.length === 1) ? 'ملف'
+                        : row.body_preview?.trim() ? 'نص'
+                        : '—'}
                       </td>
                       <td className="px-4 py-3">
                         {clickable ? (

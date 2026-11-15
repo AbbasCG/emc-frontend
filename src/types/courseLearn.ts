@@ -1,4 +1,4 @@
-import type { LmsSessionStatus } from './lms'
+import type { AssignmentAttachment, LmsSessionStatus } from './lms'
 
 /** GET /student/courses/:courseId/learn — normalized view */
 export type StudentLearnCourseOverview = {
@@ -84,6 +84,7 @@ export type CourseLearnAssignment = {
     text_answer?: string | null
     score?: number | null
     feedback?: string | null
+    attachments?: AssignmentAttachment[]
   } | null
 }
 

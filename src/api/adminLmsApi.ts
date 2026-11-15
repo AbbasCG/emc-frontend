@@ -1,5 +1,6 @@
 import apiClient from './axios'
-import type { AdminLmsRow, AttendanceRow, LmsMaterial, LmsSession, StudentAssignment } from '../types/lms'
+import type { AdminLmsRow, AssignmentAttachment, AttendanceRow, LmsMaterial, LmsSession, StudentAssignment } from '../types/lms'
+import { normalizeAssignmentAttachments } from '@/utils/assignmentAttachments'
 import { asList, unwrapLms } from './lmsApi'
 
 export type SessionLinkOpenStudent = {
@@ -120,6 +121,8 @@ export type AdminAssignmentSubmissionRow = {
   text_answer?: string | null
   notes?: string | null
   file_url?: string | null
+  /** Every file of the submission; absent for payloads that only carry the first file (`has_file` / `file_url`). */
+  attachments?: AssignmentAttachment[]
 }
 
 export type AdminAssignmentStudentRow = {
@@ -171,7 +174,16 @@ export async function adminGetAssignmentDetail(id: number): Promise<AdminAssignm
     course: inner.course ?? null,
     instructor: inner.instructor ?? null,
     stats: inner.stats ?? {},
-    submissions: Array.isArray(inner.submissions) ? inner.submissions : [],
+    submissions:
+      Array.isArray(inner.submissions) ?
+        inner.submissions.map((row) => {
+          const out: AdminAssignmentSubmissionRow = { ...row }
+          const attachments = normalizeAssignmentAttachments((row as { attachments?: unknown }).attachments)
+          if (attachments) out.attachments = attachments
+          else delete out.attachments
+          return out
+        })
+      : [],
     students: Array.isArray(inner.students) ? inner.students : [],
   }
 }

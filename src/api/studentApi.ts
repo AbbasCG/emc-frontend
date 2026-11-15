@@ -3,6 +3,7 @@ import { extractCoursesList } from '@/api/coursesApi.public'
 import { unwrapData } from './unwrap'
 import { parseSessionsPayload } from '@/utils/lmsSession'
 import type {
+  AssignmentAttachment,
   LmsMaterial,
   LmsSession,
   StudentAssignment,
@@ -14,6 +15,12 @@ import type {
 } from '../types/lms'
 import type { Course } from '@/types'
 import { normalizeAssignmentStatus, resolveLmsAssignmentSubmitId } from '@/utils/lmsAssignment'
+import { normalizeAssignmentAttachments } from '@/utils/assignmentAttachments'
+import {
+  FALLBACK_UPLOAD_RULES,
+  parseAssignmentUploadRules,
+  type AssignmentUploadRules,
+} from '@/lib/assignmentUploadRules'
 
 function toFiniteNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -1159,8 +1166,10 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
   const statusRaw = String(
     o.status ?? mySubmission?.status ?? (mySubmission?.submitted_at || o.submitted_at ? 'submitted' : 'pending'),
   )
+  const attachments = normalizeAssignmentAttachments(mySubmission?.attachments ?? o.attachments)
 
   return {
+    ...(attachments ? { attachments } : {}),
     id,
     course_id,
     assignment_id,
@@ -1263,15 +1272,48 @@ export type AssignmentSubmitResult = {
   status: StudentAssignment['status']
   submitted_at: string | null
   submission_id: number | null
+  /** The files the server stored, when it reports them. */
+  attachments?: AssignmentAttachment[]
+}
+
+export type AssignmentSubmitProgress = { loaded: number; total: number | null; percent: number }
+
+export type AssignmentSubmitOptions = {
+  /** Aborts the upload (the student pressed stop, or the modal went away). */
+  signal?: AbortSignal
+  onProgress?: (progress: AssignmentSubmitProgress) => void
+}
+
+/** A 25 MB submission on a slow mobile link outlives the 20 s default of the shared client. */
+const SUBMIT_TIMEOUT_MS = 10 * 60 * 1000
+
+export type AssignmentSubmitPayload = {
+  text_answer?: string
+  answer_text?: string
+  notes?: string
+  /** Legacy single file; kept for older callers. Prefer `files`. */
+  file?: File | null
+  /** Sent as repeated `files[]` parts, in this order. */
+  files?: readonly File[]
 }
 
 export async function submitStudentAssignment(
   assignmentId: number,
-  payload: FormData | { text_answer?: string; answer_text?: string; file?: File | null; notes?: string },
+  payload: FormData | AssignmentSubmitPayload,
+  options: AssignmentSubmitOptions = {},
 ): Promise<AssignmentSubmitResult> {
   const post = async (body: FormData) => {
     const res = await apiClient.post<unknown>(`/student/assignments/${assignmentId}/submit`, body, {
       skipErrorToast: true,
+      timeout: SUBMIT_TIMEOUT_MS,
+      signal: options.signal,
+      onUploadProgress: options.onProgress ?
+        (e) => {
+          const total = typeof e.total === 'number' && e.total > 0 ? e.total : null
+          const percent = total ? Math.min(100, Math.round((e.loaded / total) * 100)) : 0
+          options.onProgress?.({ loaded: e.loaded, total, percent })
+        }
+      : undefined,
     })
     const data = unwrapData<Record<string, unknown>>(res.data)
     const submittedAt =
@@ -1281,10 +1323,12 @@ export async function submitStudentAssignment(
     const submissionId =
       data?.id != null && Number.isFinite(Number(data.id)) ? Number(data.id) : null
     const statusRaw = data?.status != null ? String(data.status) : 'submitted'
+    const attachments = normalizeAssignmentAttachments(data?.attachments)
     return {
       status: normalizeAssignmentStatus(statusRaw),
       submitted_at: submittedAt,
       submission_id: submissionId,
+      ...(attachments ? { attachments } : {}),
     } satisfies AssignmentSubmitResult
   }
 
@@ -1298,8 +1342,37 @@ export async function submitStudentAssignment(
     fd.append('answer_text', text)
   }
   if (payload.notes) fd.append('notes', payload.notes)
-  if (payload.file) fd.append('file', payload.file)
+  if (payload.files && payload.files.length > 0) {
+    for (const f of payload.files) fd.append('files[]', f)
+  } else if (payload.file) {
+    fd.append('file', payload.file)
+  }
   return post(fd)
+}
+
+let uploadRulesPromise: Promise<AssignmentUploadRules | null> | null = null
+
+/**
+ * The server's upload rules, fetched once per session. Any failure (offline, older backend, odd payload)
+ * resolves to the identical built-in rules and is NOT cached, so a later open tries the server again.
+ */
+export function fetchAssignmentUploadRules(): Promise<AssignmentUploadRules> {
+  if (!uploadRulesPromise) {
+    const pending = Promise.resolve()
+      .then(() => apiClient.get<unknown>('/student/assignment-upload-rules', { skipErrorToast: true }))
+      .then((res) => parseAssignmentUploadRules(res.data))
+      .catch(() => null)
+    uploadRulesPromise = pending
+    void pending.then((rules) => {
+      if (!rules && uploadRulesPromise === pending) uploadRulesPromise = null
+    })
+  }
+  return uploadRulesPromise.then((rules) => rules ?? FALLBACK_UPLOAD_RULES)
+}
+
+/** Test seam: forget the session cache. */
+export function resetAssignmentUploadRulesCache(): void {
+  uploadRulesPromise = null
 }
 
 export async function fetchStudentProgress(): Promise<StudentProgressPayload> {

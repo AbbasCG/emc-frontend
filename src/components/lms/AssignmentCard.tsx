@@ -3,6 +3,7 @@ import { AlertCircle, AlertTriangle, CheckCircle2, ClipboardList, Clock, Refresh
 import type { StudentAssignment } from '@/types/lms'
 import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { isNeedsResubmission } from '@/utils/lmsAssignment'
+import AssignmentAttachmentList from '@/components/lms/AssignmentAttachmentList'
 
 type Props = {
   assignment: StudentAssignment
@@ -131,6 +132,11 @@ export default function AssignmentCard({ assignment, onSubmit }: Props) {
           </span>
         )}
       </div>
+
+      {/* Files the student submitted */}
+      {trulySubmitted && assignment.attachments && assignment.attachments.length > 0 ? (
+        <AssignmentAttachmentList attachments={assignment.attachments} title="ملفاتك المُسلَّمة" />
+      ) : null}
 
       {/* Instructor feedback */}
       {assignment.feedback && (

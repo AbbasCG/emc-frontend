@@ -12,6 +12,7 @@ import type { User } from '../types'
 import { asList, unwrapLms } from './lmsApi'
 import { normalizeLmsSessionRow, parseSessionsPayload } from '@/utils/lmsSession'
 import { unwrapData } from './unwrap'
+import { normalizeAssignmentAttachments } from '@/utils/assignmentAttachments'
 import type { ClassGroup } from './placementApi'
 import {
   getCanonicalStudentIdentity,
@@ -630,6 +631,8 @@ function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | 
     : assignment?.max_score != null ? Number(assignment.max_score)
     : null
 
+  const attachments = normalizeAssignmentAttachments(o.attachments)
+
   return {
     id,
     assignment_id:
@@ -670,6 +673,7 @@ function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | 
       o.file_url != null ? String(o.file_url)
       : o.attachment_url != null ? String(o.attachment_url)
       : null,
+    ...(attachments ? { attachments } : {}),
   }
 }
 
