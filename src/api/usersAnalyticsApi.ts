@@ -6,6 +6,7 @@ import apiClient from '@/api/axios'
  *   GET /admin/users-analytics/overview      users.analytics.view
  *   GET /admin/users-analytics/activity      users.activity.view
  *   GET /admin/users-analytics/last-logins   users.activity.view
+ *   GET /admin/users-analytics/acquisition   users.acquisition.view
  *
  * Every figure is computed by the backend; nothing here derives or invents numbers. Each response says what its login
  * numbers cover (`meta.login_history`) and the UI states those limits next to the figures.
@@ -92,6 +93,54 @@ export interface ActivityData {
   never_logged_in: number
 }
 
+export interface AcquisitionSourceItem {
+  /** The text the person typed at sign-up, trimmed and lower-cased. Shown as-is: it is not a controlled list. */
+  source: string
+  count: number
+  /** Only when the comparison is on. */
+  previous?: number | null
+  change_pct?: number | null
+}
+
+export interface AcquisitionUtmRow {
+  name: string
+  visits: number
+  visitors: number
+}
+
+export type AcquisitionUnavailableKey = 'referral_codes' | 'direct_registration' | 'conversion_rate' | 'utm_to_account'
+
+export interface AcquisitionData {
+  meta: Omit<MetaBase, 'login_history'>
+  /** Accounts created in the window, by the source the person said they came from (optional free text). */
+  self_reported: {
+    total_accounts_created: number
+    /** Top 12, most frequent first. */
+    items: AcquisitionSourceItem[]
+    /** Answered, but outside the top 12. */
+    other: number
+    /** Created without any source given. Never «direct». */
+    unknown: number
+    coverage_pct: number | null
+    /** Top 5 sources, every day of the window. */
+    daily: Array<{ source: string; series: Array<{ date: string; count: number }> }>
+    free_text: true
+  }
+  /** Page visits that carried UTM parameters: visits, not sign-ups, and not linked to accounts. */
+  utm_visits: {
+    unit: string
+    consent_gated: boolean
+    linked_to_accounts: boolean
+    total_pageviews: number
+    with_utm: number
+    by_source: AcquisitionUtmRow[]
+    by_medium: AcquisitionUtmRow[]
+    by_campaign: AcquisitionUtmRow[]
+  }
+  /** Figures the platform does not collect. The reason is the backend's own wording. */
+  unavailable: Partial<Record<AcquisitionUnavailableKey, { available: boolean; reason: string }>>
+}
+
 export interface LastLoginRow {
   id: number
   name: string
@@ -119,6 +168,11 @@ export async function fetchUsersOverview(q: UsersAnalyticsQuery, signal?: AbortS
 
 export async function fetchUsersActivity(q: UsersAnalyticsQuery, signal?: AbortSignal): Promise<ActivityData> {
   const res = await apiClient.get<{ data: ActivityData }>(`${BASE}/activity`, { ...silent, params: params(q), signal })
+  return res.data.data
+}
+
+export async function fetchUsersAcquisition(q: UsersAnalyticsQuery, signal?: AbortSignal): Promise<AcquisitionData> {
+  const res = await apiClient.get<{ data: AcquisitionData }>(`${BASE}/acquisition`, { ...silent, params: params(q), signal })
   return res.data.data
 }
 

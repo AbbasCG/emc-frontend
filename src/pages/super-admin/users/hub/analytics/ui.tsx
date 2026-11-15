@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Kpi, LoginHistoryCoverage } from '@/api/usersAnalyticsApi'
@@ -13,33 +13,147 @@ import {
 
 /* ── tooltip ──────────────────────────────────────────────────────────────── */
 
-/** A small «what does this mean» control: hover, focus or press shows the definition; Escape closes it. */
+/** A tooltip keeps at least this distance from the viewport edges. */
+const TIP_MARGIN = 16
+const TIP_MAX_WIDTH = 256
+/** Gap between the trigger and the tooltip, and the minimum distance from the top edge when it flips above. */
+const TIP_GAP = 4
+const TIP_EDGE = 8
+
+interface TipPlacement {
+  left: number
+  /** Below the trigger; the layout effect moves it above when it would not fit. */
+  top: number
+  width: number
+  /** The trigger's rectangle edges when placed (viewport coordinates). */
+  anchorTop: number
+  anchorBottom: number
+}
+
+/**
+ * A small «what does this mean» control: hover, focus or press shows the definition; Escape closes it.
+ *
+ *  - The popover is `position: fixed`, placed from the trigger's rectangle when it opens and clamped to the viewport on
+ *    both axes: near the right/left edge it shifts inward, near the bottom it flips above the trigger.
+ *  - It sits below the dashboard header and sidebar (z-30), closes on resize, and closes when a scroll moves its trigger
+ *    (a keyboard-focus-held tip follows the trigger instead).
+ *  - A mouse click on a tip that hover/focus has just opened keeps it open (click only opens/pins). A second tap on a
+ *    touch screen closes it. Mouse-leave does not close a tip that has keyboard focus. A hidden trigger (zero size, e.g.
+ *    inside a hidden tab) never opens one.
+ */
 export function InfoTip({ label, children }: { label: string; children: ReactNode }) {
-  const [open, setOpen] = useState(false)
+  const [placement, setPlacement] = useState<TipPlacement | null>(null)
   const id = useId()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const tipRef = useRef<HTMLSpanElement>(null)
+  const anchorTopRef = useRef(0)
+  const hoverRef = useRef(false)
+  const focusRef = useRef(false)
+  const pointerRef = useRef<{ type: string; wasOpen: boolean } | null>(null)
+  const open = placement !== null
+
+  const hide = () => setPlacement(null)
+
+  const place = () => {
+    const el = buttonRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 && rect.height === 0) {
+      hide()
+      return
+    }
+    const viewport = document.documentElement.clientWidth || window.innerWidth
+    const width = Math.min(TIP_MAX_WIDTH, viewport - TIP_MARGIN * 2)
+    const centred = rect.left + rect.width / 2 - width / 2
+    const left = Math.max(TIP_MARGIN, Math.min(centred, viewport - width - TIP_MARGIN))
+    anchorTopRef.current = rect.top
+    setPlacement({ left, top: rect.bottom + TIP_GAP, width, anchorTop: rect.top, anchorBottom: rect.bottom })
+  }
+
+  // Vertical fit needs the popover's own height, known only after it is laid out: flip above the trigger when it would
+  // run past the bottom edge (never above the top edge). Written straight to the element: nothing re-renders.
+  useLayoutEffect(() => {
+    const tip = tipRef.current
+    if (!placement || !tip) return
+    const height = tip.offsetHeight
+    if (placement.anchorBottom + TIP_GAP + height > window.innerHeight - TIP_EDGE) {
+      tip.style.top = `${Math.max(TIP_EDGE, placement.anchorTop - TIP_GAP - height)}px`
+    }
+  }, [placement])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') hide()
+    }
+    // Scrolling: a tip the keyboard focus holds follows its trigger (the browser smooth-scrolls a focused control into view,
+    // so the trigger keeps moving after the tip opens); any other tip closes as soon as its trigger moves. A scroll that
+    // does not move the trigger changes nothing.
+    const onScroll = () => {
+      const rect = buttonRef.current?.getBoundingClientRect()
+      if (!rect) return hide()
+      if (Math.abs(rect.top - anchorTopRef.current) <= 1) return
+      if (focusRef.current) place()
+      else hide()
+    }
+    document.addEventListener('keydown', onKey)
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', hide)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', hide)
+    }
+  // `place` and `hide` only read refs and the viewport and set state: re-subscribing on every render would add nothing.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   return (
-    <span className="relative inline-flex" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+    <span
+      className="relative inline-flex"
+      onMouseEnter={() => {
+        hoverRef.current = true
+        place()
+      }}
+      onMouseLeave={() => {
+        hoverRef.current = false
+        if (!focusRef.current) hide()
+      }}
+    >
       <button
+        ref={buttonRef}
         type="button"
         aria-label={label}
         aria-describedby={open ? id : undefined}
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') setOpen(false)
+        onPointerDown={(e) => {
+          pointerRef.current = { type: e.pointerType, wasOpen: open }
+        }}
+        onClick={() => {
+          const pointer = pointerRef.current
+          pointerRef.current = null
+          if (pointer?.type === 'touch' && pointer.wasOpen) hide()
+          else place()
+        }}
+        onFocus={() => {
+          focusRef.current = true
+          place()
+        }}
+        onBlur={() => {
+          focusRef.current = false
+          hide()
         }}
         className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue"
       >
         <Info className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
       </button>
-      {open ?
+      {placement ?
         <span
+          ref={tipRef}
           id={id}
           role="tooltip"
-          className="absolute end-0 top-7 z-20 w-64 rounded-xl border border-slate-200 bg-white p-3 text-start text-xs leading-6 text-slate-600 shadow-sm"
+          style={{ left: placement.left, top: placement.top, width: placement.width }}
+          className="fixed z-30 rounded-xl border border-slate-200 bg-white p-3 text-start text-xs leading-6 text-slate-600 shadow-sm"
         >
           {children}
         </span>
@@ -66,7 +180,7 @@ export function Panel({
   className?: string
 }) {
   return (
-    <section aria-label={title} className={cn('rounded-2xl border border-slate-200 bg-white p-5', className)}>
+    <section aria-label={title} className={cn('min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white p-5', className)}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-1">
           <h3 className="text-sm font-semibold text-navy">{title}</h3>
@@ -103,14 +217,17 @@ export interface MetricCardProps {
   cumulative?: boolean
   note?: ReactNode
   loading?: boolean
+  /** A short tag next to the label (e.g. «زيارات») for a figure that must not be read as the card beside it. */
+  badge?: string
 }
 
-export function MetricCard({ label, value, tip, kpi, compare, cumulative, note, loading }: MetricCardProps) {
+export function MetricCard({ label, value, tip, kpi, compare, cumulative, note, loading, badge }: MetricCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+    <div role="group" aria-label={label} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
       <div className="flex items-start gap-1">
         <span className="text-xs font-medium leading-5 text-slate-500">{label}</span>
         <InfoTip label={`ما معنى ${label}`}>{tip}</InfoTip>
+        {badge ? <span className="ms-auto rounded-md bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">{badge}</span> : null}
       </div>
 
       {loading ?
@@ -305,21 +422,37 @@ export function DistributionList({
   rows,
   total,
   empty,
+  ariaLabel,
+  labelledBy,
 }: {
-  rows: Array<{ key: string; label: string; value: number; detail?: string }>
+  rows: Array<{
+    key: string
+    label: ReactNode
+    value: number
+    detail?: ReactNode
+    /** The full text, shown on hover when the label is cut short (free-text rows). */
+    title?: string
+    /** A remainder row («others», «unknown»): never takes the accent, even when it is first. */
+    quiet?: boolean
+  }>
   /** When given, each row also shows its share of this total. */
   total?: number
   empty?: ReactNode
+  /** The list's accessible name: a text, or the id of a visible heading. */
+  ariaLabel?: string
+  labelledBy?: string
 }) {
   const max = Math.max(0, ...rows.map((r) => r.value))
   if (rows.length === 0 || max === 0) return <EmptyNote>{empty}</EmptyNote>
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-3" aria-label={labelledBy ? undefined : ariaLabel} aria-labelledby={labelledBy}>
       {rows.map((r, i) => (
-        <li key={r.key}>
+        <li key={r.key} className="min-w-0">
           <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-            <span className="truncate text-slate-700">{r.label}</span>
+            <span className={cn('min-w-0 truncate', r.quiet ? 'text-slate-500' : 'text-slate-700')} title={r.title}>
+              {r.label}
+            </span>
             <span className="flex shrink-0 items-baseline gap-2 tabular-nums">
               <span className="text-navy">{fmtInt(r.value)}</span>
               {total ? <span className="text-xs text-slate-500" dir="ltr">{fmtPct((r.value / total) * 100)}</span> : null}
@@ -328,7 +461,7 @@ export function DistributionList({
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
             <div
-              className={cn('h-full rounded-full', i === 0 ? 'bg-customBlue' : 'bg-slate-300')}
+              className={cn('h-full rounded-full', i === 0 && !r.quiet ? 'bg-customBlue' : 'bg-slate-300')}
               style={{ width: `${(r.value / max) * 100}%` }}
             />
           </div>
