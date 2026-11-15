@@ -302,6 +302,39 @@ export type AdminUsersQuery = {
   department?: string
   verified?: 'all' | 'verified' | 'unverified'
   joined?: 'all' | 'month' | 'quarter' | 'year'
+  /** Sorting is done in the frontend (backend ordering is not relied upon). */
+  sort_by?: AdminUsersSortKey | null
+  sort_dir?: AdminUsersSortDir
+}
+
+export type AdminUsersSortKey = 'created_at' | 'last_login_at'
+export type AdminUsersSortDir = 'asc' | 'desc'
+
+function toTimestamp(v: string | null | undefined): number | null {
+  if (v == null || String(v).trim() === '') return null
+  const t = Date.parse(String(v))
+  return Number.isFinite(t) ? t : null
+}
+
+/**
+ * Sorts users by a date column. Users without a value (e.g. never logged in) always go last,
+ * regardless of direction. Ties fall back to id so the order is stable.
+ */
+export function sortUsersClientSide(
+  users: AdminManagedUser[],
+  sortBy: AdminUsersSortKey,
+  dir: AdminUsersSortDir = 'desc',
+): AdminManagedUser[] {
+  const sign = dir === 'asc' ? 1 : -1
+  return [...users].sort((a, b) => {
+    const ta = toTimestamp(a[sortBy])
+    const tb = toTimestamp(b[sortBy])
+    if (ta === null && tb === null) return a.id - b.id
+    if (ta === null) return 1
+    if (tb === null) return -1
+    if (ta !== tb) return (ta - tb) * sign
+    return (a.id - b.id) * sign
+  })
 }
 
 export type AdminUsersSummary = {
@@ -397,6 +430,10 @@ export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUser
   const meta = parsePaginatorMeta(res.data)
   const summary = parseSummaryBlock(res.data)
 
+  if (meta && q.sort_by) {
+    return fetchAllPagesSorted(q, q.sort_by, summary)
+  }
+
   if (meta) {
     return {
       users,
@@ -411,7 +448,8 @@ export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUser
 
   const perPage = q.per_page ?? 15
   const page = q.page ?? 1
-  const filtered = filterUsersClientSide(users, q)
+  const matched = filterUsersClientSide(users, q)
+  const filtered = q.sort_by ? sortUsersClientSide(matched, q.sort_by, q.sort_dir) : matched
   const total = filtered.length
   const lastPage = Math.max(1, Math.ceil(total / perPage))
   const safePage = Math.min(Math.max(1, page), lastPage)
@@ -425,6 +463,52 @@ export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUser
     lastPage,
     serverPaginated: false,
     summary: summary ?? summarizeUsersClientSide(filtered),
+  }
+}
+
+const SORT_FETCH_PER_PAGE = 100
+
+/**
+ * The server paginates but does not sort, so a correct sort needs every matching user:
+ * fetch all pages with the active filters, sort locally, then slice out the requested page.
+ */
+async function fetchAllPagesSorted(
+  q: AdminUsersQuery,
+  sortBy: AdminUsersSortKey,
+  summary: AdminUsersSummary | null,
+): Promise<AdminUsersPageResult> {
+  const base = buildUsersQueryParams({ ...q, page: 1, per_page: SORT_FETCH_PER_PAGE })
+  const first = await apiClient.get<unknown>(BASE, { ...silent, params: base })
+  const firstMeta = parsePaginatorMeta(first.data)
+  const all = unwrapAdminUsersList(first.data)
+  const pages = firstMeta?.lastPage ?? 1
+
+  if (pages > 1) {
+    const rest = await Promise.all(
+      Array.from({ length: pages - 1 }, (_, i) =>
+        apiClient.get<unknown>(BASE, { ...silent, params: { ...base, page: i + 2 } }),
+      ),
+    )
+    for (const r of rest) all.push(...unwrapAdminUsersList(r.data))
+  }
+
+  // Guard against duplicates if the dataset shifted between page requests.
+  const unique = [...new Map(all.map((u) => [u.id, u])).values()]
+  const sorted = sortUsersClientSide(unique, sortBy, q.sort_dir)
+  const perPage = q.per_page ?? 15
+  const total = sorted.length
+  const lastPage = Math.max(1, Math.ceil(total / perPage))
+  const page = Math.min(Math.max(1, q.page ?? 1), lastPage)
+  const start = (page - 1) * perPage
+
+  return {
+    users: sorted.slice(start, start + perPage),
+    total,
+    page,
+    perPage,
+    lastPage,
+    serverPaginated: true,
+    summary: summary ?? parseSummaryBlock(first.data),
   }
 }
 

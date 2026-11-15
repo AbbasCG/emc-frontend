@@ -22,6 +22,8 @@ import {
   deleteAdminUser,
   fetchAdminUser,
   fetchAdminUsersPage,
+  type AdminUsersSortDir,
+  type AdminUsersSortKey,
   getAdminUserMutationMessage,
   getResendVerificationErrorMessage,
   resendUserVerification,
@@ -111,6 +113,20 @@ export default function UsersManagementPage() {
   const [perPage, setPerPage] = useState(15)
   const [page, setPage] = useState(1)
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [sortBy, setSortBy] = useState<AdminUsersSortKey | null>(null)
+  const [sortDir, setSortDir] = useState<AdminUsersSortDir>('desc')
+
+  /** First click on a column sorts newest first; clicking the active column flips direction. */
+  const handleSortChange = useCallback(
+    (col: AdminUsersSortKey) => {
+      if (sortBy === col) setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+      else {
+        setSortBy(col)
+        setSortDir('desc')
+      }
+    },
+    [sortBy],
+  )
 
   const includeSuperAdminAssignment = canOfferSuperAdminRoleOption(currentUser?.role)
   const roleOptionsForm = useMemo(
@@ -163,9 +179,13 @@ export default function UsersManagementPage() {
     statusFilter,
     departmentFilter,
     verifiedFilter,
+    sortBy,
+    sortDir,
     reloadToken,
   })
   if (
+    seenQuery.sortBy !== sortBy ||
+    seenQuery.sortDir !== sortDir ||
     seenQuery.page !== page ||
     seenQuery.perPage !== perPage ||
     seenQuery.debouncedQuery !== debouncedQuery ||
@@ -183,6 +203,8 @@ export default function UsersManagementPage() {
       statusFilter,
       departmentFilter,
       verifiedFilter,
+      sortBy,
+      sortDir,
       reloadToken,
     })
     setLoading(true)
@@ -203,6 +225,8 @@ export default function UsersManagementPage() {
           department: departmentFilter,
           verified: verifiedFilter,
           joined: joinedFilter,
+          sort_by: sortBy,
+          sort_dir: sortDir,
         })
         if (!alive) return
         setPageUsers(result.users)
@@ -233,7 +257,7 @@ export default function UsersManagementPage() {
     return () => {
       alive = false
     }
-  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, joinedFilter, reloadToken])
+  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, joinedFilter, sortBy, sortDir, reloadToken])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300)
@@ -250,8 +274,12 @@ export default function UsersManagementPage() {
     joinedFilter,
     verifiedFilter,
     perPage,
+    sortBy,
+    sortDir,
   })
   if (
+    seenFilters.sortBy !== sortBy ||
+    seenFilters.sortDir !== sortDir ||
     seenFilters.debouncedQuery !== debouncedQuery ||
     seenFilters.roleFilter !== roleFilter ||
     seenFilters.statusFilter !== statusFilter ||
@@ -268,6 +296,8 @@ export default function UsersManagementPage() {
       joinedFilter,
       verifiedFilter,
       perPage,
+      sortBy,
+      sortDir,
     })
     setPage(1)
   }
@@ -782,6 +812,9 @@ export default function UsersManagementPage() {
             joinedFilter={joinedFilter}
             onJoinedFilterChange={setJoinedFilter}
             serverPaginated={serverPaginated}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSortChange={handleSortChange}
             onClearFilters={clearFilters}
             hasActiveFilters={hasActiveFilters}
           />
