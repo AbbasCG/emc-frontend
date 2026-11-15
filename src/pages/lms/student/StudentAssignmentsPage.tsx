@@ -17,6 +17,7 @@ import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { AssignmentSubmitModal } from '@/components/lms'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
+import AssignmentAttachmentList from '@/components/lms/AssignmentAttachmentList'
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 
@@ -181,6 +182,11 @@ function SubmissionCard({
           </div>
         </div>
       )}
+
+      {/* Row 4b: the files that were submitted */}
+      {assignment.attachments && assignment.attachments.length > 0 ? (
+        <AssignmentAttachmentList attachments={assignment.attachments} title="ملفاتك المُسلَّمة" />
+      ) : null}
 
       {/* Row 5: Pending review badge */}
       {pending && (

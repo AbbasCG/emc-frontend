@@ -43,7 +43,18 @@ export type LmsMaterial = {
 
 export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' | 'late' | 'needs_resubmission'
 
+/** A file attached to an assignment submission (multi-file uploads). Downloaded through an authorized request, never a bare link. */
+export type AssignmentAttachment = {
+  id: number
+  name: string
+  size: number | null
+  mime: string | null
+  download_url: string
+}
+
 export type StudentAssignment = {
+  /** The student's submitted files; absent for submissions made before multi-file uploads. */
+  attachments?: AssignmentAttachment[]
   id: number
   course_id?: number | null
   assignment_id: number
@@ -249,6 +260,8 @@ export type InstructorSubmission = {
   max_score?: number | null
   body_preview?: string | null
   file_url?: string | null
+  /** Every file of a multi-file submission; absent for legacy single-file ones (`file_url`). */
+  attachments?: AssignmentAttachment[]
   resubmitted_at?: string | null
 }
 

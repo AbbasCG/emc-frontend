@@ -1,10 +1,12 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Calendar, CheckCircle2, ClipboardList, Loader2, RefreshCw, Send, Star, X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { submitStudentAssignment } from '@/api/studentApi'
-import { getApiErrorMessage } from '@/api/apiErrors'
-import AppFileUpload from '@/components/ui/AppFileUpload'
+import { fetchAssignmentUploadRules, submitStudentAssignment } from '@/api/studentApi'
+import { mapAssignmentUploadError, type UploadErrorInfo } from '@/api/uploadErrors'
+import AssignmentFilePicker from '@/components/lms/AssignmentFilePicker'
+import AssignmentAttachmentList from '@/components/lms/AssignmentAttachmentList'
+import { FALLBACK_UPLOAD_RULES, type AssignmentUploadRules, type PickedFile } from '@/lib/assignmentUploadRules'
 import type { StudentAssignment } from '@/types/lms'
 import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { isNeedsResubmission } from '@/utils/lmsAssignment'
@@ -18,20 +20,58 @@ type Props = {
   onSuccess?: () => void | Promise<void>
 }
 
+function clientError(message: string): UploadErrorInfo {
+  return { kind: 'unknown', message, details: [], retryable: false, status: null }
+}
+
 export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }: Props) {
   const [text, setText] = useState('')
   const [notes, setNotes] = useState('')
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<PickedFile[]>([])
+  const [rules, setRules] = useState<AssignmentUploadRules>(FALLBACK_UPLOAD_RULES)
   const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [submitError, setSubmitError] = useState<UploadErrorInfo | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
+  const errorRef = useRef<HTMLDivElement | null>(null)
+  // Synchronous guards: a state update lands after the next click, a ref does not.
+  const submittingRef = useRef(false)
+  const abortRef = useRef<AbortController | null>(null)
 
   useFocusTrap(panelRef, {
     active: Boolean(assignment),
     onEscape: () => {
-      if (!submitting) onClose()
+      if (!submittingRef.current) onClose()
     },
   })
+
+  // Server rules (cached per session); the built-in fallback is already in place until they arrive.
+  useEffect(() => {
+    if (!assignment) return
+    let alive = true
+    void fetchAssignmentUploadRules().then((r) => {
+      if (alive) setRules(r)
+    })
+    return () => {
+      alive = false
+    }
+  }, [assignment])
+
+  // The modal going away (closed by the parent, navigated off) must not leave an upload running.
+  useEffect(() => {
+    if (assignment) return
+    abortRef.current?.abort()
+  }, [assignment])
+  useEffect(
+    () => () => {
+      abortRef.current?.abort()
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (submitError) errorRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+  }, [submitError])
 
   // Clear the draft during render when the modal closes (react.dev "adjusting state
   // when a prop changes") — no extra committed render, same reset as before.
@@ -41,53 +81,94 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
     if (!assignment) {
       setText('')
       setNotes('')
-      setFile(null)
+      setFiles([])
       setSubmitError(null)
       setSubmitting(false)
+      setProgress(null)
     }
   }
 
   const isResubmission = isNeedsResubmission(assignment?.status)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!assignment) return
+  function requestClose() {
+    if (!submittingRef.current) onClose()
+  }
+
+  function stopUpload() {
+    abortRef.current?.abort()
+  }
+
+  async function send() {
+    if (submittingRef.current || !assignment) return
     if (NON_SUBMITTABLE.includes(assignment.status) && !isResubmission) {
-      setSubmitError('تم تسليم هذا الواجب مسبقاً ولا يمكن إعادة التسليم إلا بطلب من المدرس.')
+      setSubmitError(clientError('تم تسليم هذا الواجب مسبقاً ولا يمكن إعادة التسليم إلا بطلب من المدرس.'))
       return
     }
     if (!assignment.assignment_id || assignment.assignment_id <= 0) {
-      setSubmitError('تعذّر تحديد الواجب. حدّث الصفحة وحاول مرة أخرى.')
+      setSubmitError(clientError('تعذّر تحديد الواجب. حدّث الصفحة وحاول مرة أخرى.'))
       return
     }
-    if (!text.trim() && !file) {
-      setSubmitError('أضف إجابة نصية أو مرفقاً على الأقل.')
+    if (!text.trim() && files.length === 0) {
+      setSubmitError(clientError('أضف إجابة نصية أو مرفقاً على الأقل.'))
       return
     }
 
+    const picked = files.map((p) => p.file)
+    const controller = new AbortController()
+    abortRef.current = controller
+    submittingRef.current = true
     setSubmitting(true)
     setSubmitError(null)
+    setProgress(0)
+
+    let succeeded = false
     try {
-      await submitStudentAssignment(assignment.assignment_id, {
-        text_answer: text.trim() || undefined,
-        answer_text: text.trim() || undefined,
-        notes: notes.trim() || undefined,
-        file,
-      })
-      toast.success(isResubmission ? 'تمت إعادة تسليم الواجب بنجاح.' : 'تم تسليم الواجب بنجاح.')
-      await onSuccess?.()
-      onClose()
+      await submitStudentAssignment(
+        assignment.assignment_id,
+        {
+          text_answer: text.trim() || undefined,
+          answer_text: text.trim() || undefined,
+          notes: notes.trim() || undefined,
+          files: picked,
+        },
+        {
+          signal: controller.signal,
+          onProgress: (p) => setProgress((prev) => Math.max(prev ?? 0, p.percent)),
+        },
+      )
+      succeeded = true
     } catch (err) {
-      setSubmitError(getApiErrorMessage(err))
+      // Nothing the student typed or picked is cleared: they can fix the cause and resend.
+      setSubmitError(mapAssignmentUploadError(err, { files: picked }))
     } finally {
+      submittingRef.current = false
+      abortRef.current = null
       setSubmitting(false)
+      setProgress(null)
     }
+
+    if (succeeded) {
+      toast.success(isResubmission ? 'تمت إعادة تسليم الواجب بنجاح.' : 'تم تسليم الواجب بنجاح.')
+      try {
+        await onSuccess?.()
+      } catch {
+        // The submission is saved; a failed refresh must not read as a failed upload.
+      }
+      onClose()
+    }
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    void send()
   }
 
   const isReadOnly = !!assignment && NON_SUBMITTABLE.includes(assignment.status) && !isResubmission
 
   const dueLabel = assignment?.due_at ? formatLmsDateTime(assignment.due_at) : null
   const submittedLabel = assignment?.submitted_at ? formatLmsDateTime(assignment.submitted_at) : null
+  const previousFiles = assignment?.attachments ?? []
+  const uploadComplete = progress != null && progress >= 100
 
   return (
     <AnimatePresence>
@@ -106,7 +187,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
             type="button"
             className="absolute inset-0"
             aria-label="إغلاق"
-            onClick={() => !submitting && onClose()}
+            onClick={requestClose}
             disabled={submitting}
           />
 
@@ -132,8 +213,9 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                 </div>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={requestClose}
                   disabled={submitting}
+                  aria-label="إغلاق نافذة التسليم"
                   className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
                 >
                   <X className="h-5 w-5" aria-hidden />
@@ -172,6 +254,9 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                       </div>
                     </div>
                   )}
+                  {previousFiles.length > 0 ?
+                    <AssignmentAttachmentList attachments={previousFiles} title="ملفاتك المُسلَّمة" />
+                  : null}
                   {assignment?.score != null && (
                     <div className="flex items-center gap-2.5 rounded-xl border border-[#0077B6]/15 bg-blue-50/50 px-3.5 py-2.5">
                       <Star className="h-4 w-4 shrink-0 text-[#F28C00]" aria-hidden />
@@ -203,88 +288,153 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
             ) : (
               /* ── Submission form ── */
               <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
+                <div className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-5 py-5 text-right">
                   {isResubmission && !submitError && (
                     <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-[12px] font-bold text-orange-800">
                       <RefreshCw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                       <span>طلب المدرس إعادة تسليم هذا الواجب. يمكنك إرسال نسخة جديدة.</span>
                     </div>
                   )}
+                  {isResubmission && previousFiles.length > 0 ?
+                    <AssignmentAttachmentList attachments={previousFiles} title="ملفاتك المُسلَّمة سابقاً" />
+                  : null}
                   {submitError ?
                     <div
-                      role="alert"
-                      className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] font-bold text-rose-800"
+                      ref={errorRef}
+                      role={submitError.kind === 'aborted' ? 'status' : 'alert'}
+                      data-testid="assignment-submit-error"
+                      className={`flex items-start gap-2 rounded-2xl border px-4 py-3 text-[12px] font-bold ${
+                        submitError.kind === 'aborted' ?
+                          'border-slate-200 bg-slate-50 text-navy'
+                        : 'border-rose-200 bg-rose-50 text-rose-800'
+                      }`}
                     >
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                      <span>{submitError}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="leading-relaxed">{submitError.message}</p>
+                        {submitError.details.length > 0 ?
+                          <ul className="mt-1.5 list-disc space-y-1 pr-4 font-semibold">
+                            {submitError.details.map((d, i) => (
+                              <li key={`${d.fileName ?? 'general'}-${i}`} className="break-words">
+                                {d.fileName ?
+                                  <>
+                                    <bdi dir="auto" className="break-all font-black">
+                                      {d.fileName}
+                                    </bdi>
+                                    {' — '}
+                                  </>
+                                : null}
+                                {d.message}
+                              </li>
+                            ))}
+                          </ul>
+                        : null}
+                        {submitError.retryable ?
+                          <button
+                            type="button"
+                            onClick={() => void send()}
+                            disabled={submitting}
+                            className="mt-2 inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[12px] font-black text-rose-800 transition hover:bg-rose-100 disabled:opacity-50"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                            إعادة المحاولة
+                          </button>
+                        : null}
+                      </div>
                     </div>
                   : null}
 
                   <label className="grid gap-2">
-                    <span className="text-xs font-black text-[#0C2A4B]">إجابة نصية</span>
+                    <span className="text-xs font-black text-navy">إجابة نصية</span>
                     <textarea
                       value={text}
                       onChange={(e) => setText(e.target.value)}
                       rows={5}
                       disabled={submitting}
                       placeholder="اكتب إجابتك هنا…"
-                      className="resize-none rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-60"
+                      className="resize-none rounded-2xl border border-navy/10 bg-slate-50/80 px-4 py-3 font-semibold text-navy outline-none transition focus:border-customBlue/50 focus:ring-4 focus:ring-customBlue/10 disabled:opacity-60"
                     />
                   </label>
 
                   <label className="grid gap-2">
-                    <span className="text-xs font-black text-[#0C2A4B]">ملاحظات (اختياري)</span>
+                    <span className="text-xs font-black text-navy">ملاحظات (اختياري)</span>
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={2}
                       disabled={submitting}
                       placeholder="ملاحظة للمدرب…"
-                      className="resize-none rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-60"
+                      className="resize-none rounded-2xl border border-navy/10 bg-slate-50/80 px-4 py-3 font-semibold text-navy outline-none transition focus:border-customBlue/50 focus:ring-4 focus:ring-customBlue/10 disabled:opacity-60"
                     />
                   </label>
 
-                  <AppFileUpload
-                    label="مرفق (اختياري)"
-                    name="assignment_file"
-                    file={file}
-                    onChange={setFile}
-                    compress={false}
-                    hint="PDF · Word · صور"
-                  />
+                  <AssignmentFilePicker files={files} onChange={setFiles} rules={rules} disabled={submitting} />
                 </div>
 
-                <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={onClose}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#0C2A4B] transition hover:bg-slate-50 disabled:opacity-50"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
-                  >
+                <div className="sticky bottom-0 shrink-0 border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
+                  {submitting && files.length > 0 ?
+                    <div className="mb-3 grid gap-1.5" data-testid="assignment-upload-progress">
+                      <div className="flex items-center justify-between gap-3 text-[12px] font-bold text-navy">
+                        <span aria-live="polite">
+                          {uploadComplete ? 'اكتمل الرفع، جارٍ حفظ التسليم…' : 'جارٍ رفع الملفات…'}
+                        </span>
+                        <span className="tabular-nums">{progress ?? 0}%</span>
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-label="تقدّم رفع الملفات"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress ?? 0}
+                        className="h-2 overflow-hidden rounded-full bg-slate-100"
+                      >
+                        <div
+                          className="h-full rounded-full bg-customBlue transition-[width] duration-200 motion-reduce:transition-none"
+                          style={{ width: `${progress ?? 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  : null}
+                  <div className="flex items-center justify-end gap-2">
                     {submitting ?
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        جارٍ الإرسال…
-                      </>
-                    : isResubmission ? (
-                      <>
-                        <RefreshCw size={14} aria-hidden />
-                        إعادة تسليم الواجب
-                      </>
-                    ) : (
-                      <>
-                        <Send size={14} aria-hidden />
-                        إرسال التسليم
-                      </>
-                    )}
-                  </button>
+                      <button
+                        type="button"
+                        onClick={stopUpload}
+                        className="min-h-10 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-navy transition hover:bg-slate-50"
+                      >
+                        إيقاف الرفع
+                      </button>
+                    : <button
+                        type="button"
+                        onClick={requestClose}
+                        className="min-h-10 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-navy transition hover:bg-slate-50"
+                      >
+                        إلغاء
+                      </button>
+                    }
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="inline-flex min-h-10 min-w-[130px] items-center justify-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-ocean disabled:opacity-50"
+                    >
+                      {submitting ?
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                          جارٍ الإرسال…
+                        </>
+                      : isResubmission ? (
+                        <>
+                          <RefreshCw size={14} aria-hidden />
+                          إعادة تسليم الواجب
+                        </>
+                      ) : (
+                        <>
+                          <Send size={14} aria-hidden />
+                          إرسال التسليم
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </form>
             )}

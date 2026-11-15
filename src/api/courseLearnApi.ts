@@ -27,6 +27,7 @@ import type {
   StudentLearnModule,
 } from '@/types/courseLearn'
 import type { AssignmentStatus, LmsMaterial, LmsSession, StudentAssignment } from '@/types/lms'
+import { normalizeAssignmentAttachments } from '@/utils/assignmentAttachments'
 import type { LmsModule } from '@/types/platform'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { normalizeAssignmentStatus, resolveLmsAssignmentSubmitId } from '@/utils/lmsAssignment'
@@ -89,6 +90,7 @@ export function mapCourseLearnAssignmentToStudentAssignment(
     max_score: a.max_points ?? null,
     feedback: a.feedback ?? mySub?.feedback ?? null,
     submitted_at: submittedAt,
+    ...(mySub?.attachments ? { attachments: mySub.attachments } : {}),
   }
 }
 
@@ -376,6 +378,8 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
         (o.my_submission as Record<string, unknown>)
       : null
 
+    const mySubAttachments = normalizeAssignmentAttachments(mySub?.attachments)
+
     const sub =
       typeof o.submission_type === 'string'
         ? o.submission_type
@@ -425,6 +429,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
           text_answer: mySub.text_answer != null ? str(mySub.text_answer) : null,
           score: mySub.score != null ? Number(mySub.score) : null,
           feedback: mySub.feedback != null ? str(mySub.feedback) : null,
+          ...(mySubAttachments ? { attachments: mySubAttachments } : {}),
         }
       : null,
     })

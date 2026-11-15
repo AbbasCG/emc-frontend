@@ -15,6 +15,7 @@ import type { SubmissionDetail } from '@/types/lms'
 import type { ReviewPayload } from '@/api/instructorApi'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import LmsStatusBadge from './LmsStatusBadge'
+import AssignmentAttachmentList from './AssignmentAttachmentList'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 
@@ -321,7 +322,9 @@ export default function SubmissionReviewPanel({
                   </Section>
 
                   <Section title="الملف المرفق" icon={Download}>
-                    {submission.file_url ? (
+                    {submission.attachments && submission.attachments.length > 0 ? (
+                      <AssignmentAttachmentList attachments={submission.attachments} title={null} />
+                    ) : submission.file_url ? (
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
