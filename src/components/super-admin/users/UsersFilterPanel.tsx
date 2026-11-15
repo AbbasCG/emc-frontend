@@ -130,8 +130,8 @@ export function UsersFilterPanel({
                   className={
                     'inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[11px] font-black transition ' +
                     (active ?
-                      'border-[#0077B6] bg-[#0077B6] text-white shadow-sm hover:bg-[#006399]'
-                    : 'border-slate-200 bg-white text-[#0C2A4B]/80 hover:border-[#0077B6]/40 hover:bg-[#0077B6]/5')
+                      'border-customBlue bg-customBlue text-white shadow-sm hover:bg-customBlue/90'
+                    : 'border-slate-200 bg-white text-navy/80 hover:border-customBlue/40 hover:bg-customBlue/5')
                   }
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden />

@@ -71,6 +71,23 @@ describe('fetchAdminUsersPage — frontend sorting', () => {
     expect(res.lastPage).toBe(2)
   })
 
+  it('keeps the joined filter on every request of the sorted fetch-all flow', async () => {
+    const page = (data: AdminManagedUser[], current: number) => ({
+      data: { data, meta: { total: 4, current_page: current, per_page: 2, last_page: 2 } },
+    })
+    mockedApi.get
+      .mockResolvedValueOnce(page([users[0], users[1]], 1))
+      .mockResolvedValueOnce(page([users[0], users[1]], 1))
+      .mockResolvedValueOnce(page([users[2], users[3]], 2))
+
+    await fetchAdminUsersPage({ page: 1, per_page: 2, joined: 'month', sort_by: 'created_at', sort_dir: 'desc' })
+
+    expect(mockedApi.get).toHaveBeenCalledTimes(3)
+    for (const call of mockedApi.get.mock.calls) {
+      expect(call[1]).toMatchObject({ params: { joined: 'month' } })
+    }
+  })
+
   it('keeps server pagination untouched when no sort is active', async () => {
     mockedApi.get.mockResolvedValueOnce({
       data: { data: [users[0]], meta: { total: 4, current_page: 1, per_page: 1, last_page: 4 } },
