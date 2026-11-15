@@ -171,7 +171,22 @@ describe('mapAssignmentUploadError', () => {
     for (const status of [500, 502, 503]) {
       expect(mapAssignmentUploadError(httpError(status, { message: 'Server Error' }))).toMatchObject({ kind: 'server', message: M.server, retryable: true })
     }
-    expect(mapAssignmentUploadError(httpError(409, { message: 'Conflict' }))).toMatchObject({ kind: 'unknown', message: M.generic })
+    expect(mapAssignmentUploadError(httpError(418, { message: 'Teapot' }))).toMatchObject({ kind: 'unknown', message: M.generic })
+  })
+
+  it('shows the Arabic 429 message and exposes retry_after, falling back to the Retry-After header', () => {
+    const fromBody = mapAssignmentUploadError(httpError(429, { code: 'too_many_requests', message: 'محاولات كثيرة. حاول بعد قليل.', retry_after: 42 }))
+    expect(fromBody).toMatchObject({ kind: 'rate_limited', message: 'محاولات كثيرة. حاول بعد قليل.', retryable: true, retryAfter: 42 })
+
+    const err = httpError(429, { message: 'Too Many Attempts.' })
+    err.response!.headers = { 'retry-after': '30' }
+    expect(mapAssignmentUploadError(err)).toMatchObject({ message: M.rateLimited, retryAfter: 30 })
+    expect(mapAssignmentUploadError(httpError(429, {})).retryAfter).toBeNull()
+  })
+
+  it('shows an Arabic 409 verbatim and marks it retryable; English gets the mapped text', () => {
+    expect(mapAssignmentUploadError(httpError(409, { message: 'يوجد تسليم قيد المعالجة.' }))).toMatchObject({ kind: 'conflict', message: 'يوجد تسليم قيد المعالجة.', retryable: true })
+    expect(mapAssignmentUploadError(httpError(409, { message: 'Conflict' }))).toMatchObject({ kind: 'conflict', message: M.conflict, retryable: true })
   })
 
   it('never leaks an English Error.message from a non-axios failure', () => {

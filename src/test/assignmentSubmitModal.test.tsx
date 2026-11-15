@@ -373,6 +373,31 @@ describe('AssignmentSubmitModal — failures', () => {
     expect(toastSuccess).toHaveBeenCalledWith('تم تسليم الواجب بنجاح.')
   })
 
+  it('on a 429 shows the server Arabic message and blocks resending until retry_after has run out', async () => {
+    const { user, submitButton } = await failWith(httpError(429, { code: 'too_many_requests', message: 'محاولات التسليم كثيرة. حاول بعد قليل.', retry_after: 2 }))
+    const box = screen.getByTestId('assignment-submit-error')
+    expect(box).toHaveTextContent('محاولات التسليم كثيرة. حاول بعد قليل.')
+    const retry = within(box).getByRole('button', { name: /إعادة المحاولة/ })
+    expect(retry).toBeDisabled()
+    expect(retry).toHaveTextContent('بعد 0:0')
+    expect(submitButton()).toBeDisabled()
+    expectNothingLost()
+
+    await waitFor(() => expect(within(screen.getByTestId('assignment-submit-error')).getByRole('button', { name: 'إعادة المحاولة' })).toBeEnabled(), { timeout: 4000 })
+    expect(submitButton()).toBeEnabled()
+
+    submitMock.mockResolvedValueOnce({ status: 'submitted', submitted_at: null, submission_id: 1 })
+    await user.click(within(screen.getByTestId('assignment-submit-error')).getByRole('button', { name: 'إعادة المحاولة' }))
+    await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(2))
+  })
+
+  it('a 409 (concurrent submit) shows its Arabic message verbatim with «إعادة المحاولة» available at once', async () => {
+    await failWith(httpError(409, { message: 'يوجد تسليم آخر قيد المعالجة.' }))
+    const box = screen.getByTestId('assignment-submit-error')
+    expect(box).toHaveTextContent('يوجد تسليم آخر قيد المعالجة.')
+    expect(within(box).getByRole('button', { name: 'إعادة المحاولة' })).toBeEnabled()
+  })
+
   it('a timeout (no response) is treated like a lost connection', async () => {
     await failWith(new AxiosError('timeout of 600000ms exceeded', 'ECONNABORTED'))
     expect(screen.getByRole('button', { name: 'إعادة المحاولة' })).toBeInTheDocument()

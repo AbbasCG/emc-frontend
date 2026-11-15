@@ -6,7 +6,8 @@ import {
   resetAssignmentUploadRulesCache,
   submitStudentAssignment,
 } from '@/api/studentApi'
-import { downloadAssignmentAttachment, safeDownloadName } from '@/api/assignmentAttachmentsApi'
+import { downloadAssignmentAttachment, resolveDownloadRequestUrl, safeDownloadName } from '@/api/assignmentAttachmentsApi'
+import { adminGetAssignmentDetail } from '@/api/adminLmsApi'
 import { normalizeAssignmentAttachments } from '@/utils/assignmentAttachments'
 import { FALLBACK_UPLOAD_RULES } from '@/lib/assignmentUploadRules'
 
@@ -188,6 +189,20 @@ describe('normalizing attachments', () => {
     ])
   })
 
+  it("keeps the synthetic 'legacy' attachment of a single-file submission (size null) and accepts numeric-string ids", () => {
+    expect(
+      normalizeAssignmentAttachments([
+        { id: 'legacy', name: 'واجب قديم.pdf', size: null, mime: 'application/pdf', download_url: '/api/submissions/9/download' },
+        { id: '12', name: 'b.png', size: 10, mime: 'image/png', download_url: '/dl/12' },
+        { id: 'other', name: 'x', download_url: '/x' },
+      ]),
+    ).toEqual([
+      { id: 'legacy', name: 'واجب قديم.pdf', size: null, mime: 'application/pdf', download_url: '/api/submissions/9/download' },
+      { id: 12, name: 'b.png', size: 10, mime: 'image/png', download_url: '/dl/12' },
+    ])
+    expect(normalizeAssignmentAttachments([{ id: 'legacy', download_url: '/x' }])?.[0].name).toBe('الملف المرفق')
+  })
+
   it('reads attachments of a submission row from my_submission or the row itself', async () => {
     mockedApi.get.mockResolvedValueOnce({
       data: {
@@ -241,6 +256,22 @@ describe('downloadAssignmentAttachment', () => {
     expect(mockedApi.get).toHaveBeenCalledTimes(1)
   })
 
+  it('downloads the legacy attachment through its own download_url, without doubling the API prefix', async () => {
+    mockedApi.get.mockResolvedValueOnce({ data: new Blob(['x']) })
+    await downloadAssignmentAttachment({ id: 'legacy', name: 'واجب قديم.pdf', size: null, mime: 'application/pdf', download_url: '/api/submissions/9/download' })
+    expect(mockedApi.get).toHaveBeenCalledWith('/submissions/9/download', expect.objectContaining({ responseType: 'blob' }))
+    expect(clicked?.download).toBe('واجب قديم.pdf')
+  })
+
+  it('resolves request urls against the base url path', () => {
+    expect(resolveDownloadRequestUrl('/api/submissions/9/download', 'http://localhost/api')).toBe('/submissions/9/download')
+    expect(resolveDownloadRequestUrl('/api/x', '/api')).toBe('/x')
+    expect(resolveDownloadRequestUrl('/student/x', 'http://localhost/api')).toBe('/student/x')
+    expect(resolveDownloadRequestUrl('/apix/y', 'http://localhost/api')).toBe('/apix/y')
+    expect(resolveDownloadRequestUrl('http://localhost/api/z', 'http://localhost/api')).toBe('http://localhost/api/z')
+    expect(resolveDownloadRequestUrl('/a', undefined)).toBe('/a')
+  })
+
   it('refuses to send the bearer token to another origin', async () => {
     await expect(
       downloadAssignmentAttachment({ id: 3, name: 'a.pdf', size: null, mime: null, download_url: 'https://evil.example/steal' }),
@@ -258,5 +289,26 @@ describe('downloadAssignmentAttachment', () => {
   it('sanitises characters no file system accepts, keeping Arabic', () => {
     expect(safeDownloadName('تقرير/نهائي:1?.pdf', 'f')).toBe('تقرير_نهائي_1_.pdf')
     expect(safeDownloadName('   ', 'attachment-4')).toBe('attachment-4')
+  })
+})
+
+describe('admin assignment detail attachments', () => {
+  it("normalizes each submission's attachments and leaves rows without them as they were", async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          assignment: { id: 3 },
+          submissions: [
+            { id: 1, has_file: true, attachments: [{ id: 5, name: 'a.pdf', size: 10, mime: 'application/pdf', download_url: '/dl/5' }, { id: 6 }] },
+            { id: 2, has_file: true, file_url: '/legacy' },
+            { id: 3, attachments: 'garbage' },
+          ],
+        },
+      },
+    })
+    const out = await adminGetAssignmentDetail(3)
+    expect(out.submissions[0].attachments).toEqual([{ id: 5, name: 'a.pdf', size: 10, mime: 'application/pdf', download_url: '/dl/5' }])
+    expect('attachments' in out.submissions[1]).toBe(false)
+    expect('attachments' in out.submissions[2]).toBe(false)
   })
 })

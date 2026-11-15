@@ -14,7 +14,7 @@ type Props = {
 
 /** The files of a submission, each with an authorized download (Arabic names stay intact). */
 export default function AssignmentAttachmentList({ attachments, title = 'الملفات المرفقة', className = '' }: Props) {
-  const [busyId, setBusyId] = useState<number | null>(null)
+  const [busyId, setBusyId] = useState<AssignmentAttachment['id'] | null>(null)
 
   if (attachments.length === 0) return null
 

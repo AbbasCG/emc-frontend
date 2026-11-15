@@ -17,10 +17,10 @@ export function normalizeAssignmentAttachments(raw: unknown): AssignmentAttachme
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue
     const o = item as Record<string, unknown>
-    const id = toFiniteNumber(o.id)
+    const id = o.id === 'legacy' ? 'legacy' : toFiniteNumber(o.id)
     const url = typeof o.download_url === 'string' ? o.download_url.trim() : ''
     if (id == null || !url) continue
-    const name = typeof o.name === 'string' && o.name.trim() ? o.name.trim() : `ملف ${id}`
+    const name = typeof o.name === 'string' && o.name.trim() ? o.name.trim() : id === 'legacy' ? 'الملف المرفق' : `ملف ${id}`
     out.push({
       id,
       name,

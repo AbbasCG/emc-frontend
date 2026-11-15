@@ -49,6 +49,20 @@ describe('AssignmentAttachmentList', () => {
     expect(screen.getByRole('button', { name: 'تنزيل screenshot.png' })).toBeInTheDocument()
   })
 
+  it("renders the legacy single-file entry (id 'legacy', size null) with its name and downloads it", async () => {
+    const legacy: AssignmentAttachment = { id: 'legacy', name: 'واجبي القديم.docx', size: null, mime: 'application/msword', download_url: '/api/submissions/9/download' }
+    downloadMock.mockResolvedValueOnce(undefined)
+    const user = userEvent.setup()
+    const { container } = render(<AssignmentAttachmentList attachments={[legacy, FILES[0]]} />)
+
+    expect(screen.getByText('واجبي القديم.docx')).toBeInTheDocument()
+    const items = container.querySelectorAll('li')
+    expect(items).toHaveLength(2)
+    expect(items[0].textContent).not.toMatch(/كيلوبايت|ميجابايت|بايت/)
+    await user.click(screen.getByRole('button', { name: 'تنزيل واجبي القديم.docx' }))
+    expect(downloadMock).toHaveBeenCalledWith(legacy)
+  })
+
   it('downloads through the authorized helper and locks the other buttons meanwhile', async () => {
     let finish: () => void = () => {}
     downloadMock.mockImplementationOnce(() => new Promise<void>((r) => (finish = r)))

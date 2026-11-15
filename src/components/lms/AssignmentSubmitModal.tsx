@@ -21,7 +21,14 @@ type Props = {
 }
 
 function clientError(message: string): UploadErrorInfo {
-  return { kind: 'unknown', message, details: [], retryable: false, status: null }
+  return { kind: 'unknown', message, details: [], retryable: false, status: null, retryAfter: null }
+}
+
+/** 65 → «1:05». */
+function formatCountdown(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
 }
 
 export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }: Props) {
@@ -32,6 +39,8 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
   const [submitting, setSubmitting] = useState(false)
   const [progress, setProgress] = useState<number | null>(null)
   const [submitError, setSubmitError] = useState<UploadErrorInfo | null>(null)
+  // Seconds left of a server-imposed wait (429 retry_after); resending is blocked until it reaches 0.
+  const [cooldown, setCooldown] = useState(0)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const errorRef = useRef<HTMLDivElement | null>(null)
   // Synchronous guards: a state update lands after the next click, a ref does not.
@@ -70,6 +79,12 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
   )
 
   useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = window.setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000)
+    return () => window.clearTimeout(timer)
+  }, [cooldown])
+
+  useEffect(() => {
     if (submitError) errorRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
   }, [submitError])
 
@@ -85,6 +100,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
       setSubmitError(null)
       setSubmitting(false)
       setProgress(null)
+      setCooldown(0)
     }
   }
 
@@ -99,7 +115,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
   }
 
   async function send() {
-    if (submittingRef.current || !assignment) return
+    if (submittingRef.current || !assignment || cooldown > 0) return
     if (NON_SUBMITTABLE.includes(assignment.status) && !isResubmission) {
       setSubmitError(clientError('تم تسليم هذا الواجب مسبقاً ولا يمكن إعادة التسليم إلا بطلب من المدرس.'))
       return
@@ -139,7 +155,9 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
       succeeded = true
     } catch (err) {
       // Nothing the student typed or picked is cleared: they can fix the cause and resend.
-      setSubmitError(mapAssignmentUploadError(err, { files: picked }))
+      const mapped = mapAssignmentUploadError(err, { files: picked })
+      setSubmitError(mapped)
+      setCooldown(mapped.retryAfter ?? 0)
     } finally {
       submittingRef.current = false
       abortRef.current = null
@@ -333,11 +351,17 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                           <button
                             type="button"
                             onClick={() => void send()}
-                            disabled={submitting}
+                            disabled={submitting || cooldown > 0}
                             className="mt-2 inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[12px] font-black text-rose-800 transition hover:bg-rose-100 disabled:opacity-50"
                           >
                             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
                             إعادة المحاولة
+                            {cooldown > 0 ?
+                              <span className="tabular-nums" aria-live="off">
+                                {' '}
+                                بعد {formatCountdown(cooldown)}
+                              </span>
+                            : null}
                           </button>
                         : null}
                       </div>
@@ -414,7 +438,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                     }
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || cooldown > 0}
                       className="inline-flex min-h-10 min-w-[130px] items-center justify-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-ocean disabled:opacity-50"
                     >
                       {submitting ?

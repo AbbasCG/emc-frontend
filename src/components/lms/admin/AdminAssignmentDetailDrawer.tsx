@@ -21,6 +21,7 @@ import { EntityDetailDrawer, EntityDetailField, EntityDetailSection } from '@/pa
 import { LmsEmptyState, LmsStatusBadge } from '@/components/lms'
 import { LmsFilterBar, countActiveFilters, lmsSelectClass } from '@/components/lms/management'
 import { fmtDate, fmtNum } from '@/components/lms/lmsFormatters'
+import AssignmentAttachmentList from '@/components/lms/AssignmentAttachmentList'
 
 const TAB_IDS = ['overview', 'submissions', 'students', 'settings'] as const
 type TabId = (typeof TAB_IDS)[number]
@@ -101,7 +102,7 @@ function SubmissionDetailPanel({
           </div>
         : null}
         <div className="flex flex-wrap gap-2 pt-1">
-          {row.has_file ?
+          {row.has_file || (row.attachments && row.attachments.length > 0) ?
             <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-[#0C2A4B]/60 ring-1 ring-[#0C2A4B]/10">
               <Paperclip size={10} /> مرفق
             </span>
@@ -112,6 +113,9 @@ function SubmissionDetailPanel({
             </span>
           : null}
         </div>
+        {row.attachments && row.attachments.length > 0 ?
+          <AssignmentAttachmentList attachments={row.attachments} title="الملفات المرفقة" className="mt-2" />
+        : null}
         {row.text_answer ?
           <div className="mt-2 rounded-xl border border-[#0C2A4B]/8 bg-white p-3">
             <p className="mb-1 text-[10px] font-black text-[#0C2A4B]/40">الإجابة النصية</p>
@@ -317,7 +321,7 @@ export default function AdminAssignmentDetailDrawer({
                 </span>
               : null}
               <div className="flex gap-1">
-                {s.has_file ? <Paperclip size={14} className="text-[#0077B6]" /> : null}
+                {s.has_file || (s.attachments && s.attachments.length > 0) ? <Paperclip size={14} className="text-[#0077B6]" /> : null}
                 {s.has_text ? <FileText size={14} className="text-[#0077B6]" /> : null}
               </div>
               <button

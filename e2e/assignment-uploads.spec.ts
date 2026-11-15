@@ -50,6 +50,9 @@ const SUBMITTED_ROW = {
         mime: 'application/pdf',
         download_url: 'http://127.0.0.1:8000/api/student/assignment-attachments/7/download',
       },
+      // The synthetic entry for a single-file submission made before multi-file uploads: string id, unknown size,
+      // and a path that already starts with the API prefix.
+      { id: 'legacy', name: 'واجبي القديم.docx', size: null, mime: 'application/msword', download_url: '/api/submissions/401/download' },
     ],
   },
 }
@@ -91,7 +94,7 @@ async function mockAssignments(page: Page, mode: () => SubmitMode): Promise<Capt
     return route.fulfill({ status: 200, headers: CORS, body: JSON.stringify(RULES) })
   })
   await page.route(
-    (u) => /\/api\/student\/assignment-attachments\/\d+\/download$/.test(u.pathname),
+    (u) => /\/api\/(student\/assignment-attachments|submissions)\/\d+\/download$/.test(u.pathname),
     (route) => {
       if (route.request().method() === 'OPTIONS') return route.fallback()
       return route.fulfill({
@@ -338,6 +341,12 @@ test.describe('assignment multi-file upload', () => {
     await page.getByRole('button', { name: 'تنزيل تسليمي الأول.pdf' }).click()
     const download = await downloadPromise
     expect(download.suggestedFilename()).toBe('تسليمي الأول.pdf')
+
+    // The legacy single-file entry is listed too, without a size, and downloads through its own url.
+    await expect(page.getByText('واجبي القديم.docx')).toBeVisible()
+    const legacyDownload = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'تنزيل واجبي القديم.docx' }).click()
+    expect((await legacyDownload).suggestedFilename()).toBe('واجبي القديم.docx')
   })
 
   test('fits a 375px phone: nothing overflows and tap targets are at least 40px', async ({ page }) => {

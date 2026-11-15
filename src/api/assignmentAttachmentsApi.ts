@@ -23,6 +23,21 @@ function isTrustedDownloadUrl(url: string): boolean {
 }
 
 /**
+ * The server may hand out a path that already starts with the API prefix (`/api/submissions/9/download`),
+ * while the client's base URL ends with it too; joining them naively would request `/api/api/...`.
+ */
+export function resolveDownloadRequestUrl(url: string, baseURL: string | undefined): string {
+  if (!url.startsWith('/') || url.startsWith('//') || !baseURL) return url
+  try {
+    const prefix = new URL(baseURL, window.location.href).pathname.replace(/\/$/, '')
+    if (prefix && url.startsWith(`${prefix}/`)) return url.slice(prefix.length)
+  } catch {
+    /* keep the url as given */
+  }
+  return url
+}
+
+/**
  * Authenticated download of one submission attachment: an axios blob request (so the Bearer token is
  * sent — a bare link would be a 401) saved under the attachment's own, possibly Arabic, name.
  * Throws on failure so the caller can show an error.
@@ -31,7 +46,7 @@ export async function downloadAssignmentAttachment(attachment: AssignmentAttachm
   if (!isTrustedDownloadUrl(attachment.download_url)) {
     throw new Error('رابط التنزيل غير موثوق.')
   }
-  const res = await apiClient.get<Blob>(attachment.download_url, { responseType: 'blob', skipErrorToast: true })
+  const res = await apiClient.get<Blob>(resolveDownloadRequestUrl(attachment.download_url, apiClient.defaults.baseURL), { responseType: 'blob', skipErrorToast: true })
   const blob = res.data instanceof Blob ? res.data : new Blob([res.data as BlobPart])
   const objectUrl = URL.createObjectURL(blob)
   const a = document.createElement('a')

@@ -20,6 +20,7 @@ export type UploadErrorKind =
   | 'forbidden'
   | 'not_found'
   | 'rate_limited'
+  | 'conflict'
   | 'server'
   | 'unknown'
 
@@ -36,6 +37,8 @@ export type UploadErrorInfo = {
   /** Resending the very same files can succeed (connection / server trouble). */
   retryable: boolean
   status: number | null
+  /** Seconds the server asked the client to wait (429 `retry_after` / Retry-After header). */
+  retryAfter: number | null
 }
 
 export const UPLOAD_ERROR_MESSAGES = {
@@ -50,6 +53,7 @@ export const UPLOAD_ERROR_MESSAGES = {
   forbidden: 'ليس لديك صلاحية تسليم هذا الواجب.',
   notFound: 'تعذّر العثور على الواجب. حدّث الصفحة وحاول مرة أخرى.',
   rateLimited: 'عدد المحاولات كبير. انتظر قليلاً ثم أعد المحاولة.',
+  conflict: 'هناك عملية تسليم أخرى قيد المعالجة لهذا الواجب. انتظر لحظات ثم أعد المحاولة.',
   server: 'تعذّر على الخادم استلام التسليم الآن. حاول مرة أخرى بعد قليل.',
   generic: 'تعذّر إرسال التسليم. حاول مرة أخرى.',
   aborted: 'تم إيقاف الرفع. نصك وملفاتك ما زالت محفوظة، يمكنك الإرسال مرة أخرى.',
@@ -134,9 +138,18 @@ function info(
   kind: UploadErrorKind,
   message: string,
   status: number | null,
-  extra: { details?: UploadErrorDetail[]; retryable?: boolean } = {},
+  extra: { details?: UploadErrorDetail[]; retryable?: boolean; retryAfter?: number | null } = {},
 ): UploadErrorInfo {
-  return { kind, message, details: extra.details ?? [], retryable: extra.retryable ?? false, status }
+  return { kind, message, details: extra.details ?? [], retryable: extra.retryable ?? false, status, retryAfter: extra.retryAfter ?? null }
+}
+
+/** Seconds to wait before resending: the JSON `retry_after`, else the Retry-After header (delta-seconds form). */
+function retryAfterSeconds(data: Record<string, unknown> | null, headers: unknown): number | null {
+  const fromBody = Number(data?.retry_after)
+  if (Number.isFinite(fromBody) && fromBody > 0) return Math.ceil(fromBody)
+  const raw = isRecord(headers) ? headers['retry-after'] : null
+  const fromHeader = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : NaN
+  return Number.isFinite(fromHeader) && fromHeader > 0 ? Math.ceil(fromHeader) : null
 }
 
 /** `files` must be in the order they were appended to the request, so `files.N` names the right file. */
@@ -188,7 +201,13 @@ export function mapAssignmentUploadError(error: unknown, context: { files?: read
   if (status === 401) return info('auth', serverArabic ?? UPLOAD_ERROR_MESSAGES.auth, status)
   if (status === 403) return info('forbidden', serverArabic ?? UPLOAD_ERROR_MESSAGES.forbidden, status)
   if (status === 404) return info('not_found', serverArabic ?? UPLOAD_ERROR_MESSAGES.notFound, status)
-  if (status === 429) return info('rate_limited', serverArabic ?? UPLOAD_ERROR_MESSAGES.rateLimited, status, { retryable: true })
+  if (status === 429) {
+    return info('rate_limited', serverArabic ?? UPLOAD_ERROR_MESSAGES.rateLimited, status, {
+      retryable: true,
+      retryAfter: retryAfterSeconds(data, error.response.headers),
+    })
+  }
+  if (status === 409) return info('conflict', serverArabic ?? UPLOAD_ERROR_MESSAGES.conflict, status, { retryable: true })
   if (status >= 500) return info('server', serverArabic ?? UPLOAD_ERROR_MESSAGES.server, status, { retryable: true })
 
   return info('unknown', serverArabic ?? UPLOAD_ERROR_MESSAGES.generic, status)

@@ -45,7 +45,8 @@ export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' |
 
 /** A file attached to an assignment submission (multi-file uploads). Downloaded through an authorized request, never a bare link. */
 export type AssignmentAttachment = {
-  id: number
+  /** A number, or 'legacy' for the synthetic entry the server emits for a single-file submission made before multi-file uploads. */
+  id: number | 'legacy'
   name: string
   size: number | null
   mime: string | null
