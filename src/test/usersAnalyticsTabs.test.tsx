@@ -336,6 +336,10 @@ describe('analytics tab', () => {
     renderTab(<AnalyticsTab />)
     await screen.findByText('1,284')
 
+    // jsdom has no layout: give every element a size, as a visible control has (a zero-size trigger never opens a tip)
+    const rect = { left: 100, right: 124, top: 100, bottom: 124, width: 24, height: 24, x: 100, y: 100, toJSON: () => ({}) } as DOMRect
+    const sized = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(rect)
+
     await user.tab() // first stop is the period filter; walk to the first info button
     const info = screen.getAllByRole('button', { name: /ما معنى/ })[0]
     info.focus()
@@ -346,6 +350,7 @@ describe('analytics tab', () => {
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('tooltip')).toBeNull()
+    sized.mockRestore()
   })
 })
 
