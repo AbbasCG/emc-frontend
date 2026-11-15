@@ -48,14 +48,10 @@ export function UsersFilterPanel({
   departmentOptions,
   joinedFilter,
   onJoinedFilterChange,
-<<<<<<< Updated upstream
   serverPaginated: _serverPaginated,
-=======
-  serverPaginated,
   sortBy,
   sortDir,
   onSortChange,
->>>>>>> Stashed changes
   onClearFilters,
   hasActiveFilters,
 }: Props) {

@@ -301,9 +301,7 @@ export type AdminUsersQuery = {
   status?: 'all' | 'active' | 'inactive' | 'deleted'
   department?: string
   verified?: 'all' | 'verified' | 'unverified'
-<<<<<<< Updated upstream
   joined?: 'all' | 'month' | 'quarter' | 'year'
-=======
   /** Sorting is done in the frontend (backend ordering is not relied upon). */
   sort_by?: AdminUsersSortKey | null
   sort_dir?: AdminUsersSortDir
@@ -337,7 +335,6 @@ export function sortUsersClientSide(
     if (ta !== tb) return (ta - tb) * sign
     return (a.id - b.id) * sign
   })
->>>>>>> Stashed changes
 }
 
 export type AdminUsersSummary = {

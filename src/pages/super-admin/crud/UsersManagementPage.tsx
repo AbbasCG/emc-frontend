@@ -224,12 +224,9 @@ export default function UsersManagementPage() {
           status: statusFilter,
           department: departmentFilter,
           verified: verifiedFilter,
-<<<<<<< Updated upstream
           joined: joinedFilter,
-=======
           sort_by: sortBy,
           sort_dir: sortDir,
->>>>>>> Stashed changes
         })
         if (!alive) return
         setPageUsers(result.users)
@@ -260,11 +257,7 @@ export default function UsersManagementPage() {
     return () => {
       alive = false
     }
-<<<<<<< Updated upstream
-  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, joinedFilter, reloadToken])
-=======
-  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, sortBy, sortDir, reloadToken])
->>>>>>> Stashed changes
+  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, joinedFilter, sortBy, sortDir, reloadToken])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300)
