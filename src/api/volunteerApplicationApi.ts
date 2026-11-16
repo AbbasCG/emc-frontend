@@ -81,6 +81,9 @@ export type VolunteerRequest = {
   converted_member?: { id: number; name: string } | null
   /** Backend flag: false means already converted or not eligible */
   can_convert_to_member?: boolean | null
+  /** Department the server suggests for the new member (derived from what the volunteer applied for); null when it could not resolve one. */
+  suggested_department_id?: number | null
+  suggested_department_name?: string | null
 }
 
 export type AcceptedVolunteersMeta = {
@@ -371,6 +374,8 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     converted_member_id: convertedMemberId,
     converted_member: convertedMember,
     can_convert_to_member: canConvert,
+    suggested_department_id: parseId(raw.suggested_department_id),
+    suggested_department_name: parseStr(raw.suggested_department_name),
   }
 }
 
@@ -521,51 +526,186 @@ export async function updateVolunteerRequestStatus(
   )
 }
 
-/** Returns the updated VolunteerRequest with conversion data filled in. */
-export async function convertVolunteerToMember(id: number): Promise<VolunteerRequest> {
+const CONVERT_TIMEOUT_MS = 60_000
+
+/** The member record the convert endpoint created (or linked) and what happened to the account. */
+export type ConvertedMemberInfo = {
+  id: number
+  name_ar: string
+  position_ar: string | null
+  role_key: string | null
+  department_id: number | null
+  department_name: string | null
+  member_type: string | null
+  source: string | null
+  source_id: number | null
+  is_new_member: boolean
+  joined_at: string | null
+  is_active: boolean
+  has_user_account: boolean
+  user_id: number | null
+  /** A brand-new account was created for the volunteer. */
+  account_created: boolean
+  /** An account with this e-mail already existed and was linked instead of creating a second one. */
+  account_existing: boolean
+  /** The linked existing account had an unverified e-mail, so a fresh temporary password was issued (and mailed). */
+  credentials_reissued: boolean
+  /** The account already belonged to another department and stays there: `department_name` is where the member REALLY is. */
+  department_kept_existing: boolean
+  /** False when the login-details e-mail could not be sent: HR must resend it. */
+  email_sent: boolean
+}
+
+export type ConvertVolunteerResult = {
+  /** The request, already marked converted (ready to replace the row in a list). */
+  request: VolunteerRequest
+  member: ConvertedMemberInfo
+  message: string
+}
+
+function parseConvertedMember(raw: Record<string, unknown>): ConvertedMemberInfo {
+  return {
+    id: parseId(raw.id) ?? 0,
+    name_ar: String(raw.name_ar ?? raw.name ?? ''),
+    position_ar: parseStr(raw.position_ar),
+    role_key: parseStr(raw.role_key),
+    department_id: parseId(raw.department_id),
+    department_name: parseStr(raw.department_name),
+    member_type: parseStr(raw.member_type),
+    source: parseStr(raw.source),
+    source_id: parseId(raw.source_id),
+    is_new_member: parseBool(raw.is_new_member) ?? false,
+    joined_at: parseStr(raw.joined_at),
+    is_active: parseBool(raw.is_active) ?? true,
+    has_user_account: parseBool(raw.has_user_account) ?? false,
+    user_id: parseId(raw.user_id),
+    account_created: parseBool(raw.account_created) ?? false,
+    account_existing: parseBool(raw.account_existing) ?? false,
+    credentials_reissued: parseBool(raw.credentials_reissued) ?? false,
+    department_kept_existing: parseBool(raw.department_kept_existing) ?? false,
+    // A response that says nothing about the e-mail must not look like a success.
+    email_sent: parseBool(raw.email_sent) ?? false,
+  }
+}
+
+/**
+ * POST /admin/volunteer-requests/{id}/convert-to-member  { department_id }
+ *
+ * The department is required: it decides the member's role and the account's permissions.
+ * 409 `already_converted` and 422 `errors.department_id` reach the caller untouched (see `describeConvertError`).
+ */
+export async function convertVolunteerToMember(id: number, departmentId: number): Promise<ConvertVolunteerResult> {
   const res = await apiClient.post<unknown>(
     `/admin/volunteer-requests/${id}/convert-to-member`,
-    {},
-    { skipErrorToast: true } as Record<string, unknown>,
+    { department_id: departmentId },
+    // The conversion is one server transaction plus a mail: give it room, so a slow answer is not mistaken for a loss.
+    { skipErrorToast: true, timeout: CONVERT_TIMEOUT_MS } as Record<string, unknown>,
   )
-  const inner = unwrapData<unknown>(res.data)
 
-  if (import.meta.env.DEV) {
-    console.log('[convertVolunteerToMember] raw response:', res.data, '→ inner:', inner)
-  }
+  const body =
+    res.data && typeof res.data === 'object' && !Array.isArray(res.data) ? (res.data as Record<string, unknown>) : {}
+  const asRecord = (v: unknown): Record<string, unknown> =>
+    v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
 
-  const raw =
-    inner && typeof inner === 'object' && !Array.isArray(inner)
-      ? (inner as Record<string, unknown>)
-      : {}
+  const member = parseConvertedMember(asRecord(body.data))
+  const requestRaw = asRecord(body.volunteer_request)
 
-  // The backend might return the member record directly or nest the request inside
-  // Try request first, fall back to treating the whole response as the member record
-  const requestRaw =
-    raw.volunteer_request ?? raw.request ?? raw.data ?? raw
-  const requestRecord =
-    requestRaw && typeof requestRaw === 'object' && !Array.isArray(requestRaw)
-      ? (requestRaw as Record<string, unknown>)
-      : {}
-
-  // Merge: if request record has the id, use it; otherwise fall back to known id
-  const merged: Record<string, unknown> = {
-    id,
+  // The request id is always the one we converted, never the member's.
+  const request = normalizeRequest({
     status: 'accepted',
     is_converted: true,
     converted_to_member_at: new Date().toISOString(),
-    ...requestRecord,
-    // Embedded member might be at top level if backend returns { id, name, ... } of member
-    converted_member: raw.converted_member ?? raw.member ?? requestRecord.converted_member ?? requestRecord.member ?? null,
-    converted_member_id:
-      raw.converted_member_id ??
-      raw.member_id ??
-      requestRecord.converted_member_id ??
-      requestRecord.member_id ??
-      (raw.id !== id ? raw.id : null) ??
-      null,
+    ...requestRaw,
+    id,
+    converted_member_id: member.id || null,
+    converted_member: member.id ? { id: member.id, name: member.name_ar } : null,
     can_convert_to_member: false,
+  })
+
+  return {
+    request,
+    member,
+    message: typeof body.message === 'string' && body.message.trim() ? body.message : 'تم تحويل المتطوع إلى عضو.',
+  }
+}
+
+/** POST /admin/volunteer-requests/{id}/resend-credentials: only for converted requests whose account has not signed in yet. */
+export async function resendVolunteerCredentials(id: number): Promise<{ email_sent: boolean }> {
+  const res = await apiClient.post<unknown>(
+    `/admin/volunteer-requests/${id}/resend-credentials`,
+    {},
+    { skipErrorToast: true } as Record<string, unknown>,
+  )
+  const body = res.data && typeof res.data === 'object' ? (res.data as Record<string, unknown>) : {}
+
+  return { email_sent: parseBool(body.email_sent) ?? false }
+}
+
+export type ConvertErrorKind =
+  /** The server says (`already_converted: true`) that this very request was converted before. */
+  | 'already_converted'
+  /** No answer arrived (network, timeout, proxy 502/503/504): the conversion may or may not have happened. */
+  | 'unknown_outcome'
+  | 'department'
+  | 'generic'
+
+type ErrorBody = { message?: unknown; already_converted?: unknown; errors?: Record<string, unknown> }
+
+function readError(err: unknown): { status: number | undefined; data: ErrorBody | undefined } {
+  const response = (err as { response?: { status?: number; data?: ErrorBody } } | null)?.response
+
+  return { status: response?.status, data: response?.data && typeof response.data === 'object' ? response.data : undefined }
+}
+
+const TOO_MANY_REQUESTS_AR = 'حاولت كثيرًا، أعد المحاولة بعد قليل.'
+const ARABIC = /[؀-ۿ]/
+
+/**
+ * The server's own sentence for a 4xx, when it sent one. A 429 is shown only when that sentence is Arabic (the
+ * backend's limiter answers in Arabic with `retry_after`); the framework's generic English "Too Many Attempts."
+ * is replaced by a calm Arabic one.
+ */
+function serverMessage(status: number | undefined, data: ErrorBody | undefined): string | null {
+  if (status == null || status < 400 || status >= 500) return null
+
+  const message = typeof data?.message === 'string' ? data.message.trim() : ''
+  if (status === 429) return ARABIC.test(message) ? message : TOO_MANY_REQUESTS_AR
+
+  return message || null
+}
+
+/**
+ * Friendly Arabic text for a failed convert call. For a 4xx the server's own `message` wins; "already converted" is
+ * decided ONLY by `already_converted === true` (another 409 is an account-creation race and keeps its own message).
+ */
+export function describeConvertError(err: unknown): { kind: ConvertErrorKind; message: string } {
+  const { status, data } = readError(err)
+
+  if (data?.already_converted === true) {
+    return { kind: 'already_converted', message: serverMessage(status, data) ?? 'تم تحويل هذا الطلب مسبقًا إلى عضو.' }
+  }
+  if (status == null || status === 502 || status === 503 || status === 504) {
+    return { kind: 'unknown_outcome', message: 'انقطع الاتصال قبل وصول رد الخادم، وقد يكون التحويل تمّ.' }
   }
 
-  return normalizeRequest(merged)
+  const message = serverMessage(status, data)
+  if (status === 422 && data?.errors && 'department_id' in data.errors) {
+    return { kind: 'department', message: message ?? 'اختر إدارة صحيحة من القائمة ثم أعد المحاولة.' }
+  }
+
+  return { kind: 'generic', message: message ?? (status === 403 ? 'ليست لديك صلاحية تحويل المتطوعين إلى أعضاء.' : 'تعذّر التحويل. تحقق من الاتصال وأعد المحاولة.') }
+}
+
+/** Friendly Arabic text for a failed resend: the server says why it no longer applies; nothing is assumed. */
+export function describeResendError(err: unknown): string {
+  const { status, data } = readError(err)
+
+  return serverMessage(status, data) ?? (status === 403 ? 'ليست لديك صلاحية إعادة إرسال بيانات الدخول.' : 'تعذّر إعادة الإرسال. تحقق من الاتصال وأعد المحاولة.')
+}
+
+/** Text for a refused status change: the server's own Arabic sentence for a 4xx (a converted request answers 409 + `already_converted`). */
+export function describeStatusError(err: unknown, fallback: string): { message: string; alreadyConverted: boolean } {
+  const { status, data } = readError(err)
+
+  return { message: serverMessage(status, data) ?? fallback, alreadyConverted: data?.already_converted === true }
 }

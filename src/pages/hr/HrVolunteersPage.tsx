@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  AlertTriangle,
   ArrowUpDown,
   Coins,
   Eye,
@@ -24,6 +25,8 @@ import {
 import VolunteerStatusModal from '@/components/operations/VolunteerStatusModal'
 import VolunteerDetailDrawer from '@/components/operations/VolunteerDetailDrawer'
 import { useAuth } from '@/contexts/AuthContext'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { withoutAccountMessage } from '@/utils/volunteerMessages'
 
 export default function HrVolunteersPage() {
   const { user } = useAuth()
@@ -39,10 +42,15 @@ export default function HrVolunteersPage() {
     total_used_points: 0,
     total_balance: 0,
     status_counts: { active: 0, inactive: 0, on_leave: 0, withdrawn: 0 },
+    without_account: 0,
   })
 
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [search, setSearch] = useState('')
+  // One request per pause in typing, not one per keystroke.
+  const debouncedSearch = useDebouncedValue(search, 350)
+  const requestSeq = useRef(0)
   const [departmentId, setDepartmentId] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'points' | 'name' | 'balance' | 'last_rating'>('points')
@@ -54,27 +62,33 @@ export default function HrVolunteersPage() {
   const [actionMenuOpenId, setActionMenuOpenId] = useState<number | null>(null)
 
   const loadData = useCallback(async () => {
+    // Only the newest request may write: a slow answer for an old filter must not replace a newer one.
+    const seq = ++requestSeq.current
     setLoading(true)
+    setLoadError(false)
     try {
       const params: VolunteersHubQuery = {
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         department_id: departmentId || undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         sort: sortBy,
         direction,
       }
       const data = await fetchVolunteersHub(params)
+      if (seq !== requestSeq.current) return
       setVolunteers(data.volunteers)
       setSummary(data.summary)
       if (data.departments.length > 0) {
         setDepartments(data.departments)
       }
     } catch {
-      // Handled silently or empty state
+      if (seq !== requestSeq.current) return
+      // A failure is shown, never dressed up as «no volunteers match».
+      setLoadError(true)
     } finally {
-      setLoading(false)
+      if (seq === requestSeq.current) setLoading(false)
     }
-  }, [search, departmentId, selectedStatus, sortBy, direction])
+  }, [debouncedSearch, departmentId, selectedStatus, sortBy, direction])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch whenever the filters change; the loader sets its own loading state
@@ -89,6 +103,25 @@ export default function HrVolunteersPage() {
       setDirection('desc')
     }
   }
+
+  // The server's department list, plus any department that only shows up on a volunteer row, so the filter can
+  // always select what the table shows.
+  const departmentOptions = useMemo(() => {
+    const byId = new Map<number, string>()
+    for (const d of departments) byId.set(d.id, d.name)
+    for (const v of volunteers) {
+      if (v.department_id != null && v.department_name && !byId.has(v.department_id)) byId.set(v.department_id, v.department_name)
+    }
+    return [...byId.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'ar'))
+  }, [departments, volunteers])
+
+  // The server filters by department; this is the belt-and-braces guarantee that a chosen department never shows
+  // another one's rows. Nothing is sliced or limited here: every row the server returned is shown.
+  const visibleVolunteers = useMemo(
+    () => (departmentId ? volunteers.filter((v) => String(v.department_id) === departmentId) : volunteers),
+    [volunteers, departmentId],
+  )
+  const hasActiveFilters = Boolean(search.trim() || departmentId || selectedStatus !== 'all')
 
   const getStatusBadge = (st: VolunteerStatus) => {
     switch (st) {
@@ -148,7 +181,7 @@ export default function HrVolunteersPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={loadData}
+              onClick={() => void loadData()}
               disabled={loading}
               className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-black text-white backdrop-blur transition hover:bg-white/20 disabled:opacity-50"
             >
@@ -158,6 +191,18 @@ export default function HrVolunteersPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Legacy volunteers without an account ────────────────────────── */}
+      {summary.without_account > 0 && (
+        <div
+          role="status"
+          data-testid="without-account-banner"
+          className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-right text-amber-900"
+        >
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+          <p className="text-sm font-bold leading-relaxed">{withoutAccountMessage(summary.without_account)}</p>
+        </div>
+      )}
 
       {/* ── Top KPI Bar & Member Status Card ────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -279,6 +324,7 @@ export default function HrVolunteersPage() {
             <Search className="pointer-events-none absolute end-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
+              aria-label="بحث باسم المتطوع أو بريده"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث باسم المتطوع أو بريده..."
@@ -291,10 +337,11 @@ export default function HrVolunteersPage() {
             <select
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
+              aria-label="تصفية حسب الإدارة"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 px-3 text-xs font-semibold text-slate-700 outline-none transition focus:border-customBlue focus:bg-white"
             >
               <option value="">جميع الإدارات</option>
-              {departments.map((d) => (
+              {departmentOptions.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
@@ -307,6 +354,7 @@ export default function HrVolunteersPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
+              aria-label="تصفية حسب الحالة"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 px-3 text-xs font-semibold text-slate-700 outline-none transition focus:border-customBlue focus:bg-white"
             >
               <option value="all">جميع الحالات</option>
@@ -379,21 +427,44 @@ export default function HrVolunteersPage() {
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-customBlue mb-3" />
             جارٍ تحميل بيانات المتطوعين وحساب الأرصدة...
           </div>
-        ) : volunteers.length === 0 ? (
-          <div className="py-20 text-center text-slate-500 space-y-3">
-            <Users className="mx-auto h-12 w-12 text-slate-300" />
-            <p className="text-sm font-bold text-slate-700">لا يوجد متطوعون يطابقون خيارات البحث والفلترة</p>
+        ) : loadError ? (
+          <div className="py-16 text-center space-y-3" role="alert" data-testid="hub-load-error">
+            <AlertTriangle className="mx-auto h-10 w-10 text-rose-400" aria-hidden="true" />
+            <p className="text-sm font-black text-slate-800">تعذّر تحميل قائمة المتطوعين</p>
+            <p className="text-xs font-semibold text-slate-500">لم يصل الرد من الخادم، وهذا لا يعني أنه لا يوجد متطوعون.</p>
             <button
               type="button"
-              onClick={() => {
-                setSearch('')
-                setDepartmentId('')
-                setSelectedStatus('all')
-              }}
-              className="text-xs font-black text-customBlue hover:underline"
+              onClick={() => void loadData()}
+              className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-4 py-2 text-xs font-black text-white transition hover:bg-brand-600"
             >
-              إعادة ضبط الفلاتر
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              إعادة المحاولة
             </button>
+          </div>
+        ) : visibleVolunteers.length === 0 ? (
+          <div className="py-20 text-center text-slate-500 space-y-3">
+            <Users className="mx-auto h-12 w-12 text-slate-300" />
+            {hasActiveFilters ? (
+              <>
+                <p className="text-sm font-bold text-slate-700">لا يوجد متطوعون يطابقون خيارات البحث والفلترة</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    setDepartmentId('')
+                    setSelectedStatus('all')
+                  }}
+                  className="text-xs font-black text-customBlue hover:underline"
+                >
+                  إعادة ضبط الفلاتر
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-slate-700">لا يوجد متطوعون مسجَّلون بعد</p>
+                <p className="text-xs font-semibold text-slate-500">يظهر هنا كل متطوع بعد قبول طلبه وتحويله إلى عضو.</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -411,7 +482,7 @@ export default function HrVolunteersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-semibold">
-                {volunteers.map((vol) => (
+                {visibleVolunteers.map((vol) => (
                   <tr
                     key={vol.id}
                     onClick={() => setDetailVolunteer(vol)}
@@ -441,9 +512,15 @@ export default function HrVolunteersPage() {
 
                     {/* Department */}
                     <td className="p-4 whitespace-nowrap text-slate-700">
-                      <span className="rounded-xl bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
-                        {vol.department_name}
-                      </span>
+                      {vol.department_name?.trim() ? (
+                        <span className="rounded-xl bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                          {vol.department_name}
+                        </span>
+                      ) : (
+                        <span className="rounded-xl bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-400 ring-1 ring-slate-200">
+                          غير محدد
+                        </span>
+                      )}
                     </td>
 
                     {/* Status Badge */}
@@ -492,6 +569,9 @@ export default function HrVolunteersPage() {
                       <div className="relative inline-block text-start">
                         <button
                           type="button"
+                          aria-label={`إجراءات ${vol.name}`}
+                          aria-haspopup="menu"
+                          aria-expanded={actionMenuOpenId === vol.id}
                           onClick={() =>
                             setActionMenuOpenId(actionMenuOpenId === vol.id ? null : vol.id)
                           }

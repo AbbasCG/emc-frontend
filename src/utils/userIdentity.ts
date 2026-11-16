@@ -139,6 +139,13 @@ export function normalizeAuthUser(payload: unknown): User {
   const impact_points_balance: number | undefined =
     rawPoints != null && !Number.isNaN(Number(rawPoints)) ? Number(rawPoints) : undefined
 
+  // may live on the outer envelope (sibling to `user`) or directly on `r`; only a real `true` forces the gate
+  const rawMustChange = r.must_change_password ?? outer.must_change_password
+  const must_change_password: boolean | undefined =
+    rawMustChange === true || rawMustChange === 1 || rawMustChange === '1' ? true
+    : rawMustChange === false || rawMustChange === 0 || rawMustChange === '0' ? false
+    : undefined
+
   const department_id = r.department_id != null ? finiteId(r.department_id) : undefined
   const department_name = trimStr(r.department_name ?? department) || undefined
 
@@ -166,6 +173,7 @@ export function normalizeAuthUser(payload: unknown): User {
     has_english_courses,
     has_enrolled_courses,
     impact_points_balance,
+    must_change_password,
   }
 }
 

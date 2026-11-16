@@ -9,6 +9,7 @@ import {
   postImpersonateStop,
   forgotPassword,
   resetPassword,
+  changePassword,
   logoutRemote,
 } from '@/api/authApi'
 
@@ -182,6 +183,21 @@ describe('password flows', () => {
     await expect(
       resetPassword({ token: 't', email: 'a@b.c', password: 'x', password_confirmation: 'y' }),
     ).rejects.toThrow('422')
+  })
+})
+
+describe('changePassword', () => {
+  const input = { current_password: 'Temp-1234', password: 'NewPass-2026', password_confirmation: 'NewPass-2026' }
+
+  it('POSTs the three fields to /auth/change-password without the global error toast', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: { success: true } })
+    await expect(changePassword(input)).resolves.toBeUndefined()
+    expect(mockedApi.post).toHaveBeenCalledWith('/auth/change-password', input, { skipErrorToast: true })
+  })
+
+  it('propagates 422 so the page can show the field errors', async () => {
+    mockedApi.post.mockRejectedValueOnce(new Error('422'))
+    await expect(changePassword(input)).rejects.toThrow('422')
   })
 })
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2, ShieldAlert, X } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
@@ -47,6 +47,19 @@ export default function VolunteerStatusModal({ volunteer, onClose, onSuccess }: 
   const [status, setStatus] = useState<VolunteerStatus>(volunteer?.status ?? 'active')
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
+  const open = volunteer != null
+
+  // Escape closes THIS modal (not the drawer underneath: the drawer sees `data-nested-overlay` and stands down).
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || loading) return
+      e.preventDefault()
+      onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, loading, onClose])
 
   if (!volunteer) return null
 
@@ -80,6 +93,8 @@ export default function VolunteerStatusModal({ volunteer, onClose, onSuccess }: 
     <div
       role="dialog"
       aria-modal="true"
+      data-nested-overlay
+      aria-label="تعديل حالة المتطوع"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
     >
       <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-900/10">

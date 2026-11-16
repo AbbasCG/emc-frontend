@@ -31,6 +31,8 @@ export interface VolunteerHubSummary {
     on_leave: number
     withdrawn: number
   }
+  /** Legacy volunteers that have no login account: they cannot be given points until converted with one. */
+  without_account: number
 }
 
 export interface VolunteerStatusLogItem {
@@ -92,6 +94,15 @@ export interface VolunteersHubQuery {
   direction?: 'asc' | 'desc'
 }
 
+const EMPTY_SUMMARY: VolunteerHubSummary = {
+  total_volunteers: 0,
+  total_actual_points: 0,
+  total_used_points: 0,
+  total_balance: 0,
+  status_counts: { active: 0, inactive: 0, on_leave: 0, withdrawn: 0 },
+  without_account: 0,
+}
+
 export async function fetchVolunteersHub(params: VolunteersHubQuery = {}): Promise<{
   volunteers: VolunteerHubItem[]
   departments: Array<{ id: number; name: string }>
@@ -99,25 +110,27 @@ export async function fetchVolunteersHub(params: VolunteersHubQuery = {}): Promi
 }> {
   const res = await apiClient.get<{
     success: boolean
-    data: {
-      volunteers: VolunteerHubItem[]
-      departments: Array<{ id: number; name: string }>
-      summary: VolunteerHubSummary
+    data?: {
+      volunteers?: VolunteerHubItem[]
+      departments?: Array<{ id: number; name: string }>
+      summary?: Partial<VolunteerHubSummary>
     }
-  }>('/operations/volunteers/hub', { params })
-  return (
-    res.data?.data ?? {
-      volunteers: [],
-      departments: [],
-      summary: {
-        total_volunteers: 0,
-        total_actual_points: 0,
-        total_used_points: 0,
-        total_balance: 0,
-        status_counts: { active: 0, inactive: 0, on_leave: 0, withdrawn: 0 },
-      },
-    }
-  )
+  }>('/operations/volunteers/hub', { params, skipErrorToast: true } as Record<string, unknown>)
+
+  const data = res.data?.data
+  const summary = data?.summary ?? {}
+
+  return {
+    volunteers: Array.isArray(data?.volunteers) ? data.volunteers : [],
+    departments: Array.isArray(data?.departments) ? data.departments : [],
+    // An older server that does not send the key means "none", never NaN or a banner.
+    summary: {
+      ...EMPTY_SUMMARY,
+      ...summary,
+      status_counts: { ...EMPTY_SUMMARY.status_counts, ...(summary.status_counts ?? {}) },
+      without_account: Math.max(0, Number(summary.without_account ?? 0) || 0),
+    },
+  }
 }
 
 export async function updateVolunteerStatus(
@@ -130,6 +143,7 @@ export async function updateVolunteerStatus(
 export async function fetchVolunteerStatusLogs(volunteerId: number): Promise<VolunteerStatusLogItem[]> {
   const res = await apiClient.get<{ success: boolean; data: VolunteerStatusLogItem[] }>(
     `/operations/volunteers/${volunteerId}/status-logs`,
+    { skipErrorToast: true } as Record<string, unknown>,
   )
   return res.data?.data ?? []
 }
@@ -137,6 +151,7 @@ export async function fetchVolunteerStatusLogs(volunteerId: number): Promise<Vol
 export async function fetchVolunteerPointsLedger(volunteerId: number): Promise<PointsLedgerResponse> {
   const res = await apiClient.get<{ success: boolean; data: PointsLedgerResponse }>(
     `/operations/volunteers/${volunteerId}/points-ledger`,
+    { skipErrorToast: true } as Record<string, unknown>,
   )
   return (
     res.data?.data ?? {
@@ -151,6 +166,7 @@ export async function fetchVolunteerPointsLedger(volunteerId: number): Promise<P
 export async function fetchVolunteerWeeklyRatings(volunteerId: number): Promise<WeeklyRatingsResponse> {
   const res = await apiClient.get<{ success: boolean; data: WeeklyRatingsResponse }>(
     `/operations/volunteers/${volunteerId}/weekly-ratings`,
+    { skipErrorToast: true } as Record<string, unknown>,
   )
   return (
     res.data?.data ?? {

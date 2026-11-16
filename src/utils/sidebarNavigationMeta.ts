@@ -48,7 +48,20 @@ export const HIDDEN_FROM_SIDEBAR: Readonly<Record<string, string>> = {
   'personal.profile': 'Reached from the account card and the top bar; not a menu destination.',
   'personal.notifications': 'Reached from the top-bar bell.',
   'personal.notification_preferences': 'Reached from the notifications page.',
-  'personal.volunteer_hr_profile': 'A one-off application form opened from an invitation link, not a standing destination.',
+  'personal.volunteer_hr_profile': 'Retired: the volunteer HR-profile form (Path B) is cancelled; its URL redirects to the public volunteer page.',
+  'hr.volunteers': 'Retired: the HR review of volunteer HR-profiles (Path B) is cancelled; its URL redirects to the volunteer requests page.',
+}
+
+/**
+ * Destinations that were retired (Path B) but are still registered by the backend catalog. The manifest-driven menu
+ * must not show them, whether they come from the static menu or are injected from the manifest: each now only
+ * redirects. `/dashboard/ops/volunteers` (the volunteers hub) is NOT retired.
+ */
+const RETIRED_DESTINATIONS = ['/dashboard/hr/volunteers', '/dashboard/volunteer/hr-profile'] as const
+
+export function isRetiredDestination(href: string): boolean {
+  const path = href.split(/[?#]/)[0] ?? href
+  return RETIRED_DESTINATIONS.some((r) => path === r || path.startsWith(`${r}/`))
 }
 
 /**

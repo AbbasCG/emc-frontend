@@ -106,10 +106,11 @@ describe('grants of every kind reach the menu', () => {
     ['an explicit user allow', 'user_allow'],
     ['the authenticated baseline', 'authenticated_baseline'],
   ])('%s of a page the static menu lacks adds it', (_label, source) => {
-    const pages = manifest({ only: ['hr.volunteers'], sources: [source] })
+    // (hr.volunteers used to be the example here; that page is retired and is never injected: see retiredVolunteerNavigation.test.tsx)
+    const pages = manifest({ only: ['hr.volunteer_opportunities'], sources: [source] })
 
-    expect(hrefs(getSidebarByRole('programs_manager'))).not.toContain('/dashboard/hr/volunteers')
-    expect(hrefs(resolve('programs_manager', pages).groups)).toContain('/dashboard/hr/volunteers')
+    expect(hrefs(getSidebarByRole('programs_manager'))).not.toContain('/dashboard/hr/opportunities')
+    expect(hrefs(resolve('programs_manager', pages).groups)).toContain('/dashboard/hr/opportunities')
   })
 
   it('root authority alone does not list every catalog page', () => {
@@ -127,6 +128,14 @@ describe('grants of every kind reach the menu', () => {
       expect(HIDDEN_FROM_SIDEBAR[key].length).toBeGreaterThan(10)
       if (r && !hrefs(getSidebarByRole('programs_manager')).includes(r.primaryRoute)) expect(injected).not.toContain(r.primaryRoute)
     }
+  })
+
+  it('retired Path-B pages are never injected, whatever grants them', () => {
+    const pages = manifest({ only: ['hr.volunteers', 'personal.volunteer_hr_profile'], sources: ['role'] })
+    const shown = hrefs(resolve('programs_manager', pages).groups)
+
+    expect(shown).not.toContain('/dashboard/hr/volunteers')
+    expect(shown).not.toContain('/dashboard/volunteer/hr-profile')
   })
 
   it('a page that is allowed but has no usable route is not injected', () => {

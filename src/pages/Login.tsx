@@ -12,6 +12,7 @@ import PageHeader from '../components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '../contexts/AuthContext'
 import { getPostLoginRedirect } from '@/utils/dashboardAccess'
+import { PASSWORD_CHANGE_PATH } from '@/lib/passwordChangeGate'
 
 function safeInternalPath(raw: string | null | undefined): string | null {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null
@@ -77,6 +78,11 @@ export default function Login() {
     setIsLoading(true)
     try {
       const payload = await login(email, password)
+      // A temporary password (HR-created account) must be replaced before anything else is reachable.
+      if (payload.user.must_change_password === true) {
+        navigate(PASSWORD_CHANGE_PATH, { replace: true, state: { from } })
+        return
+      }
       navigate(getPostLoginRedirect(payload.user, from), { replace: true })
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 403) {

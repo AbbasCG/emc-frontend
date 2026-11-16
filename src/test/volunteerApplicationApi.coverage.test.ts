@@ -7,6 +7,10 @@ import {
   fetchVolunteerRequests,
   updateVolunteerRequestStatus,
   convertVolunteerToMember,
+  describeConvertError,
+  describeResendError,
+  describeStatusError,
+  resendVolunteerCredentials,
   type VolunteerApplicationInput,
 } from '@/api/volunteerApplicationApi'
 
@@ -374,65 +378,211 @@ describe('updateVolunteerRequestStatus', () => {
 /* ── convertVolunteerToMember ── */
 
 describe('convertVolunteerToMember', () => {
-  it('posts an empty body to the convert endpoint and merges the nested request + member shapes', async () => {
+  const memberPayload = {
+    id: 99,
+    name_ar: 'علي حسن',
+    position_ar: 'عضو',
+    role_key: 'department_member',
+    department_id: 4,
+    department_name: 'الإعلام والتسويق',
+    member_type: 'volunteer',
+    source: 'volunteer_request',
+    source_id: 7,
+    is_new_member: true,
+    joined_at: '2026-11-16',
+    is_active: true,
+    has_user_account: true,
+    user_id: 501,
+    account_created: true,
+    account_existing: false,
+    credentials_reissued: false,
+    department_kept_existing: false,
+    email_sent: true,
+  }
+
+  it('posts the chosen department_id and reads the request + member + account/e-mail outcome from the new contract', async () => {
     mockedApi.post.mockResolvedValueOnce({
       data: {
-        data: {
-          volunteer_request: {
-            id: 7,
-            full_name: 'علي حسن',
-            status: 'converted_to_member',
-            converted_to_member_at: '2026-08-01T00:00:00Z',
-            converted_member_id: 99,
-          },
-          member: { id: 99, name: 'أحمد علي' },
+        success: true,
+        message: 'تم تحويل المتطوع إلى عضو.',
+        volunteer_request: {
+          id: 7,
+          full_name: 'علي حسن',
+          status: 'converted_to_member',
+          converted_to_member_at: '2026-08-01T00:00:00Z',
+          converted_member_id: 99,
         },
+        data: memberPayload,
       },
     })
-    const r = await convertVolunteerToMember(7)
+    const r = await convertVolunteerToMember(7, 4)
     expect(mockedApi.post).toHaveBeenCalledWith(
       '/admin/volunteer-requests/7/convert-to-member',
+      { department_id: 4 },
+      expect.objectContaining({ skipErrorToast: true, timeout: 60_000 }),
+    )
+    expect(r.message).toBe('تم تحويل المتطوع إلى عضو.')
+    expect(r.request.id).toBe(7)
+    expect(r.request.status).toBe('converted_to_member')
+    expect(r.request.is_converted).toBe(true)
+    expect(r.request.converted_to_member_at).toBe('2026-08-01T00:00:00Z')
+    expect(r.request.converted_member_id).toBe(99)
+    expect(r.request.converted_member).toEqual({ id: 99, name: 'علي حسن' })
+    expect(r.request.can_convert_to_member).toBe(false)
+    expect(r.member).toMatchObject({
+      id: 99,
+      department_id: 4,
+      department_name: 'الإعلام والتسويق',
+      role_key: 'department_member',
+      user_id: 501,
+      account_created: true,
+      account_existing: false,
+      credentials_reissued: false,
+      department_kept_existing: false,
+      email_sent: true,
+      has_user_account: true,
+    })
+  })
+
+  it('never lets the member id replace the request id, and reports a linked existing account', async () => {
+    mockedApi.post.mockResolvedValueOnce({
+      data: { success: true, data: { ...memberPayload, id: 42, account_created: false, account_existing: true, credentials_reissued: true, department_kept_existing: true } },
+    })
+    const r = await convertVolunteerToMember(7, 4)
+    expect(r.request.id).toBe(7)
+    expect(r.request.is_converted).toBe(true)
+    expect(r.request.converted_member_id).toBe(42)
+    expect(r.member.account_existing).toBe(true)
+    expect(r.member.account_created).toBe(false)
+    expect(r.member.credentials_reissued).toBe(true)
+    expect(r.member.department_kept_existing).toBe(true)
+  })
+
+  it('treats a response that says nothing about the e-mail as NOT sent (so the resend warning shows)', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: {} })
+    const r = await convertVolunteerToMember(7, 4)
+    expect(r.request.id).toBe(7)
+    expect(r.request.status).toBe('accepted')
+    expect(r.request.is_converted).toBe(true)
+    expect(r.request.converted_to_member_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    expect(r.request.converted_member).toBeNull()
+    expect(r.member.email_sent).toBe(false)
+  })
+
+  it('propagates errors untouched', async () => {
+    mockedApi.post.mockRejectedValueOnce(new Error('409'))
+    await expect(convertVolunteerToMember(7, 4)).rejects.toThrow('409')
+  })
+})
+
+describe('resendVolunteerCredentials', () => {
+  it('posts to the resend endpoint and returns the e-mail outcome', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: { success: true, email_sent: true } })
+    await expect(resendVolunteerCredentials(7)).resolves.toEqual({ email_sent: true })
+    expect(mockedApi.post).toHaveBeenCalledWith(
+      '/admin/volunteer-requests/7/resend-credentials',
       {},
       expect.objectContaining({ skipErrorToast: true }),
     )
-    expect(r.id).toBe(7)
-    expect(r.status).toBe('converted_to_member')
-    expect(r.is_converted).toBe(true)
-    expect(r.converted_to_member_at).toBe('2026-08-01T00:00:00Z')
-    expect(r.converted_member_id).toBe(99)
-    expect(r.converted_member).toEqual({ id: 99, name: 'أحمد علي' })
-    expect(r.can_convert_to_member).toBe(false)
   })
 
-  it('synthesizes a converted state when the backend returns an empty payload', async () => {
+  it('reports false when the server says the mail did not go out, or says nothing', async () => {
+    mockedApi.post.mockResolvedValueOnce({ data: { success: true, email_sent: false } })
+    await expect(resendVolunteerCredentials(7)).resolves.toEqual({ email_sent: false })
     mockedApi.post.mockResolvedValueOnce({ data: {} })
-    const r = await convertVolunteerToMember(7)
-    expect(r.id).toBe(7)
-    expect(r.status).toBe('accepted')
-    expect(r.is_converted).toBe(true)
-    // synthesized "now" timestamp
-    expect(r.converted_to_member_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
-    expect(r.converted_member).toBeNull()
-    expect(r.converted_member_id).toBeNull()
-    expect(r.can_convert_to_member).toBe(false)
+    await expect(resendVolunteerCredentials(7)).resolves.toEqual({ email_sent: false })
+  })
+})
+
+describe('describeConvertError', () => {
+  const http = (status: number, data?: unknown) => ({ response: { status, data } })
+
+  it('already converted is decided ONLY by already_converted === true, and shows the server message', () => {
+    expect(describeConvertError(http(409, { already_converted: true, message: 'تم تحويل هذا الطلب مسبقاً إلى عضو.' }))).toEqual({
+      kind: 'already_converted',
+      message: 'تم تحويل هذا الطلب مسبقاً إلى عضو.',
+    })
+    expect(describeConvertError(http(409, { already_converted: true })).kind).toBe('already_converted')
+    // another 409 (an account-creation race) and a legacy code are NOT already-converted
+    expect(describeConvertError(http(409, { message: 'تعارض لحظي، أعد المحاولة.' }))).toEqual({ kind: 'generic', message: 'تعارض لحظي، أعد المحاولة.' })
+    expect(describeConvertError(http(409, { code: 'already_converted' })).kind).toBe('generic')
+    expect(describeConvertError(http(409)).kind).toBe('generic')
   })
 
-  it('when the backend returns the member record directly, the member id becomes the row id (current behavior)', async () => {
-    // NOTE: current behavior — the spread of the member record overrides the known
-    // request id, so the returned VolunteerRequest.id is the MEMBER id (42), not 7.
-    mockedApi.post.mockResolvedValueOnce({ data: { data: { id: 42, name: 'عضو جديد' } } })
-    const r = await convertVolunteerToMember(7)
-    expect(r.id).toBe(42)
-    expect(r.full_name).toBe('عضو جديد')
-    expect(r.status).toBe('accepted')
-    expect(r.is_converted).toBe(true)
-    expect(r.converted_member_id).toBe(42)
-    expect(r.can_convert_to_member).toBe(false)
+  it('a 4xx shows the server message when it is a non-empty string, else a calm fallback', () => {
+    expect(describeConvertError(http(422, { message: 'الإدارة المختارة مؤرشفة.', errors: { department_id: ['x'] } }))).toEqual({ kind: 'department', message: 'الإدارة المختارة مؤرشفة.' })
+    expect(describeConvertError(http(422, { errors: { department_id: ['x'] } })).kind).toBe('department')
+    expect(describeConvertError(http(422, { message: 'لا يمكن التحويل إلا لطلب مقبول.' }))).toEqual({ kind: 'generic', message: 'لا يمكن التحويل إلا لطلب مقبول.' })
+    expect(describeConvertError(http(422, { message: '   ' })).kind).toBe('generic')
+    expect(describeConvertError(http(403, { message: 'غير مصرح لك بهذا الإجراء.' })).message).toBe('غير مصرح لك بهذا الإجراء.')
+    expect(describeConvertError(http(403)).message).toContain('صلاحية')
   })
 
-  it('propagates errors', async () => {
-    mockedApi.post.mockRejectedValueOnce(new Error('409'))
-    await expect(convertVolunteerToMember(7)).rejects.toThrow('409')
+  it('a 5xx never leaks the server text; a missing response or a gateway timeout means the outcome is unknown', () => {
+    expect(describeConvertError(http(500, { message: 'SQLSTATE boom' }))).toEqual({ kind: 'generic', message: 'تعذّر التحويل. تحقق من الاتصال وأعد المحاولة.' })
+    expect(describeConvertError(new Error('Network Error')).kind).toBe('unknown_outcome')
+    expect(describeConvertError(new Error('timeout of 60000ms exceeded')).kind).toBe('unknown_outcome')
+    expect(describeConvertError(http(504)).kind).toBe('unknown_outcome')
+    expect(describeConvertError(http(502)).kind).toBe('unknown_outcome')
+  })
+})
+
+describe('describeResendError', () => {
+  const http = (status: number, data?: unknown) => ({ response: { status, data } })
+
+  it('shows the server reason for a 4xx and claims nothing of its own', () => {
+    expect(describeResendError(http(409, { message: 'سجّل المتطوع دخوله بالفعل.' }))).toBe('سجّل المتطوع دخوله بالفعل.')
+    expect(describeResendError(http(422, { message: 'الطلب غير محوّل.' }))).toBe('الطلب غير محوّل.')
+    expect(describeResendError(http(409))).toBe('تعذّر إعادة الإرسال. تحقق من الاتصال وأعد المحاولة.')
+    expect(describeResendError(new Error('Network Error'))).toBe('تعذّر إعادة الإرسال. تحقق من الاتصال وأعد المحاولة.')
+    expect(describeResendError(http(500, { message: 'boom' }))).not.toContain('boom')
+  })
+})
+
+describe('429 too many requests', () => {
+  const http = (status: number, data?: unknown) => ({ response: { status, data } })
+  const CALM = 'حاولت كثيرًا، أعد المحاولة بعد قليل.'
+
+  it('shows the server Arabic message (with retry_after) for convert, resend and status changes', () => {
+    const body = { message: 'محاولات كثيرة. أعد المحاولة بعد 30 ثانية.', retry_after: 30 }
+    expect(describeConvertError(http(429, body))).toEqual({ kind: 'generic', message: 'محاولات كثيرة. أعد المحاولة بعد 30 ثانية.' })
+    expect(describeResendError(http(429, body))).toBe('محاولات كثيرة. أعد المحاولة بعد 30 ثانية.')
+    expect(describeStatusError(http(429, body), 'فشل').message).toBe('محاولات كثيرة. أعد المحاولة بعد 30 ثانية.')
+  })
+
+  it('replaces a generic English 429 message (or none) with the calm Arabic sentence', () => {
+    expect(describeResendError(http(429, { message: 'Too Many Attempts.' }))).toBe(CALM)
+    expect(describeResendError(http(429))).toBe(CALM)
+    expect(describeConvertError(http(429, { message: 'Too Many Attempts.' })).message).toBe(CALM)
+    expect(describeStatusError(http(429, { message: 'Too Many Attempts.' }), 'فشل').message).toBe(CALM)
+  })
+})
+
+describe('describeStatusError', () => {
+  const http = (status: number, data?: unknown) => ({ response: { status, data } })
+
+  it('shows the server reason and flags a converted request (409 + already_converted)', () => {
+    expect(describeStatusError(http(409, { already_converted: true, message: 'الطلب محوّل إلى عضو ولا تُعدَّل حالته.' }), 'فشل')).toEqual({
+      message: 'الطلب محوّل إلى عضو ولا تُعدَّل حالته.',
+      alreadyConverted: true,
+    })
+    expect(describeStatusError(http(409, { message: 'تعارض' }), 'فشل').alreadyConverted).toBe(false)
+  })
+
+  it('falls back for a 5xx or a missing response', () => {
+    expect(describeStatusError(http(500, { message: 'boom' }), 'تعذّر الحفظ.')).toEqual({ message: 'تعذّر الحفظ.', alreadyConverted: false })
+    expect(describeStatusError(new Error('x'), 'تعذّر الحفظ.').message).toBe('تعذّر الحفظ.')
+  })
+})
+
+describe('normalizeRequest reads the suggested department', () => {
+  it('keeps the suggestion the server derived, and leaves it null when absent', () => {
+    const base = { id: 1, full_name: 'س', email: 'a@b.co', status: 'accepted' }
+    expect(normalizeRequest({ ...base, suggested_department_id: 4, suggested_department_name: 'الإعلام' })).toMatchObject({
+      suggested_department_id: 4,
+      suggested_department_name: 'الإعلام',
+    })
+    expect(normalizeRequest(base)).toMatchObject({ suggested_department_id: null, suggested_department_name: null })
   })
 })
 

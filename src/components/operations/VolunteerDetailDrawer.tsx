@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useId, useState } from 'react'
 import {
+  AlertTriangle,
   Award,
   Calendar,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   History,
   Info,
   Loader2,
   MinusCircle,
   PlusCircle,
+  RefreshCw,
   Shield,
   Star,
   User,
@@ -20,11 +20,10 @@ import {
   fetchVolunteerPointsLedger,
   fetchVolunteerStatusLogs,
   fetchVolunteerWeeklyRatings,
-  type PointsLedgerResponse,
   type VolunteerHubItem,
-  type VolunteerStatusLogItem,
-  type WeeklyRatingsResponse,
 } from '@/api/volunteersHubApi'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { hasNestedLayer } from '@/components/ui/modalGuard'
 import { EVALUATION_CRITERIA } from '@/data/evaluationCriteria'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -36,47 +35,62 @@ interface Props {
 
 type TabKey = 'personal' | 'points' | 'activity' | 'evaluations'
 
+/** A failed request, said out loud, with the way to repeat it. Never leave a tab looking merely empty. */
+function LoadError({ what, onRetry }: { what: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center" role="alert">
+      <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-rose-500" aria-hidden="true" />
+      <p className="text-xs font-black text-rose-800">تعذّر تحميل {what}.</p>
+      <p className="mt-1 text-[11px] font-semibold text-rose-700">هذا خلل في الاتصال أو في الخادم، وليس معناه أنه لا توجد بيانات.</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 bg-white px-4 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50"
+      >
+        <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+        إعادة المحاولة
+      </button>
+    </div>
+  )
+}
+
 export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatusModal }: Props) {
   const { user } = useAuth()
   const isHrOrAdmin = ['super_admin', 'executive_admin', 'hr_manager', 'admin'].includes(
     user?.role ?? '',
   )
+  const titleId = useId()
 
   const [activeTab, setActiveTab] = useState<TabKey>('personal')
-  const [pointsData, setPointsData] = useState<PointsLedgerResponse | null>(null)
-  const [statusLogs, setStatusLogs] = useState<VolunteerStatusLogItem[]>([])
-  const [weeklyRatings, setWeeklyRatings] = useState<WeeklyRatingsResponse | null>(null)
-
-  const [loadingPoints, setLoadingPoints] = useState(false)
-  const [loadingLogs, setLoadingLogs] = useState(false)
-  const [loadingRatings, setLoadingRatings] = useState(false)
+  // A tab's data is requested the first time the tab is opened, then kept for the life of the drawer.
+  const [opened, setOpened] = useState<ReadonlySet<TabKey>>(() => new Set<TabKey>(['personal']))
   const [expandedRatingId, setExpandedRatingId] = useState<number | null>(null)
 
+  const volunteerId = volunteer?.id ?? 0
+  const points = useRetryableLoad(() => fetchVolunteerPointsLedger(volunteerId), `points:${volunteerId}`, volunteer != null && opened.has('points'))
+  const logs = useRetryableLoad(() => fetchVolunteerStatusLogs(volunteerId), `logs:${volunteerId}`, volunteer != null && opened.has('activity'))
+  const ratings = useRetryableLoad(() => fetchVolunteerWeeklyRatings(volunteerId), `ratings:${volunteerId}`, volunteer != null && opened.has('evaluations'))
+
+  const pointsData = points.data
+  const statusLogs = logs.data ?? []
+  const weeklyRatings = ratings.data
+
+  function openTab(tab: TabKey) {
+    setActiveTab(tab)
+    setOpened((prev) => (prev.has(tab) ? prev : new Set(prev).add(tab)))
+  }
+
+  // Escape closes the drawer (it is a modal dialog).
   useEffect(() => {
     if (!volunteer) return
-
-    if (activeTab === 'points' && !pointsData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the ledger request starts, when the points tab first opens
-      setLoadingPoints(true)
-      fetchVolunteerPointsLedger(volunteer.id)
-        .then(setPointsData)
-        .finally(() => setLoadingPoints(false))
+    const onKey = (e: KeyboardEvent) => {
+      // Something above the drawer (the status modal, a dialog) owns Escape while it is open.
+      if (e.key !== 'Escape' || e.defaultPrevented || hasNestedLayer()) return
+      onClose()
     }
-
-    if (activeTab === 'activity' && statusLogs.length === 0) {
-      setLoadingLogs(true)
-      fetchVolunteerStatusLogs(volunteer.id)
-        .then(setStatusLogs)
-        .finally(() => setLoadingLogs(false))
-    }
-
-    if (activeTab === 'evaluations' && !weeklyRatings) {
-      setLoadingRatings(true)
-      fetchVolunteerWeeklyRatings(volunteer.id)
-        .then(setWeeklyRatings)
-        .finally(() => setLoadingRatings(false))
-    }
-  }, [volunteer, activeTab, pointsData, statusLogs.length, weeklyRatings])
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [volunteer, onClose])
 
   if (!volunteer) return null
 
@@ -99,6 +113,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
       className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-sm"
     >
       <div className="fixed inset-y-0 end-0 flex max-w-full ps-10">
@@ -112,7 +127,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-white">{volunteer.name}</h2>
+                    <h2 id={titleId} className="text-xl font-black text-white">{volunteer.name}</h2>
                     {volunteer.is_leader && (
                       <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black text-amber-300 border border-amber-400/30">
                         قائد
@@ -120,13 +135,14 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                     )}
                   </div>
                   <p className="text-xs text-white/70 mt-0.5">
-                    {volunteer.department_name} · {volunteer.email ?? 'لا يوجد بريد'}
+                    {volunteer.department_name?.trim() || 'غير محدد'} · {volunteer.email ?? 'لا يوجد بريد'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="إغلاق"
                 className="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition"
               >
                 <X className="h-5 w-5" />
@@ -152,10 +168,12 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-200 bg-slate-50 px-6">
+          <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50 px-6" role="tablist" aria-label="أقسام ملف المتطوع">
             <button
               type="button"
-              onClick={() => setActiveTab('personal')}
+              role="tab"
+              aria-selected={activeTab === 'personal'}
+              onClick={() => openTab('personal')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'personal'
                   ? 'border-customBlue text-navy'
@@ -167,7 +185,9 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('points')}
+              role="tab"
+              aria-selected={activeTab === 'points'}
+              onClick={() => openTab('points')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'points'
                   ? 'border-customBlue text-navy'
@@ -179,7 +199,9 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('activity')}
+              role="tab"
+              aria-selected={activeTab === 'activity'}
+              onClick={() => openTab('activity')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'activity'
                   ? 'border-customBlue text-navy'
@@ -191,7 +213,9 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('evaluations')}
+              role="tab"
+              aria-selected={activeTab === 'evaluations'}
+              onClick={() => openTab('evaluations')}
               className={`flex items-center gap-2 border-b-2 py-3 px-3 text-xs font-black transition ${
                 activeTab === 'evaluations'
                   ? 'border-customBlue text-navy'
@@ -217,7 +241,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                     </div>
                     <div>
                       <span className="text-slate-400 font-semibold">الإدارة الحالية</span>
-                      <p className="mt-1 font-bold text-slate-800">{volunteer.department_name}</p>
+                      <p className="mt-1 font-bold text-slate-800">{volunteer.department_name?.trim() || 'غير محدد'}</p>
                     </div>
                     <div>
                       <span className="text-slate-400 font-semibold">البريد الإلكتروني</span>
@@ -230,26 +254,16 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                   </div>
                 </div>
 
-                {/* Single Source of Truth link to Volunteer Profiles */}
-                <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 text-xs leading-relaxed text-navy space-y-3">
+                {/* The old HR-profile form was cancelled: the volunteer's data is the request they applied with. */}
+                <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 text-xs leading-relaxed text-navy space-y-2">
                   <div className="flex items-center gap-2 font-black text-sm">
-                    <Info className="h-4 w-4 text-customBlue" />
-                    المصدر الوحيد لتعديل البيانات الشخصية
+                    <Info className="h-4 w-4 text-customBlue" aria-hidden="true" />
+                    مصدر بيانات المتطوع
                   </div>
                   <p className="text-slate-600">
-                    حرصاً على سلامة البيانات وعدم تكرارها، تُعدَّل البيانات الشخصية والملف الذاتي
-                    للمتطوع من شاشة <strong>«المتطوعون»</strong> المخصصة لذلك فقط، وتقتصر صلاحية التعديل
-                    على إدارة الموارد البشرية.
+                    تأتي بيانات المتطوع من <strong>طلب التطوع</strong> الذي قدّمه عند الانضمام. أما الإدارة والحالة والنقاط والتقييمات
+                    فتُدار من هذه الشاشة.
                   </p>
-                  <div className="pt-2">
-                    <Link
-                      to="/dashboard/volunteer/hr-profile"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-xs font-black text-white shadow-md transition hover:bg-brand-600"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      الانتقال إلى صفحة بيانات المتطوع الشخصية
-                    </Link>
-                  </div>
                 </div>
               </div>
             )}
@@ -284,11 +298,13 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                   <h4 className="text-xs font-black text-slate-700 mb-3">
                     سجل حركات دفتر الأستاذ (Ledger):
                   </h4>
-                  {loadingPoints ? (
-                    <div className="py-8 text-center text-xs text-slate-400">
+                  {points.loading ? (
+                    <div className="py-8 text-center text-xs text-slate-400" role="status">
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-customBlue mb-2" />
                       جارٍ تحميل حركات النقاط...
                     </div>
+                  ) : points.error ? (
+                    <LoadError what="سجل حركات النقاط" onRetry={points.retry} />
                   ) : (pointsData?.ledger.length ?? 0) === 0 ? (
                     <div className="rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
                       لا توجد حركات نقاط مسجلة لهذا المتطوع حتى الآن.
@@ -344,11 +360,13 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                 <h4 className="text-xs font-black text-slate-700">
                   سجل تغييرات الحالة والقرارات الإدارية:
                 </h4>
-                {loadingLogs ? (
-                  <div className="py-8 text-center text-xs text-slate-400">
+                {logs.loading ? (
+                  <div className="py-8 text-center text-xs text-slate-400" role="status">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-customBlue mb-2" />
                     جارٍ تحميل سجل النشاط...
                   </div>
+                ) : logs.error ? (
+                  <LoadError what="سجل النشاط" onRetry={logs.retry} />
                 ) : statusLogs.length === 0 ? (
                   <div className="rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
                     لا توجد تغييرات حالة مسجلة حتى الآن. الحالة الحالية هي الحالة الأولية.
@@ -388,11 +406,13 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             {/* ── 4. التقييمات الأسبوعية بالمعايير العشرة ───────────────────── */}
             {activeTab === 'evaluations' && (
               <div className="space-y-6">
-                {loadingRatings ? (
-                  <div className="py-8 text-center text-xs text-slate-400">
+                {ratings.loading ? (
+                  <div className="py-8 text-center text-xs text-slate-400" role="status">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-customBlue mb-2" />
                     جارٍ قراءة التقييمات الأسبوعية من النظام...
                   </div>
+                ) : ratings.error ? (
+                  <LoadError what="التقييمات الأسبوعية" onRetry={ratings.retry} />
                 ) : (weeklyRatings?.ratings.length ?? 0) === 0 ? (
                   <div className="rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
                     لم يُسجل أي تقييم أسبوعي لهذا المتطوع حتى الآن.

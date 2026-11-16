@@ -29,6 +29,7 @@ import {
 import { fetchDepartmentOverview, type DepartmentOverview, type DepartmentOverviewMember } from '@/api/departmentOverviewApi'
 import { deleteVmsDepartment, updateVmsDepartment } from '@/api/vmsApi'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePageAccess } from '@/contexts/PageAccessContext'
 import FinancialRequestForm from '@/components/financial/FinancialRequestForm'
 import toast, { errorToast } from '@/lib/toast'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
@@ -169,7 +170,8 @@ function ActivityMiniCard({
   title: string
   count: number
   accent: string
-  linkTo: string
+  /** Omitted when the viewer cannot open the target: the count is shown, never a link that bounces. */
+  linkTo?: string
   linkLabel: string
   emptyText: string
 }) {
@@ -184,13 +186,15 @@ function ActivityMiniCard({
       <div className="flex flex-1 flex-col items-center justify-center py-2 text-center">
         <p className="text-[32px] font-black tabular-nums leading-none text-[#0C2A4B]">{count}</p>
         <p className="mt-2 text-[12px] font-semibold text-slate-400">{emptyText}</p>
-        <Link
-          to={linkTo}
-          className="mt-4 inline-flex items-center gap-1 text-[12px] font-black text-[#0077B6] hover:underline"
-        >
-          {linkLabel}
-          <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-        </Link>
+        {linkTo ? (
+          <Link
+            to={linkTo}
+            className="mt-4 inline-flex items-center gap-1 text-[12px] font-black text-[#0077B6] hover:underline"
+          >
+            {linkLabel}
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        ) : null}
       </div>
     </section>
   )
@@ -224,6 +228,7 @@ export default function OpsDepartmentDetailPage() {
   const [showFundingForm, setShowFundingForm] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { canAccessPath } = usePageAccess()
   const canManage = !!user?.role && MANAGE_ROLES.includes(user.role)
 
   const [overview, setOverview] = useState<DepartmentOverview | null>(null)
@@ -366,7 +371,11 @@ export default function OpsDepartmentDetailPage() {
   const lastActivity = recent_activity[0] ?? null
   const isActive = dept.is_active ?? dept.status === 'active'
   const membersHref = `/dashboard/members?department_id=${dept.id}`
-  const volunteersHref = `/dashboard/hr/volunteers?department_id=${dept.id}`
+  // The volunteer applications list (the old /dashboard/hr/volunteers HR-profile review was cancelled and now redirects here).
+  // The requests API has no department filter, so this opens the WHOLE list: the label says so. Offered only to users the
+  // page-access manifest lets open it (the same decision the sidebar and DashboardAccessGuard use).
+  const requestsPath = '/dashboard/hr/volunteer-requests'
+  const volunteersHref = canAccessPath(requestsPath) === true ? requestsPath : undefined
   const tasksHref = `/dashboard/admin/tasks?department_id=${dept.id}`
   const editHref = '/dashboard/super-admin/crud/departments'
 
@@ -489,7 +498,7 @@ export default function OpsDepartmentDetailPage() {
           value={volunteer_applications.stats.total}
           accent="bg-[#F28C00] text-white"
           linkTo={volunteersHref}
-          linkLabel="عرض الطلبات"
+          linkLabel="عرض كل طلبات التطوع"
         />
         <KpiCard
           icon={Clock}
@@ -660,7 +669,7 @@ export default function OpsDepartmentDetailPage() {
           count={volunteer_applications.stats.total}
           accent="bg-rose-50 text-rose-500"
           linkTo={volunteersHref}
-          linkLabel="عرض جميع الطلبات"
+          linkLabel="عرض كل طلبات التطوع"
           emptyText={volunteer_applications.stats.total === 0 ? 'لا توجد طلبات' : 'طلب مرتبط'}
         />
         <ActivityMiniCard
@@ -687,7 +696,7 @@ export default function OpsDepartmentDetailPage() {
           count={0}
           accent="bg-[#F28C00] text-white"
           linkTo={volunteersHref}
-          linkLabel="عرض جميع الطلبات"
+          linkLabel="عرض كل طلبات التطوع"
           emptyText="لا توجد طلبات"
         />
       </div>

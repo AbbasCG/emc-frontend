@@ -24,6 +24,9 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 1, name: 'Admin', role: 'admin' }, isAuthenticated: true, isLoading: false }),
 }))
 
+const pageAccess = vi.hoisted(() => ({ canAccessPath: (_path: string): boolean | null => true }))
+vi.mock('@/contexts/PageAccessContext', () => ({ usePageAccess: () => ({ canAccessPath: pageAccess.canAccessPath }) }))
+
 function fullOverview(overrides: Partial<DepartmentOverview> = {}): DepartmentOverview {
   return {
     department: {
@@ -204,15 +207,26 @@ describe('OpsDepartmentDetailPage — pixel redesign', () => {
     await waitFor(() => expect(screen.getByText('إعادة المحاولة')).toBeInTheDocument())
   })
 
-  it('preserves department_id on volunteer and members links', async () => {
+  it('keeps department_id on the members link and sends the volunteer applications link to the requests list', async () => {
     mockFetchOverview.mockResolvedValue(fullOverview())
     renderPage()
 
     await waitFor(() => expect(screen.getByText('عرض الأعضاء')).toBeInTheDocument())
     expect(screen.getByText('عرض الأعضاء').closest('a')).toHaveAttribute('href', '/dashboard/members?department_id=8')
-    expect(screen.getAllByText('عرض جميع الطلبات')[0].closest('a')).toHaveAttribute(
+    expect(screen.getAllByText('عرض كل طلبات التطوع')[0].closest('a')).toHaveAttribute(
       'href',
-      '/dashboard/hr/volunteers?department_id=8',
+      '/dashboard/hr/volunteer-requests',
     )
+  })
+
+  it('shows the volunteer-requests link only to users the page-access manifest lets open it; otherwise just the count', async () => {
+    pageAccess.canAccessPath = (path) => path !== '/dashboard/hr/volunteer-requests'
+    mockFetchOverview.mockResolvedValue(fullOverview())
+    renderPage()
+
+    await waitFor(() => expect(screen.getByText('عرض الأعضاء')).toBeInTheDocument())
+    expect(screen.queryByText('عرض كل طلبات التطوع')).not.toBeInTheDocument()
+    expect(screen.getByText('طلبات التطوع المرتبطة')).toBeInTheDocument() // the count card is still there
+    pageAccess.canAccessPath = () => true
   })
 })

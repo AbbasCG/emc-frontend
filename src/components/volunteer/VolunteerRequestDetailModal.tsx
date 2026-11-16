@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Briefcase, Building2, Calendar, CheckCircle2, Clock, Copy, ExternalLink, Eye, FileText, GraduationCap, History, Target, UserRound, Users, Video, XCircle } from 'lucide-react'
+import { Briefcase, Building2, Calendar, CheckCircle2, Clock, Copy, ExternalLink, Eye, FileText, GraduationCap, History, Target, UserPlus, UserRound, Users, Video, XCircle } from 'lucide-react'
 import toast, { promiseToast } from '@/lib/toast'
-import { updateVolunteerRequestStatus, type VolunteerRequest, type VolunteerRequestStatus } from '@/api/volunteerApplicationApi'
+import { describeStatusError, updateVolunteerRequestStatus, type VolunteerRequest, type VolunteerRequestStatus } from '@/api/volunteerApplicationApi'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 import { STATUS_CFG } from './volunteerRequestStatus'
 import { BORDER, FOOTER_LINK_CLASS } from '@/components/detailModal/detailModalTokens'
+import ResendCredentialsButton from './ResendCredentialsButton'
 import { CardShell, Chips, InfoRow } from '@/components/detailModal/detailModalUi'
 import { DetailColumns, DetailFooter, DetailHeader, DetailModalShell, DocumentCard, FooterButton, SummaryCards } from '@/components/detailModal/DetailModalParts'
 
@@ -56,7 +57,10 @@ export type VolunteerRequestDetailModalProps = {
   onOpenConvert?: (req: VolunteerRequest) => void
 }
 
-export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }: VolunteerRequestDetailModalProps) {
+export default function VolunteerRequestDetailModal({ req, onClose, onUpdated, onOpenConvert }: VolunteerRequestDetailModalProps) {
+  // Conversion is offered only on an accepted request that is not already a member (the server decides the rest).
+  const isConverted = Boolean(req.is_converted) || req.status === 'converted_to_member'
+  const canConvert = Boolean(onOpenConvert) && req.status === 'accepted' && !req.is_converted && req.can_convert_to_member !== false
   const [adminNotes, setAdminNotes] = useState(req.admin_notes ?? '')
   const [selectedStatus, setSelectedStatus] = useState<VolunteerRequestStatus>(req.status)
   const [saving, setSaving] = useState(false)
@@ -75,14 +79,19 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
   const cvViewUrl = req.cv_view_url ?? req.cv_file_url ?? null
   const wa = whatsAppUrl(req.phone)
 
+  /** The server says (409 already_converted) that this request became a member meanwhile: show it as converted. */
+  function syncIfAlreadyConverted(err: unknown) {
+    if (describeStatusError(err, '').alreadyConverted) onUpdated({ ...req, status: 'converted_to_member', is_converted: true, can_convert_to_member: false })
+  }
+
   async function save() {
     setSaving(true)
     try {
-      const updated = await promiseToast(updateVolunteerRequestStatus(req.id, selectedStatus, adminNotes || undefined), { loading: 'جاري الحفظ...', success: 'تم حفظ التغييرات', error: 'تعذّر الحفظ.' })
+      const updated = await promiseToast(updateVolunteerRequestStatus(req.id, selectedStatus, adminNotes || undefined), { loading: 'جاري الحفظ...', success: 'تم حفظ التغييرات', error: (err) => describeStatusError(err, 'تعذّر الحفظ.').message })
       onUpdated(updated)
       setDirty(false)
-    } catch {
-      /* the toast reports it */
+    } catch (err) {
+      syncIfAlreadyConverted(err) // the toast reports the server's reason
     } finally {
       setSaving(false)
     }
@@ -91,13 +100,13 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
   async function quickStatus(status: VolunteerRequestStatus) {
     setSaving(true)
     try {
-      const updated = await promiseToast(updateVolunteerRequestStatus(req.id, status, adminNotes || undefined), { loading: 'جاري التحديث...', success: 'تم التحديث', error: 'تعذّر التحديث.' })
+      const updated = await promiseToast(updateVolunteerRequestStatus(req.id, status, adminNotes || undefined), { loading: 'جاري التحديث...', success: 'تم التحديث', error: (err) => describeStatusError(err, 'تعذّر التحديث.').message })
       onUpdated(updated)
       setSelectedStatus(status)
       setDirty(false)
       if (status === 'rejected') onClose()
-    } catch {
-      /* the toast reports it */
+    } catch (err) {
+      syncIfAlreadyConverted(err) // the toast reports the server's reason
     } finally {
       setSaving(false)
     }
@@ -136,20 +145,31 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
         <DetailFooter
           start={
             <>
-              <FooterButton tone="primary" onClick={() => void save()} disabled={!dirty || saving} loading={saving}>حفظ التغييرات</FooterButton>
+              <FooterButton tone="primary" onClick={() => void save()} disabled={!dirty || saving || isConverted} loading={saving}>حفظ التغييرات</FooterButton>
               {wa ?
                 <a href={wa} target="_blank" rel="noopener noreferrer" className={FOOTER_LINK_CLASS}>
                   <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-600" /> واتساب
                 </a>
               : null}
-              <FooterButton icon={Video} disabled={saving} onClick={() => void quickStatus('reviewed')}>جدولة مقابلة</FooterButton>
+              {isConverted ? null : <FooterButton icon={Video} disabled={saving} onClick={() => void quickStatus('reviewed')}>جدولة مقابلة</FooterButton>}
               {dirty ? <span className="text-[11px] font-bold text-slate-500" role="status">لديك تغييرات غير محفوظة</span> : null}
             </>
           }
           end={
             <>
-              <FooterButton tone="success" icon={CheckCircle2} disabled={saving || req.status === 'accepted'} onClick={() => void quickStatus('accepted')}>قبول</FooterButton>
-              <FooterButton tone="danger" icon={XCircle} disabled={saving || req.status === 'rejected'} onClick={() => void quickStatus('rejected')}>رفض</FooterButton>
+              {isConverted ?
+                <ResendCredentialsButton
+                  requestId={req.id}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40 disabled:cursor-not-allowed disabled:opacity-50`}
+                />
+              : null}
+              {canConvert ? <FooterButton tone="primary" icon={UserPlus} disabled={saving || dirty} onClick={() => onOpenConvert?.(req)}>تحويل إلى عضو</FooterButton> : null}
+              {isConverted ? null : (
+                <>
+                  <FooterButton tone="success" icon={CheckCircle2} disabled={saving || req.status === 'accepted'} onClick={() => void quickStatus('accepted')}>قبول</FooterButton>
+                  <FooterButton tone="danger" icon={XCircle} disabled={saving || req.status === 'rejected'} onClick={() => void quickStatus('rejected')}>رفض</FooterButton>
+                </>
+              )}
             </>
           }
         />
@@ -290,20 +310,21 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
                   <select
                     id="volunteer-status-select"
                     value={selectedStatus}
-                    disabled={saving}
+                    disabled={saving || isConverted}
                     onChange={(e) => { setSelectedStatus(e.target.value as VolunteerRequestStatus); setDirty(true) }}
                     dir="rtl"
                     className={`h-11 w-full rounded-xl border ${BORDER} bg-white px-3.5 text-[13px] font-bold text-deepBlue outline-none transition focus:border-customBlue focus:ring-2 focus:ring-customBlue/20`}
                   >
-                    {ALL_STATUSES.map((s) => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
+                    {ALL_STATUSES.filter((s) => s !== 'converted_to_member' || isConverted).map((s) => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
                   </select>
                 </div>
+                {isConverted ? <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] font-bold text-emerald-800" role="note">تم تحويل هذا الطلب إلى عضو، فلا تُعدَّل حالته ولا ملاحظاته من هنا.</p> : null}
                 <div>
                   <label htmlFor="volunteer-admin-notes" className="mb-1.5 block text-[11px] font-bold text-slate-400">ملاحظات الإدارة</label>
                   <textarea
                     id="volunteer-admin-notes"
                     value={adminNotes}
-                    disabled={saving}
+                    disabled={saving || isConverted}
                     onChange={(e) => { setAdminNotes(e.target.value); setDirty(true) }}
                     placeholder="ملاحظات داخلية للفريق..."
                     rows={3}
@@ -323,7 +344,7 @@ export default function VolunteerRequestDetailModal({ req, onClose, onUpdated }:
               {req.status === 'accepted' ?
                 <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-                  <p className="flex-1 text-[12px] font-bold text-emerald-800">تم قبول الطلب. يمكن تحويل المتطوع إلى عضو من قائمة المتطوعين المقبولين.</p>
+                  <p className="flex-1 text-[12px] font-bold text-emerald-800">{req.is_converted ? 'تم تحويل هذا المتطوع إلى عضو.' : 'تم قبول الطلب. يمكنك الآن تحويل المتطوع إلى عضو وإنشاء حسابه.'}</p>
                   <Link to="/dashboard/volunteer" onClick={onClose} className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50">
                     <ExternalLink className="h-3 w-3" aria-hidden /> عرض المتطوعين المقبولين
                   </Link>
