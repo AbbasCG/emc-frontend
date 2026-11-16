@@ -67,10 +67,20 @@ describe('Volunteer HR sidebar reorganization', () => {
     }
   })
 
-  it('Volunteer sees بياناتي التطوعية pointing to /dashboard/volunteer/hr-profile', () => {
-    const items = findByHref('volunteer', '/dashboard/volunteer/hr-profile')
-    expect(items).toHaveLength(1)
-    expect(items[0].label).toBe('بياناتي التطوعية')
+  // Path B (the volunteer HR-profile form + its HR review) was cancelled: nobody is sent there from the sidebar any more.
+  it('nobody gets a sidebar entry for the cancelled volunteer HR-profile form', () => {
+    for (const role of ['volunteer', 'hr_manager', 'admin', 'super_admin', 'tech_admin']) {
+      expect(findByHref(role, '/dashboard/volunteer/hr-profile'), role).toHaveLength(0)
+    }
+    expect(flatten('volunteer').some((i) => i.label === 'بياناتي التطوعية')).toBe(false)
+  })
+
+  it('«طلبات التطوع» opens the volunteer-requests page, never the operations hub (also for admin)', () => {
+    for (const role of ['admin', 'super_admin', 'tech_admin', 'hr_manager']) {
+      const items = flatten(role).filter((i) => i.label === 'طلبات التطوع')
+      expect(items.length, role).toBeGreaterThan(0)
+      for (const item of items) expect(item.href, role).toMatch(/volunteer-requests$/)
+    }
   })
 
   it('No duplicate hrefs within any single nav group (each item.href unique per group, avoiding duplicate React keys)', () => {

@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
-import { render, screen, waitFor, within, act } from '@testing-library/react'
+import { render, screen, waitFor, within, act, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { readFileSync } from 'node:fs'
 import { MemoryRouter } from 'react-router'
 import VolunteerRequestDetailModal from '@/components/volunteer/VolunteerRequestDetailModal'
 import type { VolunteerRequest } from '@/api/volunteerApplicationApi'
+import toast from '@/lib/toast'
 
-const api = vi.hoisted(() => ({ updateVolunteerRequestStatus: vi.fn() }))
+const api = vi.hoisted(() => ({ updateVolunteerRequestStatus: vi.fn(), resendVolunteerCredentials: vi.fn() }))
 vi.mock('@/api/volunteerApplicationApi', async (orig) => ({ ...(await orig<typeof import('@/api/volunteerApplicationApi')>()), ...api }))
 vi.mock('@/lib/toast', () => ({
   default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() },
@@ -121,6 +122,118 @@ describe('volunteer application window: matches the HR volunteer profile window'
     const { dlg } = renderModal(req({ phone: '12' }))
 
     expect(within(dlg).queryByRole('link', { name: /واتساب/ })).toBeNull()
+  })
+})
+
+describe('volunteer application window: converting an accepted volunteer', () => {
+  it('offers «تحويل إلى عضو» only on an accepted, not-yet-converted request, and hands the request to the caller', async () => {
+    const onOpenConvert = vi.fn()
+    const accepted = req({ status: 'accepted' })
+    const { dlg } = renderModal(accepted, { onOpenConvert })
+
+    await userEvent.click(within(dlg).getByRole('button', { name: 'تحويل إلى عضو' }))
+
+    expect(onOpenConvert).toHaveBeenCalledTimes(1)
+    expect(onOpenConvert).toHaveBeenCalledWith(accepted)
+  })
+
+  it('hides it for pending, rejected, already converted and ineligible requests, and without a handler', () => {
+    const onOpenConvert = vi.fn()
+    for (const r of [req({ status: 'pending' }), req({ status: 'rejected' }), req({ status: 'accepted', is_converted: true }), req({ status: 'accepted', can_convert_to_member: false })]) {
+      const { dlg } = renderModal(r, { onOpenConvert })
+      expect(within(dlg).queryByRole('button', { name: 'تحويل إلى عضو' })).toBeNull()
+      cleanup()
+    }
+    const { dlg } = renderModal(req({ status: 'accepted' }))
+    expect(within(dlg).queryByRole('button', { name: 'تحويل إلى عضو' })).toBeNull()
+  })
+})
+
+describe('volunteer application window: a converted request cannot have its status changed', () => {
+  const converted = () => req({ status: 'converted_to_member', is_converted: true })
+
+  it('hides قبول / رفض / جدولة مقابلة, disables save, the status select and the notes, and explains why', () => {
+    const { dlg } = renderModal(converted())
+
+    for (const name of ['قبول', 'رفض', 'جدولة مقابلة']) expect(within(dlg).queryByRole('button', { name })).toBeNull()
+    expect(within(dlg).getByRole('button', { name: 'حفظ التغييرات' })).toBeDisabled()
+    expect(within(dlg).getByLabelText('حالة الطلب')).toBeDisabled()
+    expect(within(dlg).getByLabelText('ملاحظات الإدارة')).toBeDisabled()
+    expect(within(dlg).getByText(/تم تحويل هذا الطلب إلى عضو، فلا تُعدَّل حالته/)).toBeTruthy()
+  })
+
+  it('also when only is_converted says so (status still «accepted»)', () => {
+    const { dlg } = renderModal(req({ status: 'accepted', is_converted: true }))
+    expect(within(dlg).queryByRole('button', { name: 'رفض' })).toBeNull()
+    expect(within(dlg).queryByRole('button', { name: 'قبول' })).toBeNull()
+  })
+
+  it('a not-yet-converted request keeps the actions, and the status list does not offer «converted» as a manual choice', () => {
+    const { dlg } = renderModal(req({ status: 'pending' }))
+    expect(within(dlg).getByRole('button', { name: 'قبول' })).toBeTruthy()
+    const options = within(within(dlg).getByLabelText('حالة الطلب')).getAllByRole('option').map((o) => o.textContent)
+    expect(options).not.toContain('تم التحويل لعضو')
+    expect(options.length).toBe(6)
+  })
+
+  it('if the server still refuses (409 already_converted) the request is flipped to converted (the toast carries the server message)', async () => {
+    const message = 'هذا الطلب محوّل إلى عضو ولا تُعدَّل حالته.'
+    api.updateVolunteerRequestStatus.mockRejectedValueOnce({ response: { status: 409, data: { already_converted: true, message } } })
+    const onUpdated = vi.fn()
+    const { dlg } = renderModal(req({ status: 'pending' }), { onUpdated })
+
+    await userEvent.click(within(dlg).getByRole('button', { name: 'قبول' }))
+
+    await waitFor(() => expect(onUpdated).toHaveBeenCalledWith(expect.objectContaining({ is_converted: true, status: 'converted_to_member' })))
+  })
+})
+
+describe('volunteer application window: resending login details for a converted request', () => {
+  const resendName = 'إعادة إرسال بيانات الدخول'
+  const converted = () => req({ status: 'converted_to_member', is_converted: true })
+
+  it('is offered only for a converted request', () => {
+    const { dlg } = renderModal(converted())
+    expect(within(dlg).getByRole('button', { name: resendName })).toBeTruthy()
+    cleanup()
+    for (const r of [req({ status: 'accepted' }), req({ status: 'pending' })]) {
+      const { dlg: d } = renderModal(r)
+      expect(within(d).queryByRole('button', { name: resendName })).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('calls the resend endpoint once and reports success', async () => {
+    api.resendVolunteerCredentials.mockResolvedValueOnce({ email_sent: true })
+    const { dlg } = renderModal(converted())
+
+    await userEvent.click(within(dlg).getByRole('button', { name: resendName }))
+
+    expect(api.resendVolunteerCredentials).toHaveBeenCalledWith(5)
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('أُعيد إرسال بيانات الدخول إلى المتطوع.'))
+  })
+
+  it("shows the server's own Arabic reason when it no longer applies", async () => {
+    api.resendVolunteerCredentials.mockRejectedValueOnce({ response: { status: 409, data: { message: 'سجّل المتطوع دخوله بالفعل، فلا حاجة لكلمة مرور مؤقتة.' } } })
+    const { dlg } = renderModal(converted())
+
+    await userEvent.click(within(dlg).getByRole('button', { name: resendName }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('سجّل المتطوع دخوله بالفعل، فلا حاجة لكلمة مرور مؤقتة.'))
+  })
+
+  it('a double click sends one request', async () => {
+    let finish!: (v: { email_sent: boolean }) => void
+    api.resendVolunteerCredentials.mockReturnValueOnce(new Promise((resolve) => { finish = resolve }))
+    const { dlg } = renderModal(converted())
+    const button = within(dlg).getByRole('button', { name: resendName })
+
+    await userEvent.click(button)
+    await userEvent.click(button)
+    expect(api.resendVolunteerCredentials).toHaveBeenCalledTimes(1)
+
+    finish({ email_sent: true })
+    await waitFor(() => expect(button).toBeEnabled())
   })
 })
 

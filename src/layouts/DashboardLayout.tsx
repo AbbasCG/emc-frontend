@@ -214,7 +214,6 @@ const pageTitles: Record<string, string> = {
   '/dashboard/finance/payments': 'المدفوعات',
   '/dashboard/finance/transactions': 'المعاملات المالية',
   '/dashboard/hr/team': 'أعضاء الفريق',
-  '/dashboard/hr/volunteers': 'المتطوعون',
   '/dashboard/hr/instructors': 'المدربون',
   '/dashboard/hr/applications': 'طلبات الانضمام',
   '/dashboard/hr/departments': 'الإدارات والأدوار',

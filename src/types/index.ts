@@ -32,6 +32,8 @@ export type User = {
   department_name?: string | null
   has_enrolled_courses?: boolean
   impact_points_balance?: number
+  /** True while the account still uses the temporary password HR issued: the app allows nothing but the change-password page. */
+  must_change_password?: boolean
 }
 
 export type Course = {

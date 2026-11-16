@@ -69,6 +69,20 @@ export async function fetchMe(): Promise<User> {
   return normalizeAuthUser(unwrapData(res.data))
 }
 
+export type ChangePasswordInput = {
+  current_password: string
+  password: string
+  password_confirmation: string
+}
+
+/**
+ * POST /auth/change-password. The only write the server accepts while `must_change_password` is set.
+ * 422 carries `errors.current_password` (wrong temporary password) or `errors.password` (too weak / same as before).
+ */
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  await apiClient.post('/auth/change-password', input, { skipErrorToast: true })
+}
+
 /** Super Admin only — swaps issued token to target user perspective. */
 export async function postImpersonateUser(userId: number): Promise<unknown> {
   const res = await apiClient.post<unknown>(`/admin/impersonate/${userId}`, {}, { skipErrorToast: true })

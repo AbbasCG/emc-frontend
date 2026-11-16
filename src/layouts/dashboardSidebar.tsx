@@ -274,7 +274,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       items: [
 
         { label: 'الدعم / التذاكر العامة', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
-        { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
+        { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'الشراكات',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
         { label: 'النماذج',                 href: '/dashboard/admin/forms',                 icon: FileText       },
@@ -867,7 +867,6 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
     return [
       {
         items: [
-          { label: 'بياناتي التطوعية', href: '/dashboard/volunteer/hr-profile', icon: UserCheck },
           { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },

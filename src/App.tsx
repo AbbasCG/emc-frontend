@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import { PASSWORD_CHANGE_PATH } from './lib/passwordChangeGate'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PageAccessProvider } from './contexts/PageAccessContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
@@ -47,6 +48,7 @@ const WorkshopDetails    = lazy(() => import('./pages/WorkshopDetails'))
 const Platform           = lazy(() => import('./pages/Platform'))
 const Programs           = lazy(() => import('./pages/Programs'))
 const Register           = lazy(() => import('./pages/Register'))
+const ChangePasswordRequired = lazy(() => import('./pages/ChangePasswordRequired'))
 const Signup             = lazy(() => import('./pages/Signup'))
 const SubmitWorkshop     = lazy(() => import('./pages/SubmitWorkshop'))
 const Team               = lazy(() => import('./pages/Team'))
@@ -282,7 +284,6 @@ const DepartmentWorkspacePage        = lazy(() => import('./pages/manager-dashbo
 // ── Lazy: dashboard pages — HR ───────────────────────────────────────────────
 const HrDashboardPage   = lazy(() => import('./pages/hr/HrDashboardPage'))
 const HrTeamPage        = lazy(() => import('./pages/hr/HrTeamPage'))
-const HrVolunteersPage  = lazy(() => import('./pages/hr/HrVolunteersPage'))
 const HrInstructorsPage = lazy(() => import('./pages/hr/HrInstructorsPage'))
 const HrDepartmentsPage = lazy(() => import('./pages/hr/HrDepartmentsPage'))
 const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
@@ -300,8 +301,6 @@ const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDe
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
 const ProductUpdatesPage          = lazy(() => import('./pages/super-admin/ProductUpdatesPage'))
 const VolunteerRequestsPage            = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
-const VolunteerHrProfilePage           = lazy(() => import('./pages/dashboard/VolunteerHrProfilePage'))
-const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/HrVolunteerProfilesPage'))
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
 const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/ResourceCenterCoursesPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
@@ -509,6 +508,8 @@ function App() {
               <Route path="/partner/programs" element={<Navigate to="/dashboard/partner/programs" replace />} />
               <Route path="/partner/reports" element={<Navigate to="/dashboard/partner/reports" replace />} />
               <Route path="/partner/documents" element={<Navigate to="/dashboard/partner/documents" replace />} />
+              {/* Forced password change: ProtectedRoute sends every flagged user here and keeps them here; no dashboard shell. */}
+              <Route path={PASSWORD_CHANGE_PATH} element={<Suspense fallback={<RouteFallback />}><ChangePasswordRequired /></Suspense>} />
               <Route
                 element={
                   <Suspense fallback={<RouteFallback />}>
@@ -528,9 +529,11 @@ function App() {
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
-                  <Route path="/dashboard/volunteer/hr-profile" element={<Suspense fallback={<RouteFallback />}><VolunteerHrProfilePage /></Suspense>} />
-                  <Route path="/dashboard/hr/volunteers" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
-                  <Route path="/dashboard/hr/volunteers/:id" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
+                  {/* Path B (the volunteer HR-profile form and its HR review) is cancelled: the only route into the team is a
+                      public volunteer request that HR accepts and converts. Old bookmarks and e-mailed links still land somewhere useful. */}
+                  <Route path="/dashboard/volunteer/hr-profile" element={<Navigate to="/volunteer" replace />} />
+                  <Route path="/dashboard/hr/volunteers" element={<Navigate to="/dashboard/hr/volunteer-requests" replace />} />
+                  <Route path="/dashboard/hr/volunteers/:id" element={<Navigate to="/dashboard/hr/volunteer-requests" replace />} />
                   <Route path="/dashboard/super-admin/ambassador-applications/:id?" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/hr/ambassador-applications/:id?" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/resources/courses" element={<Suspense fallback={<RouteFallback />}><ResourceCenterCoursesPage /></Suspense>} />
@@ -679,7 +682,6 @@ function App() {
                   <Route path="/dashboard/hr/volunteer-points-approval" element={<Suspense fallback={<RouteFallback />}><HrVolunteerPointsApprovalPage /></Suspense>} />
                   <Route path="/dashboard/hr/opportunities" element={<Suspense fallback={<RouteFallback />}><HrOpportunitiesPage /></Suspense>} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
-                  <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
                   <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />
                   <Route path="/dashboard/hr/departments" element={<HrDepartmentsPage />} />
                   <Route path="/dashboard/hr/onboarding" element={<HrOnboardingPage />} />
@@ -881,7 +883,7 @@ function App() {
                   <Route path="/dashboard/admin/materials" element={<Navigate to="/dashboard/admin/lms/materials" replace />} />
                   <Route path="/dashboard/admin/evaluations" element={<Navigate to="/dashboard/admin/lms/evaluations" replace />} />
                   <Route path="/dashboard/admin/progress" element={<Navigate to="/dashboard/admin/lms/progress" replace />} />
-                  <Route path="/dashboard/admin/volunteer-requests" element={<Navigate to="/dashboard/admin/volunteers" replace />} />
+                  <Route path="/dashboard/admin/volunteer-requests" element={<Navigate to="/dashboard/super-admin/volunteer-requests" replace />} />
                   <Route path="/dashboard/admin/grants" element={<Navigate to="/dashboard/admin/scholarships" replace />} />
                   <Route path="/dashboard/admin/quality-review" element={<Navigate to="/dashboard/admin/quality" replace />} />
                   <Route path="/dashboard/admin/performance-indicators" element={<Navigate to="/dashboard/admin/kpi" replace />} />

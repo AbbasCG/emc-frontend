@@ -1,7 +1,7 @@
 import type { EffectivePageAccessRow } from '@/api/accessControlApi'
 import type { SidebarNavGroup, SidebarNavItem } from '@/layouts/dashboardSidebar'
 import { findPageForPath, isPathAllowed } from '@/utils/pageAccessMatch'
-import { CATEGORY_ICON, FALLBACK_ICON, HIDDEN_FROM_SIDEBAR, PERMISSION_GATED_PAGES, STRUCTURAL_SIDEBAR_PATHS } from '@/utils/sidebarNavigationMeta'
+import { CATEGORY_ICON, FALLBACK_ICON, HIDDEN_FROM_SIDEBAR, PERMISSION_GATED_PAGES, STRUCTURAL_SIDEBAR_PATHS, isRetiredDestination } from '@/utils/sidebarNavigationMeta'
 
 /**
  * SIDEBAR VISIBILITY, derived from backend effective page access.
@@ -132,6 +132,7 @@ export function findUnlistedAccessiblePages(
       p.allowed &&
       !listed.has(p.key) &&
       !(p.key in HIDDEN_FROM_SIDEBAR) &&
+      !isRetiredDestination(p.primaryRoute) &&
       (PERMISSION_GATED_PAGES[p.key] === undefined || permissions.has(PERMISSION_GATED_PAGES[p.key])) &&
       p.primaryRoute !== '' &&
       !p.primaryRoute.includes(':') &&
@@ -187,7 +188,11 @@ export function resolveSidebarNavigation(input: {
   if (status === 'idle' || status === 'loading') return { state: 'loading', groups: [] }
   if (status === 'error') return { state: 'error', groups: keepStructuralOnly(groups) }
 
-  const visible = strictFilter(groups, pages, permissions)
+  // Retired destinations never show, whatever the manifest still says about them (their URLs only redirect now).
+  const live = groups
+    .map((g) => ({ ...g, items: g.items.filter((i) => !isRetiredDestination(i.href)) }))
+    .filter((g) => g.items.length > 0)
+  const visible = strictFilter(live, pages, permissions)
   const withGranted = appendUnlisted(visible, findUnlistedAccessiblePages(visible, pages, permissions))
 
   return { state: 'ready', groups: withGranted.filter((g) => g.items.length > 0) }

@@ -17,6 +17,7 @@ import {
 import toast from '@/lib/toast'
 import {
   fetchVolunteerRequests,
+  type ConvertVolunteerResult,
   type FetchVolunteerRequestsResult,
   type VolunteerRequest,
   type VolunteerRequestsPagination,
@@ -24,6 +25,7 @@ import {
   type VolunteerRequestStatus,
 } from '@/api/volunteerApplicationApi'
 import VolunteerRequestDetailModal from '@/components/volunteer/VolunteerRequestDetailModal'
+import ConvertVolunteerDialog from '@/components/volunteer/ConvertVolunteerDialog'
 import { STATUS_CFG } from '@/components/volunteer/volunteerRequestStatus'
 import { formatDate } from '@/utils/dateTime'
 
@@ -173,6 +175,7 @@ export default function VolunteerRequestsPage() {
   }, [search])
 
   const [selected, setSelected] = useState<VolunteerRequest | null>(null)
+  const [convertTarget, setConvertTarget] = useState<VolunteerRequest | null>(null)
 
   // Reset to page 1 whenever filters change — done during render (react.dev
   // "adjusting state when a prop changes") rather than from an effect.
@@ -277,6 +280,12 @@ export default function VolunteerRequestsPage() {
       toast.success('تم قبول طلب التطوع ونقله إلى قائمة المتطوعين المقبولين.')
     }
     // Reload to get fresh statistics
+    void load(true)
+  }
+
+  // The dialog stays open on its result; the list and the counters are re-read behind it.
+  function handleConverted(result: ConvertVolunteerResult) {
+    setItems((prev) => prev.map((r) => (r.id === result.request.id ? { ...r, ...result.request } : r)))
     void load(true)
   }
 
@@ -501,6 +510,7 @@ export default function VolunteerRequestsPage() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setSelected(r) }}
+                          data-volunteer-row-action={r.id}
                           className="inline-flex items-center gap-1 rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-1.5 text-[10px] font-black text-[#0077B6] opacity-0 transition group-hover:opacity-100 hover:bg-[#0077B6]/[0.12]"
                         >
                           مراجعة
@@ -525,10 +535,24 @@ export default function VolunteerRequestsPage() {
             req={selected}
             onClose={handleClose}
             onUpdated={handleUpdated}
-            onOpenConvert={() => {}}
+            onOpenConvert={(req) => {
+              handleClose() // also leaves /:id, or the next reload would reopen the detail window
+              setConvertTarget(req)
+            }}
           />
         )}
       </AnimatePresence>
+
+      {convertTarget && (
+        <ConvertVolunteerDialog
+          key={convertTarget.id}
+          request={convertTarget}
+          onClose={() => setConvertTarget(null)}
+          onConverted={handleConverted}
+          onListStale={() => void load(true)}
+          returnFocusTo={() => document.querySelector<HTMLElement>(`[data-volunteer-row-action="${convertTarget.id}"]`)}
+        />
+      )}
     </div>
   )
 }

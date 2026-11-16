@@ -16,15 +16,16 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import toast from '@/lib/toast'
 import {
-  convertVolunteerToMember,
   fetchAcceptedVolunteers,
   type AcceptedVolunteersMeta,
+  type ConvertVolunteerResult,
   type VolunteerRequest,
 } from '@/api/volunteerApplicationApi'
 import { formatDate } from '@/utils/dateTime'
 import VolunteerRequestDetailModal from '@/components/volunteer/VolunteerRequestDetailModal'
+import ConvertVolunteerDialog from '@/components/volunteer/ConvertVolunteerDialog'
+import ResendCredentialsButton from '@/components/volunteer/ResendCredentialsButton'
 import { AnimatePresence, motion } from 'framer-motion'
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -297,102 +298,6 @@ function KpiCard({ label, value, icon: Icon, iconBg, iconColor, accentGradient, 
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   ConvertModal logic unchanged, UI polished
-───────────────────────────────────────────────────────────────────────── */
-
-function ConvertModal({
-  req,
-  onClose,
-  onConverted,
-}: {
-  req: VolunteerRequest
-  onClose: () => void
-  onConverted: (updated: VolunteerRequest) => void
-}) {
-  const [loading, setLoading] = useState(false)
-
-  async function handleConfirm() {
-    setLoading(true)
-    try {
-      const updated = await convertVolunteerToMember(req.id)
-      toast.success('تم تحويل المتطوع إلى عضو بنجاح')
-      onConverted(updated)
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 409) {
-        toast.warning('هذا المتطوع محوّل بالفعل إلى عضو')
-        onClose()
-      } else {
-        toast.error('تعذّر التحويل. تحقق من الاتصال وأعد المحاولة.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="convert-modal-title"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 24 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 12 }}
-        transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-emc-xl"
-        onClick={(e) => e.stopPropagation()}
-        dir="rtl"
-      >
-        <div className="h-1.5 bg-gradient-to-l from-emerald-500 to-teal-400" />
-        <div className="p-7 text-right">
-          <div className="mb-5 flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-              <UserCheck size={22} className="text-emerald-600" />
-            </div>
-            <div>
-              <h2 id="convert-modal-title" className="text-lg font-black text-ink-500">
-                تحويل المتطوع إلى عضو
-              </h2>
-              <p className="mt-0.5 text-[12px] font-medium text-muted-500">إجراء لا يمكن التراجع عنه</p>
-            </div>
-          </div>
-
-          <p className="text-sm font-medium leading-relaxed text-slate-600">
-            سيتم إنشاء سجل عضو جديد لـ{' '}
-            <span className="font-black text-ink-500">{req.full_name}</span>{' '}
-            وتغيير حالته إلى <span className="font-black text-emerald-700">تم التحويل</span>.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => void handleConfirm()}
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-l from-emerald-600 to-teal-500 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-100/60 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-emerald-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:translate-y-0"
-            >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={16} />}
-              تأكيد التحويل إلى عضو
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="w-full rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-500 transition-all duration-150 hover:bg-slate-50 disabled:opacity-50"
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
    Main Page
 ───────────────────────────────────────────────────────────────────────── */
 
@@ -404,6 +309,7 @@ export default function AcceptedVolunteersPage() {
     accepted_this_month: 0,
     top_department: null,
   })
+  const [listTotal, setListTotal] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -445,6 +351,18 @@ export default function AcceptedVolunteersPage() {
     setLoadError(null)
   }
 
+  // Re-read the list without the skeleton flash (used behind an open dialog); a failure keeps what is on screen.
+  const refreshQuietly = useCallback(async () => {
+    try {
+      const result = await requestAcceptedVolunteers(query)
+      setItems(result.data)
+      setMeta(result.meta)
+      setListTotal(result.pagination.total)
+    } catch {
+      /* the optimistic row stays; the refresh button reports a real failure */
+    }
+  }, [query])
+
   // Imperative re-run from the refresh / retry buttons — outside an effect, so it may
   // flip to the loading state synchronously.
   const load = useCallback(async () => {
@@ -454,6 +372,7 @@ export default function AcceptedVolunteersPage() {
       const result = await requestAcceptedVolunteers(query)
       setItems(result.data)
       setMeta(result.meta)
+      setListTotal(result.pagination.total)
     } catch {
       setLoadError('تعذّر تحميل قائمة المتطوعين المقبولين.')
     } finally {
@@ -469,6 +388,7 @@ export default function AcceptedVolunteersPage() {
         if (!alive) return
         setItems(result.data)
         setMeta(result.meta)
+        setListTotal(result.pagination.total)
       } catch {
         if (!alive) return
         setLoadError('تعذّر تحميل قائمة المتطوعين المقبولين.')
@@ -492,10 +412,13 @@ export default function AcceptedVolunteersPage() {
   }, [items, search])
 
   /* ── Callbacks — unchanged ────────────────────────────────────────── */
-  function handleConverted(updated: VolunteerRequest) {
-    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-    setConvertTarget(null)
-    setTimeout(() => setItems((prev) => prev.filter((r) => r.id !== updated.id)), 800)
+  // The dialog stays open on its result (account / e-mail outcome); the row turns «تم التحويل» right away and the
+  // list + counters are re-read from the server, which is the source of truth for both.
+  function handleConverted(result: ConvertVolunteerResult) {
+    const updated = result.request
+    setItems((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
+    setSelected((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
+    void refreshQuietly()
   }
 
   function handleUpdated(updated: VolunteerRequest) {
@@ -518,6 +441,12 @@ export default function AcceptedVolunteersPage() {
     search || filterDept || filterCity || filterAvailability ||
     filterHasCv || filterDateFrom || filterDateTo || sort !== 'accepted_asc'
   )
+  // «بانتظار التحويل» and «تم التحويل» must never both count the same request. With the whole unfiltered list in hand the
+  // rows themselves are the truth (and follow a conversion instantly); otherwise the server's counters are used as sent.
+  const listIsComplete = listTotal != null && listTotal <= items.length && !filterDept && !filterCity && !filterAvailability && !filterHasCv && !filterDateFrom && !filterDateTo
+  const convertedCount = listIsComplete ? items.filter((r) => r.is_converted).length : meta.total_converted
+  const pendingCount = listIsComplete ? items.filter((r) => !r.is_converted).length : meta.total_accepted
+
   const hasExtraFilters = !!(filterCity || filterAvailability || filterHasCv || filterDateFrom || filterDateTo)
 
   const cities = useMemo(() => {
@@ -588,12 +517,12 @@ export default function AcceptedVolunteersPage() {
           ) : (
             <>
               <KpiCard
-                label="بانتظار التحويل" value={meta.total_accepted}
+                label="بانتظار التحويل" value={pendingCount}
                 icon={UserCheck} iconBg="bg-emerald-50" iconColor="text-emerald-600"
                 accentGradient="from-emerald-400 to-teal-400" delay={0}
               />
               <KpiCard
-                label="تم التحويل" value={meta.total_converted}
+                label="تم التحويل" value={convertedCount}
                 icon={CheckCircle2} iconBg="bg-sky-50" iconColor="text-sky-600"
                 accentGradient="from-sky-400 to-blue-500" delay={0.1}
               />
@@ -942,6 +871,7 @@ export default function AcceptedVolunteersPage() {
                                 <button
                                   type="button"
                                   onClick={() => setConvertTarget(r)}
+                                  data-volunteer-row-action={r.id}
                                   className="flex h-[44px] items-center justify-center gap-2 rounded-[14px] bg-gradient-to-l from-emerald-600 to-teal-500 px-5 text-[13px] font-bold text-white shadow-sm shadow-emerald-100 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-emerald-200 active:translate-y-0"
                                   style={{ minWidth: '148px', whiteSpace: 'nowrap', lineHeight: 1 }}
                                 >
@@ -954,6 +884,13 @@ export default function AcceptedVolunteersPage() {
                                   تم التحويل
                                 </span>
                               )}
+                              {r.is_converted ? (
+                                <ResendCredentialsButton
+                                  requestId={r.id}
+                                  rowActionId={r.id}
+                                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-bold text-slate-600 transition-all duration-150 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 disabled:opacity-50"
+                                />
+                              ) : null}
 
                               {/* View ghost icon button */}
                               <button
@@ -984,18 +921,21 @@ export default function AcceptedVolunteersPage() {
             req={selected}
             onClose={() => setSelected(null)}
             onUpdated={handleUpdated}
-            onOpenConvert={(req) => setConvertTarget(req)}
+            onOpenConvert={(req) => { setSelected(null); setConvertTarget(req) }}
           />
         )}
       </AnimatePresence>
 
-      {/* ── Convert modal ─────────────────────────────────────────────── */}
+      {/* ── Convert dialog ────────────────────────────────────────────── */}
       <AnimatePresence>
         {convertTarget && (
-          <ConvertModal
-            req={convertTarget}
+          <ConvertVolunteerDialog
+            key={convertTarget.id}
+            request={convertTarget}
             onClose={() => setConvertTarget(null)}
             onConverted={handleConverted}
+            onListStale={() => void refreshQuietly()}
+            returnFocusTo={() => document.querySelector<HTMLElement>(`[data-volunteer-row-action="${convertTarget.id}"]`)}
           />
         )}
       </AnimatePresence>

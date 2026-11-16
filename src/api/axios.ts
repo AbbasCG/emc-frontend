@@ -1,6 +1,7 @@
 import axios from 'axios'
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from './apiErrors'
+import { PASSWORD_CHANGE_PATH, PASSWORD_CHANGE_REQUIRED_CODE } from '@/lib/passwordChangeGate'
 
 // Storage keys — must stay in sync with `src/lib/impersonationSession.ts` (+ AuthContext exports).
 const TOKEN_KEY = 'emc_token'
@@ -24,6 +25,41 @@ function clearAuthStorage(): void {
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL
 if (!apiBaseUrl && !import.meta.env.DEV) {
   throw new Error('[EMC] VITE_API_URL is not set. Add it to your .env file.')
+}
+
+/**
+ * Set once the first PASSWORD_CHANGE_REQUIRED answer has started the redirect: the dozens of calls a dashboard
+ * fires at once all get the same 403, and only the first may navigate (no storm, no loop).
+ */
+let passwordGateRedirecting = false
+
+/** Remember the flag in the cached user, so the router guard keeps the user on the page even if /auth/me is slow. */
+function markCachedUserMustChangePassword(): void {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    if (!raw) return
+    const cached = JSON.parse(raw) as Record<string, unknown>
+    if (cached && typeof cached === 'object') {
+      localStorage.setItem(USER_KEY, JSON.stringify({ ...cached, must_change_password: true }))
+    }
+  } catch { /* an unreadable cache is replaced by /auth/me on the next load */ }
+}
+
+const GATE_REDIRECT_AT_KEY = 'emc_pw_gate_redirect_at'
+const GATE_REDIRECT_COOLDOWN_MS = 10_000
+
+/**
+ * One-shot breaker across page loads: the redirect above resets with every reload, so if /auth/me ever disagrees
+ * with the 403 (the router sends the user back to their home, which calls the API, which answers 403 again) the
+ * app would reload forever. A second redirect within the cooldown is refused.
+ */
+function gateRedirectAllowed(): boolean {
+  try {
+    const last = Number(sessionStorage.getItem(GATE_REDIRECT_AT_KEY) ?? 0)
+    if (last && Date.now() - last < GATE_REDIRECT_COOLDOWN_MS) return false
+    sessionStorage.setItem(GATE_REDIRECT_AT_KEY, String(Date.now()))
+  } catch { /* no sessionStorage: the in-memory flag still holds within this page load */ }
+  return true
 }
 
 const apiClient = axios.create({
@@ -99,6 +135,22 @@ apiClient.interceptors.response.use(
           window.location.href = `/login?reason=session&next=${encodeURIComponent(path)}`
         }
       }
+    }
+
+    // 403 PASSWORD_CHANGE_REQUIRED: the account still has its temporary password. Not an error to show: send the
+    // user to the one page that can fix it, once, and let every other pending call fail quietly.
+    if (status === 403 && (error.response?.data as { code?: unknown } | undefined)?.code === PASSWORD_CHANGE_REQUIRED_CODE) {
+      // Only a signed-in session can be gated; an anonymous visitor sent to a protected page would bounce back to
+      // /login and, if something kept answering 403, reload forever.
+      const signedIn = Boolean(localStorage.getItem(TOKEN_KEY)) || localStorage.getItem(SESSION_HINT_KEY) === '1'
+      if (window.location.pathname === PASSWORD_CHANGE_PATH) {
+        passwordGateRedirecting = false // already where the user belongs
+      } else if (signedIn && !passwordGateRedirecting && gateRedirectAllowed()) {
+        passwordGateRedirecting = true
+        markCachedUserMustChangePassword()
+        window.location.assign(PASSWORD_CHANGE_PATH)
+      }
+      return Promise.reject(error)
     }
 
     // 403: suspended account — clear session and redirect before toast
