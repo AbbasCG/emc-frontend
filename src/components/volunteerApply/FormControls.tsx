@@ -1,5 +1,6 @@
 import { createContext, useContext, useId, type ReactNode } from 'react'
 import { AlertCircle, Check, RotateCcw } from 'lucide-react'
+import LanguagesSelect from '@/components/forms/LanguagesSelect'
 import type { VolunteerFieldKey } from '@/lib/volunteerApply/formModel'
 import type { SubmitFailure } from '@/lib/volunteerApply/submitErrors'
 
@@ -130,16 +131,40 @@ export function TextControl({
   )
 }
 
+/** The languages multi-select inside a <Field>: its label focuses it, and the field's message is shown once (by the Field). */
+export function LanguagesControl({ value, onChange }: { value: string[]; onChange: (languages: string[]) => void }) {
+  const { controlId, labelId, errorId, invalid } = useFieldContext()
+
+  return (
+    <LanguagesSelect
+      value={value}
+      onChange={onChange}
+      error={invalid ? 'invalid' : undefined}
+      hideErrorMessage
+      inputId={controlId}
+      labelledBy={labelId}
+      errorId={errorId}
+      instanceId="volunteer-apply-languages"
+    />
+  )
+}
+
 export function TextAreaControl({
   value,
   onChange,
   placeholder,
   rows = 4,
+  maxLength,
+  describedBy,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   rows?: number
+  /** A hard limit: the browser stops typing and cuts a longer paste at it. */
+  maxLength?: number
+  /** Id of a hint under the control, read together with the error. */
+  describedBy?: string
 }) {
   const { controlId, errorId, invalid } = useFieldContext()
 
@@ -150,9 +175,10 @@ export function TextAreaControl({
       rows={rows}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
+      maxLength={maxLength}
       dir="rtl"
       aria-invalid={invalid || undefined}
-      aria-describedby={invalid ? errorId : undefined}
+      aria-describedby={[describedBy, invalid ? errorId : undefined].filter(Boolean).join(' ') || undefined}
       className={`${BASE} min-h-28 py-3.5 text-right leading-7 ${invalid ? INVALID : IDLE}`}
     />
   )

@@ -148,7 +148,7 @@ export function DetailHeader({
           </div>}
         <div className="min-w-0 leading-snug">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 id={titleId} className="truncate text-[17px] font-black text-deepBlue sm:text-[18px]">{name}</h2>
+            <h2 id={titleId} className="truncate text-[17px] font-black text-deepBlue sm:text-[18px]"><bdi>{name}</bdi></h2>
             {badge}
           </div>
           {email ? <p className="mt-0.5 truncate text-[12px] font-semibold text-slate-500">{email}</p> : null}

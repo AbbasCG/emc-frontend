@@ -81,6 +81,14 @@ type Props = {
   onChange: (languages: string[]) => void
   error?: string
   instanceId?: string
+  /** Id of the text input, so a `<label htmlFor>` focuses the select. */
+  inputId?: string
+  /** Name the select by an existing label element instead of the default «اللغات». */
+  labelledBy?: string
+  /** The caller shows the message itself (once, beside its field): only the red ring is drawn here. */
+  hideErrorMessage?: boolean
+  /** Id of the element that carries the error message. */
+  errorId?: string
 }
 
 /**
@@ -88,7 +96,7 @@ type Props = {
  * via Creatable, same RTL/z-index/portal pattern as CountrySelect so the
  * dropdown never gets clipped or layered behind a sibling card.
  */
-export default function LanguagesSelect({ value, onChange, error, instanceId = 'emc-languages-select' }: Props) {
+export default function LanguagesSelect({ value, onChange, error, instanceId = 'emc-languages-select', inputId, labelledBy, hideErrorMessage, errorId }: Props) {
   const selected: LanguageOption[] = value.map((v) => OPTIONS.find((o) => o.value === v) ?? { label: v, value: v })
 
   return (
@@ -108,7 +116,11 @@ export default function LanguagesSelect({ value, onChange, error, instanceId = '
         formatCreateLabel={(input) => `إضافة "${input}" (أخرى)`}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
-        aria-label="اللغات"
+        inputId={inputId}
+        aria-label={labelledBy ? undefined : 'اللغات'}
+        aria-labelledby={labelledBy}
+        aria-invalid={error ? true : undefined}
+        aria-errormessage={error ? errorId : undefined}
         styles={{
           ...rtlStyles,
           control: (base, state) => ({
@@ -117,7 +129,7 @@ export default function LanguagesSelect({ value, onChange, error, instanceId = '
           }),
         }}
       />
-      {error ? <p className="mt-1.5 text-xs font-bold text-red-600">{error}</p> : null}
+      {error && !hideErrorMessage ? <p className="mt-1.5 text-xs font-bold text-red-600">{error}</p> : null}
     </div>
   )
 }

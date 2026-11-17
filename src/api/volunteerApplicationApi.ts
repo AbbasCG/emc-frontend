@@ -59,6 +59,13 @@ export type VolunteerRequest = {
   preferred_work_environment?: string | null
   quit_reasons?: string[] | null
   suggestions?: string | null
+  /** Languages the applicant speaks (free text allowed, as on the form). */
+  languages?: string[] | null
+  linkedin_url?: string | null
+  /** Short plain-text professional bio (max 500 characters). */
+  professional_bio?: string | null
+  /** The applicant's own yes/no on showing their professional data; null = never answered. */
+  professional_profile_consent?: boolean | null
 
   status: VolunteerRequestStatus
   /** The opportunity this application was made for; null/absent for a general application. */
@@ -86,11 +93,22 @@ export type VolunteerRequest = {
   suggested_department_name?: string | null
 }
 
+/** The distinct STORED values the filter dropdowns offer (unfiltered, so a dropdown never shrinks after a choice). */
+export type AcceptedVolunteersFilterOptions = {
+  departments: string[]
+  cities: string[]
+  availabilities: string[]
+}
+
 export type AcceptedVolunteersMeta = {
+  /** Accepted and NOT yet converted. */
   total_accepted: number
+  /** Converted into members. The list holds both groups. */
   total_converted: number
   accepted_this_month: number
   top_department: string | null
+  /** Absent on an older server: the page then falls back to the values found in the loaded rows. */
+  filters?: AcceptedVolunteersFilterOptions
 }
 
 /**
@@ -148,6 +166,12 @@ export type VolunteerApplicationInput = {
   preferred_work_environment?: string | null
   quit_reasons?: string[] | null
   suggestions?: string | null
+
+  // اختيارية: اللغات والنبذة والرابط المهني والموافقة (null = لم يُجب)
+  languages?: string[] | null
+  professional_bio?: string | null
+  linkedin_url?: string | null
+  professional_profile_consent?: boolean | null
 
   desired_department: string
   experience_level?: string | null
@@ -216,6 +240,14 @@ export async function submitVolunteerApplication(data: VolunteerApplicationInput
   if (data.preferred_work_environment) fd.append('preferred_work_environment', data.preferred_work_environment)
   if (data.quit_reasons?.length) fd.append('quit_reasons', JSON.stringify(data.quit_reasons))
   if (data.suggestions) fd.append('suggestions', data.suggestions.trim())
+
+  // Optional profile answers: an unanswered question sends nothing at all (never an invented "no").
+  if (data.languages?.length) fd.append('languages', JSON.stringify(data.languages))
+  if (data.professional_bio?.trim()) fd.append('professional_bio', data.professional_bio.trim())
+  if (data.linkedin_url?.trim()) fd.append('linkedin_url', data.linkedin_url.trim())
+  if (data.professional_profile_consent !== undefined && data.professional_profile_consent !== null) {
+    fd.append('professional_profile_consent', data.professional_profile_consent ? '1' : '0')
+  }
 
   // الحقول العامة السابقة لضمان التوافق الكامل
   fd.append('desired_department', data.desired_department || data.primary_value_department || 'غير محدد')
@@ -352,6 +384,10 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     preferred_work_environment: parseStr(raw.preferred_work_environment),
     quit_reasons: Array.isArray(raw.quit_reasons) ? (raw.quit_reasons as string[]) : null,
     suggestions: parseStr(raw.suggestions),
+    languages: Array.isArray(raw.languages) ? (raw.languages as unknown[]).map((l) => String(l).trim()).filter(Boolean) : null,
+    linkedin_url: parseStr(raw.linkedin_url),
+    professional_bio: parseStr(raw.professional_bio),
+    professional_profile_consent: parseBool(raw.professional_profile_consent),
     status,
     opportunity_id: parseId(raw.opportunity_id),
     opportunity_title: parseStr(raw.opportunity_title),
@@ -401,8 +437,19 @@ export async function fetchAcceptedVolunteers(params?: Record<string, string>): 
     Array.isArray(body) ? body as unknown[] : []
 
   const paginationMeta = (body?.meta ?? {}) as Record<string, unknown>
-  const appMeta = (res.data as Record<string, unknown>)?.meta as AcceptedVolunteersMeta ?? {
-    total_accepted: 0, total_converted: 0, accepted_this_month: 0, top_department: null,
+  const rawMeta = (res.data as Record<string, unknown>)?.meta
+  const metaObj = rawMeta && typeof rawMeta === 'object' && !Array.isArray(rawMeta) ? (rawMeta as Record<string, unknown>) : {}
+  const rawFilters = metaObj.filters && typeof metaObj.filters === 'object' ? (metaObj.filters as Record<string, unknown>) : null
+  const strings = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x ?? '').trim()).filter(Boolean) : []
+  const appMeta: AcceptedVolunteersMeta = {
+    total_accepted: Number(metaObj.total_accepted ?? 0) || 0,
+    total_converted: Number(metaObj.total_converted ?? 0) || 0,
+    accepted_this_month: Number(metaObj.accepted_this_month ?? 0) || 0,
+    top_department: parseStr(metaObj.top_department),
+    ...(rawFilters
+      ? { filters: { departments: strings(rawFilters.departments), cities: strings(rawFilters.cities), availabilities: strings(rawFilters.availabilities) } }
+      : {}),
   }
 
   const volunteers = rawData
