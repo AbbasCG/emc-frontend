@@ -1,4 +1,4 @@
-import type { VolunteerRequestStatus } from '@/api/volunteerApplicationApi'
+import type { VolunteerRequest, VolunteerRequestStatus } from '@/api/volunteerApplicationApi'
 
 /** Badge styling per volunteer-request status — shared by the modal and the
  *  super-admin requests table. */
@@ -41,4 +41,14 @@ export const STATUS_CFG: Record<
     badge: 'bg-teal-50 text-teal-800 ring-1 ring-teal-200/80',
     dot: 'bg-teal-500',
   },
+}
+
+/** The CV link of a request: the signed view link first, then the stored file link, then the download link. */
+export function requestCvUrl(r: Pick<VolunteerRequest, 'cv_view_url' | 'cv_file_url' | 'cv_download_url'>): string | null {
+  return [r.cv_view_url, r.cv_file_url, r.cv_download_url].map((u) => u?.trim()).find((u): u is string => Boolean(u)) ?? null
+}
+
+/** A request that already became a member: the explicit flag, or the status the server set. */
+export function isConvertedRequest(r: Pick<VolunteerRequest, 'is_converted' | 'status'>): boolean {
+  return Boolean(r.is_converted) || r.status === 'converted_to_member'
 }

@@ -27,6 +27,7 @@ import {
   ConsentCheckbox,
   ErrorSummary,
   Field,
+  LanguagesControl,
   MultiChoice,
   QuestionGroup,
   ScaleQuestion,
@@ -42,6 +43,7 @@ import { assessmentLegacyFields } from '@/utils/volunteerApplyLegacyFields'
 import {
   FIELD_LABEL,
   FIELD_STEP,
+  PROFESSIONAL_BIO_MAX_LENGTH,
   VOLUNTEER_STEP_COUNT,
   initialVolunteerForm,
   type VolunteerFieldKey,
@@ -50,6 +52,7 @@ import {
 import { orderedErrorFields, validateVolunteerForm, validateVolunteerStep, type VolunteerFieldErrors } from '@/lib/volunteerApply/validation'
 import { classifySubmitError, logSubmitFailure, type SubmitFailure } from '@/lib/volunteerApply/submitErrors'
 import { focusField } from '@/lib/volunteerApply/focusField'
+import { toHttpUrl } from '@/utils/safeUrl'
 import toast from '@/lib/toast'
 import {
   GENDER_OPTIONS,
@@ -278,6 +281,12 @@ export default function VolunteerApply() {
         personal_skills: form.personal_skills,
         skill_level_rating: form.skill_level_rating,
         technical_tools: form.technical_tools,
+        languages: form.languages,
+        professional_bio: form.professional_bio.trim() || null,
+        // A bare «linkedin.com/in/…» is sent with its https:// so the server's URL rule accepts it.
+        linkedin_url: toHttpUrl(form.linkedin_url) ?? (form.linkedin_url.trim() || null),
+        // Unanswered stays null and is not sent: nobody agreed or refused on the applicant's behalf.
+        professional_profile_consent: form.professional_profile_consent,
         value_add_contributions: form.value_add_contributions || null,
         portfolio_link_status: form.portfolio_link_status || null,
         portfolio_url: form.portfolio_url || null,
@@ -819,6 +828,10 @@ export default function VolunteerApply() {
                       />
                     </Field>
 
+                    <Field name="languages" label="اللغات التي تتحدثها" hint="اختياري" error={errors.languages}>
+                      <LanguagesControl value={form.languages} onChange={(langs) => setField('languages', langs)} />
+                    </Field>
+
                     <Field label="6. اذكر ثلاثة أشياء تستطيع تقديمها للمؤسسة من خلال مهاراتك أو خبراتك:">
                       <TextAreaControl
                         value={form.value_add_contributions}
@@ -826,6 +839,26 @@ export default function VolunteerApply() {
                         placeholder="1. ...&#10;2. ...&#10;3. ..."
                         rows={4}
                       />
+                    </Field>
+
+                    <Field name="professional_bio" label="نبذة تعريفية عنك" hint="اختياري" error={errors.professional_bio}>
+                      <TextAreaControl
+                        value={form.professional_bio}
+                        onChange={(v) => setField('professional_bio', v)}
+                        placeholder="اكتب نبذة قصيرة ومهنية عن نفسك (نص عادي)..."
+                        describedBy="professional-bio-hint"
+                        rows={4}
+                        maxLength={PROFESSIONAL_BIO_MAX_LENGTH}
+                      />
+                      <p id="professional-bio-hint" className="mt-1.5 text-xs text-slate-500">
+                        نص عادي فقط: لا تُقبل وسوم HTML مثل &lt;b&gt;.
+                      </p>
+                      <p className="mt-1 text-start text-xs text-slate-500" aria-live="polite" data-testid="professional-bio-counter">
+                        <span className="font-latin tabular-nums" dir="ltr">
+                          {form.professional_bio.length} / {PROFESSIONAL_BIO_MAX_LENGTH}
+                        </span>{' '}
+                        حرف
+                      </p>
                     </Field>
 
                     <Field label="7. هل لديك نماذج أعمال أو مشاريع سابقة تستطيع مشاركتها؟">
@@ -846,6 +879,17 @@ export default function VolunteerApply() {
                         />
                       </Field>
                     )}
+
+                    <Field name="linkedin_url" label="رابط LinkedIn" hint="اختياري" error={errors.linkedin_url}>
+                      <TextControl
+                        type="url"
+                        value={form.linkedin_url}
+                        onChange={(v) => setField('linkedin_url', v)}
+                        placeholder="https://www.linkedin.com/in/..."
+                        dir="ltr"
+                        inputMode="url"
+                      />
+                    </Field>
 
                     <Field label="السيرة الذاتية (CV)" hint="اختياري - صيغة PDF">
                       <CvFileField
@@ -1044,6 +1088,31 @@ export default function VolunteerApply() {
                         placeholder="أي نقاط أو متطلبات خاصة تود توضيحها..."
                         rows={3}
                       />
+                    </Field>
+
+                    <Field name="professional_profile_consent" label="هل توافق على عرض بياناتك المهنية ضمن منصات EMC؟" hint="اختياري">
+                      <p className="mb-3 text-xs leading-6 text-slate-600">
+                        يُعرض عند الموافقة ما يلزم فقط: الاسم والإدارة والمسمى الوظيفي والتخصص والنبذة التعريفية. لا يُنشر رقم الهاتف ولا البريد الإلكتروني.
+                      </p>
+                      <SingleChoice
+                        layout="equal"
+                        options={[
+                          { value: 'yes', label: 'نعم، أوافق' },
+                          { value: 'no', label: 'لا، لا أوافق' },
+                        ]}
+                        selected={form.professional_profile_consent === null ? '' : form.professional_profile_consent ? 'yes' : 'no'}
+                        // Pressing the answer that is already chosen takes it back: the question is optional, so «not answered» must stay reachable.
+                        onSelect={(v) => setField('professional_profile_consent', form.professional_profile_consent === (v === 'yes') ? null : v === 'yes')}
+                      />
+                      {form.professional_profile_consent !== null && (
+                        <button
+                          type="button"
+                          onClick={() => setField('professional_profile_consent', null)}
+                          className="mt-2 min-h-11 text-sm font-semibold text-customBlue underline underline-offset-4 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-customBlue/25"
+                        >
+                          مسح الاختيار
+                        </button>
+                      )}
                     </Field>
 
                     <ConsentCheckbox

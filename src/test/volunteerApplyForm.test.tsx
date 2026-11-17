@@ -323,3 +323,268 @@ describe('sending: pressing the button', () => {
     await waitFor(() => expect(screen.getByRole('checkbox')).toHaveFocus())
   })
 })
+
+describe('the optional profile questions: languages, bio, LinkedIn, professional-profile consent', () => {
+  async function goToLevel3(user: ReturnType<typeof userEvent.setup>) {
+    for (const title of ['المؤهلات والتفرغ', 'الخبرات والقدرات']) {
+      await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+      expect(await screen.findByRole('heading', { level: 2, name: title })).toBeInTheDocument()
+    }
+  }
+
+  const consentGroup = () => screen.getByRole('radiogroup', { name: /هل توافق على عرض بياناتك المهنية/ })
+
+  it('the first three are on level 3 and the consent on level 5, all marked optional and none blocking', async () => {
+    seedDraft()
+    const user = renderForm()
+    await goToLevel3(user)
+
+    expect(screen.getByRole('combobox', { name: /اللغات/ })).toBeInTheDocument()
+    expect(screen.getByLabelText(/نبذة تعريفية عنك/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/رابط LinkedIn/)).toHaveAttribute('dir', 'ltr')
+    expect(screen.getAllByText('اختياري').length).toBeGreaterThanOrEqual(3)
+
+    // left empty: the level is accepted
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+    expect(await screen.findByRole('heading', { level: 2, name: 'التوقعات والإدارات' })).toBeInTheDocument()
+
+    // the consent: two answers, NEITHER preselected
+    const radios = within(consentGroup()).getAllByRole('radio')
+    expect(radios.map((r) => r.textContent)).toEqual(['نعم، أوافق', 'لا، لا أوافق'])
+    for (const radio of radios) expect(radio).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('an untouched form sends nothing for them: no invented «no», no empty strings', async () => {
+    seedDraft()
+    submit.mockResolvedValueOnce(undefined)
+    const user = renderForm()
+    await walkToTheLastLevel(user)
+
+    await user.click(sendButton())
+
+    expect(await screen.findByText(/تم استلام طلب التطوع/)).toBeInTheDocument()
+    const payload = submit.mock.calls[0][0] as Record<string, unknown>
+    expect(payload.professional_profile_consent).toBeNull()
+    expect(payload.languages).toEqual([])
+    expect(payload.professional_bio).toBeNull()
+    expect(payload.linkedin_url).toBeNull()
+  })
+
+  it('answers are sent: languages, bio, a bare LinkedIn address completed with https://, and the consent', async () => {
+    seedDraft()
+    submit.mockResolvedValueOnce(undefined)
+    const user = renderForm()
+    await goToLevel3(user)
+
+    const languages = screen.getByRole('combobox', { name: /اللغات/ })
+    await user.click(languages)
+    await user.type(languages, 'العربية{Enter}')
+    await user.type(languages, 'الإنجليزية{Enter}')
+    await user.type(screen.getByLabelText(/نبذة تعريفية عنك/), '  مصمم مهتم بالعمل المجتمعي ')
+    await user.type(screen.getByLabelText(/رابط LinkedIn/), 'linkedin.com/in/ali-hasan')
+
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+    await user.click(within(consentGroup()).getByRole('radio', { name: 'نعم، أوافق' }))
+    expect(within(consentGroup()).getByRole('radio', { name: 'نعم، أوافق' })).toHaveAttribute('aria-checked', 'true')
+
+    await user.click(sendButton())
+
+    expect(await screen.findByText(/تم استلام طلب التطوع/)).toBeInTheDocument()
+    const payload = submit.mock.calls[0][0] as Record<string, unknown>
+    expect(payload.languages).toEqual(['العربية', 'الإنجليزية'])
+    expect(payload.professional_bio).toBe('مصمم مهتم بالعمل المجتمعي')
+    expect(payload.linkedin_url).toBe('https://linkedin.com/in/ali-hasan')
+    expect(payload.professional_profile_consent).toBe(true)
+  })
+
+  it('an explicit «لا» is sent as false, which is different from not answering', async () => {
+    seedDraft({ professional_profile_consent: false })
+    submit.mockResolvedValueOnce(undefined)
+    const user = renderForm()
+    await walkToTheLastLevel(user)
+
+    expect(within(consentGroup()).getByRole('radio', { name: 'لا، لا أوافق' })).toHaveAttribute('aria-checked', 'true')
+    await user.click(sendButton())
+
+    await screen.findByText(/تم استلام طلب التطوع/)
+    expect((submit.mock.calls[0][0] as Record<string, unknown>).professional_profile_consent).toBe(false)
+  })
+
+  it('the bio stops at 500 characters and counts them', async () => {
+    seedDraft()
+    const user = renderForm()
+    await goToLevel3(user)
+
+    const bio = screen.getByLabelText(/نبذة تعريفية عنك/)
+    expect(bio).toHaveAttribute('maxlength', '500')
+    expect(screen.getByTestId('professional-bio-counter')).toHaveTextContent('0 / 500')
+
+    await user.type(bio, 'أحمد')
+    expect(screen.getByTestId('professional-bio-counter')).toHaveTextContent('4 / 500')
+  })
+
+  it('a bio over the limit (an old saved draft) is refused with a message, at its field', async () => {
+    seedDraft({ professional_bio: 'ا'.repeat(501) })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+
+    const summary = await screen.findByRole('alert')
+    expect(within(summary).getByText('النبذة التعريفية لا تزيد عن 500 حرفًا.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/نبذة تعريفية عنك/)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('heading', { level: 2, name: 'الخبرات والقدرات' })).toBeInTheDocument()
+  })
+
+  it('a LinkedIn value that is not a web address is refused; a javascript: link never passes', async () => {
+    seedDraft()
+    const user = renderForm()
+    await goToLevel3(user)
+
+    const input = screen.getByLabelText(/رابط LinkedIn/)
+    await user.type(input, 'javascript:alert(1)')
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+
+    const summary = await screen.findByRole('alert')
+    expect(within(summary).getByText(/رابط LinkedIn غير صالح/)).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    await waitFor(() => expect(input).toHaveFocus())
+
+    // fixing it clears the message and lets the person go on
+    await user.clear(input)
+    await user.type(input, 'https://www.linkedin.com/in/ali')
+    expect(input).not.toHaveAttribute('aria-invalid')
+    await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+    expect(await screen.findByRole('heading', { level: 2, name: 'الدافعية والجدية' })).toBeInTheDocument()
+  })
+
+  it('a server error on one of them lands on that field', async () => {
+    seedDraft({ linkedin_url: 'https://www.linkedin.com/in/ali' })
+    submit.mockRejectedValueOnce(laravel(422, { message: 'Validation failed.', errors: { linkedin_url: ['The linkedin url field must be a valid URL.'] } }))
+    const user = renderForm()
+    await walkToTheLastLevel(user)
+
+    await user.click(sendButton())
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'الخبرات والقدرات' })).toBeInTheDocument()
+    const summary = screen.getByRole('alert')
+    expect(within(summary).getByText('يرجى مراجعة رابط LinkedIn.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/رابط LinkedIn/)).toHaveAttribute('aria-invalid', 'true')
+  })
+})
+
+describe('the optional profile questions: server rules mirrored, label focus, taking an answer back', () => {
+  async function goToLevel3(user: ReturnType<typeof userEvent.setup>) {
+    for (const title of ['المؤهلات والتفرغ', 'الخبرات والقدرات']) {
+      await user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+      expect(await screen.findByRole('heading', { level: 2, name: title })).toBeInTheDocument()
+    }
+  }
+  const next = (user: ReturnType<typeof userEvent.setup>) => user.click(screen.getByRole('button', { name: 'المستوى التالي' }))
+  const consentGroup = () => screen.getByRole('radiogroup', { name: /هل توافق على عرض بياناتك المهنية/ })
+  const HTML_MESSAGE = 'لا يُسمح بإدخال وسوم HTML في هذا الحقل.'
+
+  it('a bio with a real HTML tag is refused with the server’s sentence, once beside the field and once in the list', async () => {
+    seedDraft({ professional_bio: 'مرحبا <b>بكم</b>' })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await next(user)
+
+    expect(await screen.findAllByText(HTML_MESSAGE)).toHaveLength(2)
+    expect(screen.getByLabelText(/نبذة تعريفية عنك/)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('heading', { level: 2, name: 'الخبرات والقدرات' })).toBeInTheDocument()
+  })
+
+  it('the hint says plain text only', async () => {
+    seedDraft()
+    const user = renderForm()
+    await goToLevel3(user)
+
+    expect(screen.getByText(/لا تُقبل وسوم HTML/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/نبذة تعريفية عنك/)).toHaveAccessibleDescription(/لا تُقبل وسوم HTML/)
+  })
+
+  it('a «<» that is not a tag is fine: «I <3 volunteering» and «أقل من <5 سنوات»', async () => {
+    seedDraft({ professional_bio: 'I <3 volunteering، أقل من <5 سنوات و 2 < 3' })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await next(user)
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'الدافعية والجدية' })).toBeInTheDocument()
+  })
+
+  it('languages: more than 20, an over-long name, a tag, or the same language twice (ignoring case) are refused, and the message is shown ONCE per place', async () => {
+    seedDraft({ languages: ['English', 'english'] })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await next(user)
+
+    // one in the list at the top, one beside the field: never a third one inside the select
+    expect(await screen.findAllByText('لا يمكن اختيار نفس اللغة أكثر من مرة')).toHaveLength(2)
+    expect(screen.getByRole('combobox', { name: /اللغات/ })).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it.each([
+    ['too many', Array.from({ length: 21 }, (_, i) => `لغة ${i + 1}`), 'لا يمكن اختيار أكثر من 20 لغة.'],
+    ['too long', ['ل'.repeat(51)], 'كل لغة يجب أن تكون نصًا لا يتجاوز 50 حرفًا.'],
+  ])('languages: %s', async (_name, languages, message) => {
+    seedDraft({ languages })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await next(user)
+
+    expect(await screen.findAllByText(message)).toHaveLength(2)
+  })
+
+  it('the label focuses the languages select, and so does the error list', async () => {
+    seedDraft({ languages: ['English', 'english'] })
+    const user = renderForm()
+    await goToLevel3(user)
+
+    await user.click(screen.getByText('اللغات التي تتحدثها'))
+    expect(screen.getByRole('combobox', { name: /اللغات/ })).toHaveFocus()
+
+    // moving to the field from the error list (and automatically after a refused «next») lands on the select
+    await user.click(screen.getByRole('textbox', { name: /رابط LinkedIn/ }))
+    await next(user)
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /اللغات/ })).toHaveFocus())
+  })
+
+  it('the consent can be taken back: pressing the chosen answer again returns it to «not answered», in the form and in the saved draft', async () => {
+    seedDraft()
+    submit.mockResolvedValueOnce(undefined)
+    const user = renderForm()
+    await walkToTheLastLevel(user)
+
+    const yes = () => within(consentGroup()).getByRole('radio', { name: 'نعم، أوافق' })
+    await user.click(yes())
+    expect(yes()).toHaveAttribute('aria-checked', 'true')
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}').professional_profile_consent).toBe(true))
+
+    await user.click(yes())
+    expect(yes()).toHaveAttribute('aria-checked', 'false')
+    expect(within(consentGroup()).getByRole('radio', { name: 'لا، لا أوافق' })).toHaveAttribute('aria-checked', 'false')
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}').professional_profile_consent).toBeNull())
+
+    await user.click(sendButton())
+    await screen.findByText(/تم استلام طلب التطوع/)
+    expect((submit.mock.calls[0][0] as Record<string, unknown>).professional_profile_consent).toBeNull()
+  })
+
+  it('«مسح الاختيار» appears only once answered and clears it', async () => {
+    seedDraft({ professional_profile_consent: false })
+    const user = renderForm()
+    await walkToTheLastLevel(user)
+
+    await user.click(screen.getByRole('button', { name: 'مسح الاختيار' }))
+
+    for (const radio of within(consentGroup()).getAllByRole('radio')) expect(radio).toHaveAttribute('aria-checked', 'false')
+    expect(screen.queryByRole('button', { name: 'مسح الاختيار' })).not.toBeInTheDocument()
+  })
+})

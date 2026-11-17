@@ -3,7 +3,8 @@ import { mockApi, loginAs, USERS, tokenFor } from './support/mocks'
 
 /**
  * Volunteer onboarding, end to end against a mocked API:
- *   1. HR accepts a volunteer request -> the convert POPUP (department suggestion, change, result, resend e-mail).
+ *   1. HR converts an accepted request FROM THE VOLUNTEER-REQUESTS PAGE -> the convert POPUP (department suggestion,
+ *      change, result, resend e-mail). The accepted-volunteers page no longer converts: its name window only shows data.
  *   2. The converted volunteer signs in with the temporary password -> FORCED password change -> normal landing.
  *
  * The API is never real: both scenarios layer their own routes on top of the shared mocks (a later page.route wins,
@@ -56,6 +57,16 @@ async function mockConvertFlow(page: Page) {
     const path = apiPath(route)
     if (method === 'OPTIONS') return route.fallback()
 
+    if (method === 'GET' && path === '/admin/volunteer-requests') {
+      const row = converted ? { ...ACCEPTED, status: 'converted_to_member', is_converted: true, can_convert_to_member: false } : ACCEPTED
+
+      return reply(route, {
+        success: true,
+        data: [row],
+        meta: { current_page: 1, last_page: 1, per_page: 20, total: 1, from: 1, to: 1 },
+        statistics: { total: 1, pending: 0, reviewing: 0, reviewed: 0, accepted: converted ? 0 : 1, rejected: 0, contacted: 0, converted_to_member: converted ? 1 : 0 },
+      })
+    }
     if (method === 'GET' && path === '/admin/volunteers/accepted') {
       calls.accepted++
       const row = converted ? { ...ACCEPTED, status: 'converted_to_member', is_converted: true, can_convert_to_member: false } : ACCEPTED
@@ -63,7 +74,7 @@ async function mockConvertFlow(page: Page) {
       return reply(route, {
         success: true,
         data: { data: [row], meta: { total: 1, current_page: 1, last_page: 1, per_page: 200 } },
-        meta: { total_accepted: converted ? 0 : 1, total_converted: converted ? 1 : 0, accepted_this_month: 1, top_department: 'الإعلام والتسويق' },
+        meta: { total_accepted: converted ? 0 : 1, total_converted: converted ? 1 : 0, accepted_this_month: 1, top_department: 'الإعلام والتسويق', filters: { departments: ['الإعلام والتسويق'], cities: ['أمستردام'], availabilities: [] } },
       })
     }
     if (method === 'GET' && path === '/departments/options') {
@@ -100,16 +111,17 @@ async function mockConvertFlow(page: Page) {
   return calls
 }
 
-test('HR converts an accepted volunteer through the popup: suggested department, change it, result, resend e-mail', async ({ page }) => {
+test('HR converts an accepted volunteer from the requests page: suggested department, change it, result, resend e-mail', async ({ page }) => {
   await mockApi(page)
   const calls = await mockConvertFlow(page)
   await loginAs(page, 'super_admin')
-  await page.goto('/dashboard/volunteer')
+  await page.goto('/dashboard/super-admin/volunteer-requests')
   await expect(page.getByText('علي حسن').first()).toBeVisible()
   await dismissCookies(page)
 
-  // Nothing converts from the row button: it opens the confirmation popup.
-  await page.getByRole('button', { name: /تحويل إلى عضو/ }).click()
+  // Nothing converts from the row: «مراجعة» opens the request window, whose «تحويل إلى عضو» opens the confirmation popup.
+  await page.getByRole('table').getByRole('button', { name: 'مراجعة', exact: true }).click()
+  await page.getByRole('button', { name: 'تحويل إلى عضو' }).click()
   const dialog = page.getByRole('dialog', { name: 'تحويل المتطوع إلى عضو' })
   await expect(dialog).toBeVisible()
   expect(calls.convertBody).toBeNull()
@@ -136,12 +148,60 @@ test('HR converts an accepted volunteer through the popup: suggested department,
   await expect(warning).toHaveCount(0)
   await expect.poll(() => calls.resend).toBe(1)
 
-  // Closing shows the list refreshed: the row is «تم التحويل» and no convert button is left.
+  // Closing shows the list refreshed: the request is converted and no convert action is left on its row.
   await dialog.getByRole('button', { name: 'إغلاق', exact: true }).last().click()
   await expect(page.getByRole('dialog', { name: 'تحويل المتطوع إلى عضو' })).toHaveCount(0)
-  await expect(page.getByText('تم التحويل').first()).toBeVisible()
+  await expect(page.getByRole('table').getByText('تم التحويل لعضو')).toBeVisible()
+})
+
+test('the accepted volunteers page shows a volunteer in a data window (no convert button); a converted one can be re-sent credentials', async ({ page }) => {
+  await mockApi(page)
+  const calls = await mockConvertFlow(page)
+  await loginAs(page, 'super_admin')
+  await page.goto('/dashboard/volunteer')
+  await dismissCookies(page)
+
+  // The list: the name is the way in, nobody is converted from here.
+  const name = page.getByRole('table').getByRole('button', { name: 'علي حسن' })
+  await expect(name).toBeVisible()
   await expect(page.getByRole('button', { name: /تحويل إلى عضو/ })).toHaveCount(0)
-  await expect.poll(() => calls.accepted).toBeGreaterThanOrEqual(2)
+  // The counters are the server's: one waiting, none converted, one in all.
+  const card = (label: string) => page.getByTestId('accepted-stats').getByText(label, { exact: true }).locator('..')
+  await expect(card('بانتظار التحويل')).toContainText('1')
+  await expect(card('تم التحويل')).toContainText('0')
+  await expect(card('إجمالي المقبولين')).toContainText('1')
+
+  await name.click()
+  const dialog = page.getByRole('dialog', { name: /علي حسن/ })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByText('بانتظار التحويل')).toBeVisible()
+  await expect(dialog.getByText('المعلومات الشخصية')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: /تحويل إلى عضو/ })).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: 'إعادة إرسال بيانات الدخول' })).toHaveCount(0)
+
+  // Escape closes it and gives focus back to the name.
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(name).toBeFocused()
+
+  // A converted volunteer: the window offers the resend.
+  await page.route('**/api/admin/volunteers/accepted**', (route) => {
+    if (route.request().method() === 'OPTIONS') return route.fallback()
+
+    return reply(route, {
+      success: true,
+      data: { data: [{ ...ACCEPTED, status: 'converted_to_member', is_converted: true, can_convert_to_member: false }], meta: { total: 1, current_page: 1, last_page: 1, per_page: 200 } },
+      meta: { total_accepted: 0, total_converted: 1, accepted_this_month: 1, top_department: 'الإعلام والتسويق' },
+    })
+  })
+  await page.getByRole('button', { name: 'تحديث البيانات' }).click()
+  await page.getByRole('table').getByRole('button', { name: 'علي حسن' }).click()
+  const converted = page.getByRole('dialog', { name: /علي حسن/ })
+  await expect(converted.getByText('تم التحويل').first()).toBeVisible()
+  await expect(card('بانتظار التحويل')).toContainText('0')
+  await expect(card('تم التحويل')).toContainText('1')
+  await converted.getByRole('button', { name: 'إعادة إرسال بيانات الدخول' }).click()
+  await expect.poll(() => calls.resend).toBe(1)
 })
 
 /* ── 2. forced password change ────────────────────────────────────── */

@@ -3,8 +3,10 @@ import {
   MOTIVATION_STATEMENTS,
   SITUATIONAL_QUESTIONS,
 } from '@/components/volunteerOpportunities/volunteerFormSpec'
+import { toHttpUrl } from '@/utils/safeUrl'
 import {
   FIELD_STEP,
+  PROFESSIONAL_BIO_MAX_LENGTH,
   VOLUNTEER_STEP_COUNT,
   type VolunteerFieldKey,
   type VolunteerFormState,
@@ -38,6 +40,11 @@ export function isPlausiblePhone(raw: string): boolean {
   return digits >= 7 && digits <= 15
 }
 
+/** Mirrors the server: at most 20 languages of at most 50 characters, no repeats (ignoring case). */
+export const LANGUAGES_MAX_COUNT = 20
+export const LANGUAGE_MAX_LENGTH = 50
+export const LINKEDIN_MAX_LENGTH = 255
+
 export const MESSAGES = {
   full_name: 'يرجى إدخال الاسم الرباعي.',
   email_required: 'يرجى إدخال البريد الإلكتروني.',
@@ -58,9 +65,43 @@ export const MESSAGES = {
   motivation_ratings: 'يرجى تقييم جميع عبارات الدافعية.',
   commitment_ratings: 'يرجى تقييم جميع عبارات الجدية والالتزام.',
   situational_responses: 'يرجى الإجابة عن جميع أسئلة المواقف العملية.',
+  professional_bio: `النبذة التعريفية لا تزيد عن ${PROFESSIONAL_BIO_MAX_LENGTH} حرفًا.`,
+  professional_bio_html: 'لا يُسمح بإدخال وسوم HTML في هذا الحقل.',
+  linkedin_url: 'رابط LinkedIn غير صالح. اكتبه بالشكل https://www.linkedin.com/in/اسمك.',
+  linkedin_url_long: `رابط LinkedIn لا يزيد عن ${LINKEDIN_MAX_LENGTH} حرفًا.`,
+  languages_count: `لا يمكن اختيار أكثر من ${LANGUAGES_MAX_COUNT} لغة.`,
+  languages_length: `كل لغة يجب أن تكون نصًا لا يتجاوز ${LANGUAGE_MAX_LENGTH} حرفًا.`,
+  languages_duplicate: 'لا يمكن اختيار نفس اللغة أكثر من مرة',
+  languages_html: 'لا يُسمح بإدخال وسوم HTML في أسماء اللغات.',
   primary_value_department: 'يرجى اختيار الإدارة الأنسب لمهاراتك.',
   agree_terms: 'يرجى الموافقة على استخدام البيانات قبل إرسال الطلب.',
 } as const
+
+/**
+ * The server refuses text that contains a REAL tag: `<`, optional spaces, an optional `/`, optional spaces, then a letter
+ * (or `!` / `?`). So «<b>x</b>», «</p>» and «<!-- -->» are refused, while «I <3 volunteering» and «أقل من <5 سنوات»
+ * (a `<` followed by a digit or a space) are fine. The same test applies to the bio and to each language.
+ */
+const HTML_TAG = /<\s*\/?\s*[a-z!?]/i
+
+export function bioHasHtmlTags(text: string): boolean {
+  return HTML_TAG.test(text)
+}
+
+/** The first problem with the chosen languages, in the server's own words, or null. */
+export function languagesProblem(list: readonly string[]): string | null {
+  if (list.length > LANGUAGES_MAX_COUNT) return MESSAGES.languages_count
+  const seen = new Set<string>()
+  for (const item of list) {
+    if (!item.trim() || [...item].length > LANGUAGE_MAX_LENGTH) return MESSAGES.languages_length
+    if (bioHasHtmlTags(item)) return MESSAGES.languages_html
+    const key = item.trim().toLowerCase()
+    if (seen.has(key)) return MESSAGES.languages_duplicate
+    seen.add(key)
+  }
+
+  return null
+}
 
 const WEEKDAY_ANSWERS = ['أيام محددة خلال الأسبوع', 'أيام الإجازة فقط']
 
@@ -98,6 +139,13 @@ export function validateVolunteerStep(form: VolunteerFormState, step: number): V
     if (form.has_previous_volunteering === true && !form.volunteering_duration) {
       errors.volunteering_duration = MESSAGES.volunteering_duration
     }
+    // Optional answers: only a value that is there can be wrong.
+    const languages = languagesProblem(form.languages)
+    if (languages) errors.languages = languages
+    if (form.professional_bio.length > PROFESSIONAL_BIO_MAX_LENGTH) errors.professional_bio = MESSAGES.professional_bio
+    else if (bioHasHtmlTags(form.professional_bio)) errors.professional_bio = MESSAGES.professional_bio_html
+    if (form.linkedin_url.trim().length > LINKEDIN_MAX_LENGTH) errors.linkedin_url = MESSAGES.linkedin_url_long
+    else if (form.linkedin_url.trim() && !toHttpUrl(form.linkedin_url)) errors.linkedin_url = MESSAGES.linkedin_url
   }
 
   if (step === 4) {

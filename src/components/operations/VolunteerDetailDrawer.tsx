@@ -6,22 +6,25 @@ import {
   ChevronDown,
   ChevronUp,
   History,
-  Info,
   Loader2,
   MinusCircle,
   PlusCircle,
   RefreshCw,
-  Shield,
   Star,
   User,
   X,
 } from 'lucide-react'
 import {
+  fetchVolunteerActivity,
   fetchVolunteerPointsLedger,
-  fetchVolunteerStatusLogs,
+  fetchVolunteerProfile,
   fetchVolunteerWeeklyRatings,
+  isForbiddenError,
   type VolunteerHubItem,
+  type VolunteerProfile,
 } from '@/api/volunteersHubApi'
+import VolunteerActivityTimeline, { VolunteerStatusBadge } from './VolunteerActivityTimeline'
+import VolunteerPersonalTab, { VolunteerPersonalTabLimited } from './VolunteerPersonalTab'
 import { useRetryableLoad } from '@/hooks/useRetryableLoad'
 import { hasNestedLayer } from '@/components/ui/modalGuard'
 import { EVALUATION_CRITERIA } from '@/data/evaluationCriteria'
@@ -34,6 +37,8 @@ interface Props {
 }
 
 type TabKey = 'personal' | 'points' | 'activity' | 'evaluations'
+
+type ProfileOutcome = { forbidden: boolean; profile: VolunteerProfile | null }
 
 /** A failed request, said out loud, with the way to repeat it. Never leave a tab looking merely empty. */
 function LoadError({ what, onRetry }: { what: string; onRetry: () => void }) {
@@ -68,11 +73,24 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
 
   const volunteerId = volunteer?.id ?? 0
   const points = useRetryableLoad(() => fetchVolunteerPointsLedger(volunteerId), `points:${volunteerId}`, volunteer != null && opened.has('points'))
-  const logs = useRetryableLoad(() => fetchVolunteerStatusLogs(volunteerId), `logs:${volunteerId}`, volunteer != null && opened.has('activity'))
+  // A 403 is an answer («you may not read this»), not a failure: it becomes `forbidden` instead of the retry state.
+  const profile = useRetryableLoad<ProfileOutcome>(
+    async () => {
+      try {
+        return { forbidden: false, profile: await fetchVolunteerProfile(volunteerId) }
+      } catch (err) {
+        if (isForbiddenError(err)) return { forbidden: true, profile: null }
+        throw err
+      }
+    },
+    `profile:${volunteerId}`,
+    volunteer != null && opened.has('personal'),
+  )
+  const activity = useRetryableLoad(() => fetchVolunteerActivity(volunteerId), `activity:${volunteerId}`, volunteer != null && opened.has('activity'))
   const ratings = useRetryableLoad(() => fetchVolunteerWeeklyRatings(volunteerId), `ratings:${volunteerId}`, volunteer != null && opened.has('evaluations'))
 
   const pointsData = points.data
-  const statusLogs = logs.data ?? []
+  const activityItems = activity.data ?? []
   const weeklyRatings = ratings.data
 
   function openTab(tab: TabKey) {
@@ -94,21 +112,6 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
 
   if (!volunteer) return null
 
-  const getStatusBadge = (st: string) => {
-    switch (st) {
-      case 'active':
-        return <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-black text-emerald-700 border border-emerald-200">نشط</span>
-      case 'inactive':
-        return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-black text-slate-700 border border-slate-200">منقطع</span>
-      case 'on_leave':
-        return <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-black text-amber-800 border border-amber-200">في إجازة</span>
-      case 'withdrawn':
-        return <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-black text-rose-700 border border-rose-200">انسحب</span>
-      default:
-        return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-black text-slate-600">{st}</span>
-    }
-  }
-
   return (
     <div
       role="dialog"
@@ -127,7 +130,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 id={titleId} className="text-xl font-black text-white">{volunteer.name}</h2>
+                    <h2 id={titleId} className="text-xl font-black text-white"><bdi>{volunteer.name}</bdi></h2>
                     {volunteer.is_leader && (
                       <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black text-amber-300 border border-amber-400/30">
                         قائد
@@ -153,7 +156,7 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-white/60">الحالة التشغيلية:</span>
-                {getStatusBadge(volunteer.status)}
+                <VolunteerStatusBadge status={volunteer.status} />
               </div>
               {isHrOrAdmin && (
                 <button
@@ -231,40 +234,19 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* ── 1. البيانات الشخصية ────────────────────────────────────────── */}
             {activeTab === 'personal' && (
-              <div className="space-y-6">
-                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-                  <h4 className="text-sm font-black text-navy">بطاقة المتطوع</h4>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-slate-400 font-semibold">الاسم الرباعي</span>
-                      <p className="mt-1 font-bold text-slate-800">{volunteer.name}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 font-semibold">الإدارة الحالية</span>
-                      <p className="mt-1 font-bold text-slate-800">{volunteer.department_name?.trim() || 'غير محدد'}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 font-semibold">البريد الإلكتروني</span>
-                      <p className="mt-1 font-bold text-slate-800">{volunteer.email ?? '—'}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 font-semibold">الساعات التراكمية المعتمدة</span>
-                      <p className="mt-1 font-bold text-emerald-700">{volunteer.hours_logged} ساعة</p>
-                    </div>
+              <div className="space-y-4">
+                {profile.loading ? (
+                  <div className="py-8 text-center text-xs text-slate-400" role="status">
+                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-customBlue" />
+                    جارٍ تحميل بيانات المتطوع...
                   </div>
-                </div>
-
-                {/* The old HR-profile form was cancelled: the volunteer's data is the request they applied with. */}
-                <div className="rounded-3xl border border-customBlue/20 bg-customBlue/5 p-5 text-xs leading-relaxed text-navy space-y-2">
-                  <div className="flex items-center gap-2 font-black text-sm">
-                    <Info className="h-4 w-4 text-customBlue" aria-hidden="true" />
-                    مصدر بيانات المتطوع
-                  </div>
-                  <p className="text-slate-600">
-                    تأتي بيانات المتطوع من <strong>طلب التطوع</strong> الذي قدّمه عند الانضمام. أما الإدارة والحالة والنقاط والتقييمات
-                    فتُدار من هذه الشاشة.
-                  </p>
-                </div>
+                ) : profile.data?.forbidden ? (
+                  <VolunteerPersonalTabLimited volunteer={volunteer} />
+                ) : profile.error || !profile.data?.profile ? (
+                  <LoadError what="بيانات المتطوع" onRetry={profile.retry} />
+                ) : (
+                  <VolunteerPersonalTab volunteer={volunteer} profile={profile.data.profile} />
+                )}
               </div>
             )}
 
@@ -358,47 +340,21 @@ export default function VolunteerDetailDrawer({ volunteer, onClose, onOpenStatus
             {activeTab === 'activity' && (
               <div className="space-y-4">
                 <h4 className="text-xs font-black text-slate-700">
-                  سجل تغييرات الحالة والقرارات الإدارية:
+                  كل ما جرى لهذا المتطوع، من الأحدث إلى الأقدم:
                 </h4>
-                {logs.loading ? (
+                {activity.loading ? (
                   <div className="py-8 text-center text-xs text-slate-400" role="status">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-customBlue mb-2" />
+                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-customBlue" />
                     جارٍ تحميل سجل النشاط...
                   </div>
-                ) : logs.error ? (
-                  <LoadError what="سجل النشاط" onRetry={logs.retry} />
-                ) : statusLogs.length === 0 ? (
+                ) : activity.error ? (
+                  <LoadError what="سجل النشاط" onRetry={activity.retry} />
+                ) : activityItems.length === 0 ? (
                   <div className="rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
-                    لا توجد تغييرات حالة مسجلة حتى الآن. الحالة الحالية هي الحالة الأولية.
+                    لا توجد أحداث مسجلة لهذا المتطوع حتى الآن.
                   </div>
                 ) : (
-                  <div className="relative border-s-2 border-slate-200 ms-3 space-y-6">
-                    {statusLogs.map((log) => (
-                      <div key={log.id} className="relative ps-6">
-                        <span className="absolute -start-1.5 top-1.5 h-3 w-3 rounded-full bg-customBlue ring-4 ring-white" />
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-2">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {log.old_status && getStatusBadge(log.old_status)}
-                              <span className="text-slate-400">←</span>
-                              {getStatusBadge(log.new_status)}
-                            </div>
-                            <span className="text-[11px] font-mono text-slate-400">
-                              {log.date_formatted}
-                            </span>
-                          </div>
-                          <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-700 border border-slate-100">
-                            <span className="font-black text-slate-900 block mb-1">السبب المسجل:</span>
-                            {log.reason}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                            <Shield className="h-3 w-3 text-customBlue" />
-                            <span>نُفِّذ بواسطة: <strong>{log.changed_by_name}</strong></span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <VolunteerActivityTimeline items={activityItems} />
                 )}
               </div>
             )}

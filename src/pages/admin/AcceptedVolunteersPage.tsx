@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ElementType } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  Award,
-  Calendar,
+  AlertTriangle,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   Filter,
   Loader2,
@@ -12,88 +12,55 @@ import {
   Search,
   TrendingUp,
   UserCheck,
-  UserPlus,
   Users,
   X,
 } from 'lucide-react'
 import {
   fetchAcceptedVolunteers,
-  type AcceptedVolunteersMeta,
-  type ConvertVolunteerResult,
+  type AcceptedVolunteersFilterOptions,
   type VolunteerRequest,
 } from '@/api/volunteerApplicationApi'
+import AcceptedVolunteerDialog, { ConversionBadge } from '@/components/volunteer/AcceptedVolunteerDialog'
+import { isConvertedRequest, requestCvUrl } from '@/components/volunteer/volunteerRequestStatus'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { codeLabel } from '@/lib/volunteerRequestLabels'
 import { formatDate } from '@/utils/dateTime'
-import VolunteerRequestDetailModal from '@/components/volunteer/VolunteerRequestDetailModal'
-import ConvertVolunteerDialog from '@/components/volunteer/ConvertVolunteerDialog'
-import ResendCredentialsButton from '@/components/volunteer/ResendCredentialsButton'
-import { AnimatePresence, motion } from 'framer-motion'
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Constants
-───────────────────────────────────────────────────────────────────────── */
-
-const DEPARTMENTS = [
-  'البرامج والمسارات',
-  'الإعلام والتسويق',
-  'التقنية والدعم الفني',
-  'الموارد البشرية',
-  'الشراكات والعلاقات العامة',
-  'الصحة النفسية والوعي النفسية والوعي',
-  'الجودة والحوكمة',
-  'المالية',
-  'العمليات والتشغيل',
-]
+/**
+ * «المتطوعون المقبولون»: the volunteers whose application was accepted (converted or not yet), in the layout HR
+ * already knows from the old volunteer-profiles page (gradient header, stat cards, search and filters, table, pages).
+ *
+ * The page only LISTS and shows. A volunteer's name opens a read-only window with all their data; conversion into a
+ * member is done from the volunteer-requests page, never from here.
+ *
+ * What the server decides: the search text, every filter and the sort (one request per distinct query; a late answer
+ * to an older query is dropped), the counters, and the values the dropdowns offer. What stays here: the page of 20 rows
+ * and the «conversion» cards, which only narrow the rows that were loaded.
+ */
 
 const SORT_OPTIONS = [
-  { value: 'accepted_asc',  label: 'الأقدم قبولاً أولاً' },
+  { value: 'accepted_asc', label: 'الأقدم قبولاً أولاً' },
   { value: 'accepted_desc', label: 'الأحدث قبولاً أولاً' },
-  { value: 'name_asc',      label: 'الاسم أ-ي' },
-  { value: 'department',    label: 'حسب القسم' },
-  { value: 'city',          label: 'حسب المدينة' },
+  { value: 'name_asc', label: 'الاسم أ-ي' },
+  { value: 'department', label: 'حسب القسم' },
+  { value: 'city', label: 'حسب المدينة' },
 ]
 
-const AVAILABILITY_MAP: Record<string, { label: string; cls: string }> = {
-  full_time: { label: 'دوام كامل',       cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60' },
-  part_time: { label: 'دوام جزئي',       cls: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60' },
-  weekends:  { label: 'نهاية الأسبوع',  cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200/60' },
-  flexible:  { label: 'مرن',             cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60' },
-}
+const NEUTRAL_TONE = 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/60'
+const PAGE_SIZE = 20
+const SEARCH_DEBOUNCE_MS = 300
+const PER_PAGE = 200
 
-/* Predetermined widths — avoid Math.random() in render */
-const SKELETON_ROWS: string[][] = [
-  ['w-6','w-36','w-24','w-16','w-20','w-24','w-20','w-10','w-32'],
-  ['w-6','w-28','w-20','w-20','w-16','w-20','w-16','w-10','w-32'],
-  ['w-6','w-32','w-28','w-14','w-20','w-28','w-24','w-10','w-32'],
-  ['w-6','w-24','w-24','w-18','w-20','w-24','w-16','w-10','w-32'],
-  ['w-6','w-36','w-20','w-12','w-24','w-20','w-20','w-10','w-32'],
-]
+type StatusFilter = 'all' | 'converted' | 'pending'
 
-const DEPT_COLORS = [
-  'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60',
-  'bg-violet-50 text-violet-700 ring-1 ring-violet-200/60',
-  'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60',
-  'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60',
-  'bg-pink-50 text-pink-700 ring-1 ring-pink-200/60',
-  'bg-teal-50 text-teal-700 ring-1 ring-teal-200/60',
-  'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/60',
-  'bg-orange-50 text-orange-700 ring-1 ring-orange-200/60',
-  'bg-rose-50 text-rose-700 ring-1 ring-rose-200/60',
-]
+const FIELD =
+  'h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:ring-2 focus:ring-customBlue/20'
+const SMALL_FIELD =
+  'h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-customBlue'
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Pure utilities
-───────────────────────────────────────────────────────────────────────── */
-
-function hashStr(s: string): number {
-  let h = 0
-  for (const c of s) h = (h * 31 + c.charCodeAt(0)) & 0xffff
-  return h
-}
-
-const getDeptColor = (d: string) => DEPT_COLORS[hashStr(d) % DEPT_COLORS.length]
-
-/** Server-side query for the accepted-volunteers list. */
+/** Everything the server is asked for. */
 type VolunteersQuery = {
+  search: string
   sort: string
   dept: string
   city: string
@@ -103,218 +70,110 @@ type VolunteersQuery = {
   dateTo: string
 }
 
-/**
- * Pure I/O — no state plumbing, so both the fetch effect and the "refresh"/"retry"
- * handlers can call it and do their own `setState` around it.
- */
 function requestAcceptedVolunteers(query: VolunteersQuery) {
-  const params: Record<string, string> = { sort: query.sort, per_page: '200' }
-  if (query.dept)         params.desired_department = query.dept
-  if (query.city)         params.city               = query.city
-  if (query.availability) params.availability       = query.availability
-  if (query.hasCv)        params.has_cv             = query.hasCv
-  if (query.dateFrom)     params.date_from          = query.dateFrom
-  if (query.dateTo)       params.date_to            = query.dateTo
+  const params: Record<string, string> = { sort: query.sort, per_page: String(PER_PAGE) }
+  if (query.search) params.search = query.search
+  if (query.dept) params.desired_department = query.dept
+  if (query.city) params.city = query.city
+  if (query.availability) params.availability = query.availability
+  if (query.hasCv) params.has_cv = query.hasCv
+  if (query.dateFrom) params.date_from = query.dateFrom
+  if (query.dateTo) params.date_to = query.dateTo
   return fetchAcceptedVolunteers(params)
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   CountUp hook
-───────────────────────────────────────────────────────────────────────── */
+const LOAD_ERROR = 'تعذّر تحميل قائمة المتطوعين المقبولين.'
 
-function useCountUp(target: number, duration = 1200): number {
-  const [val, setVal] = useState(0)
-  const raf = useRef<number>(0)
+/* ── Dropdown values ──────────────────────────────────────────────────── */
 
-  useEffect(() => {
-    cancelAnimationFrame(raf.current)
-    if (target === 0) return
-    const t0 = Date.now()
-    const tick = () => {
-      const p = Math.min((Date.now() - t0) / duration, 1)
-      setVal(Math.round(target * (1 - Math.pow(1 - p, 3))))
-      if (p < 1) raf.current = requestAnimationFrame(tick)
-    }
-    raf.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf.current)
-  }, [target, duration])
+const EMPTY_OPTIONS: AcceptedVolunteersFilterOptions = { departments: [], cities: [], availabilities: [] }
 
-  // A zero target has nothing to animate — derive it during render instead of
-  // resetting the animated value from the effect.
-  return target === 0 ? 0 : val
+const sortedUnique = (values: Iterable<string>) => Array.from(new Set(Array.from(values).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'))
+
+/** An older server sends no `meta.filters`: the values seen in every list loaded so far stand in (and only grow). */
+function mergeOptions(prev: AcceptedVolunteersFilterOptions, rows: VolunteerRequest[]): AcceptedVolunteersFilterOptions {
+  return {
+    departments: sortedUnique([...prev.departments, ...rows.map((r) => r.desired_department ?? '')]),
+    cities: sortedUnique([...prev.cities, ...rows.map((r) => r.city ?? '')]),
+    availabilities: sortedUnique([...prev.availabilities, ...rows.map((r) => r.volunteer_days_availability ?? r.availability ?? '')]),
+  }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Skeleton / shimmer
-───────────────────────────────────────────────────────────────────────── */
+/** The chosen value is always offered, so a dropdown never loses the option it is showing. */
+const withSelected = (options: string[], selected: string) => (selected && !options.includes(selected) ? sortedUnique([...options, selected]) : options)
 
-function Shimmer({ className }: { className?: string }) {
-  return (
-    <div className={`relative overflow-hidden rounded-lg bg-slate-100 ${className ?? ''}`}>
-      <div className="absolute inset-0 animate-shimmer bg-emc-shimmer bg-[length:200%_100%]" />
-    </div>
-  )
+/* ── Small pieces ─────────────────────────────────────────────────────── */
+
+function Skeleton({ className }: { className: string }) {
+  return <div className={`animate-pulse rounded-lg bg-slate-100 ${className}`} />
 }
 
-function SkeletonCard() {
-  return (
-    <div className="rounded-2xl bg-white p-6 shadow-emc-xs ring-1 ring-slate-100">
-      <Shimmer className="mb-4 h-11 w-11 rounded-xl" />
-      <Shimmer className="mb-3 h-3 w-20" />
-      <Shimmer className="h-8 w-14" />
-    </div>
-  )
-}
-
-function SkeletonRow({ widths }: { widths: string[] }) {
-  return (
-    <tr className="border-b border-slate-50">
-      {widths.map((w, i) => (
-        <td key={i} className="px-5 py-5">
-          <Shimmer className={`h-4 ${w}`} />
-          {i === 1 && <Shimmer className="mt-2 h-3 w-20 opacity-60" />}
-        </td>
-      ))}
-    </tr>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   Tooltip
-───────────────────────────────────────────────────────────────────────── */
-
-function Tooltip({ children, label }: { children: React.ReactNode; label: string }) {
-  const [show, setShow] = useState(false)
-  return (
-    <div className="relative" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      {children}
-      <AnimatePresence>
-        {show && (
-          <motion.div
-            initial={{ opacity: 0, y: 3, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 3, scale: 0.92 }}
-            transition={{ duration: 0.1 }}
-            className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-ink-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-emc"
-          >
-            {label}
-            <span
-              className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2"
-              style={{ borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid #0C2A4B' }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   DepartmentBadge fixes Arabic text wrapping
-───────────────────────────────────────────────────────────────────────── */
-
-function DepartmentBadge({ dept }: { dept: string }) {
-  return (
-    <span
-      className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-[12px] font-bold ${getDeptColor(dept)}`}
-      style={{
-        maxWidth: '220px',
-        textAlign: 'center',
-        whiteSpace: 'normal',
-        lineHeight: '1.35',
-        wordBreak: 'keep-all',
-        overflowWrap: 'break-word',
-        hyphens: 'none',
-      }}
-    >
-      {dept}
-    </span>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   VolunteerAvatar
-───────────────────────────────────────────────────────────────────────── */
-
-function VolunteerAvatar({ name: _name }: { name: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="flex h-10 w-10 shrink-0 select-none items-center justify-center rounded-full bg-[#F1F5F9]"
-    >
-      <UserCheck size={18} className="text-[#64748B]" />
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   KPI Card
-───────────────────────────────────────────────────────────────────────── */
-
-interface KpiProps {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  onClick,
+  active,
+}: {
   label: string
-  value: number | string
-  icon: ElementType
-  iconBg: string
-  iconColor: string
-  accentGradient: string
-  delay?: number
-  isString?: boolean
-}
+  /** null = not known right now (the list failed): shown as a dash, never as the previous query's number. */
+  value: number | null
+  icon: typeof Users
+  tone: string
+  onClick?: () => void
+  active?: boolean
+}) {
+  const body = (
+    <>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${tone}`}>
+        <Icon size={16} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 text-right">
+        <span className="block text-lg font-black leading-tight text-deepBlue">{value ?? '—'}</span>
+        <span className="block text-[10px] font-bold text-slate-500">{label}</span>
+      </span>
+    </>
+  )
+  const base = 'flex items-center gap-3 rounded-xl border p-3'
 
-function KpiCard({ label, value, icon: Icon, iconBg, iconColor, accentGradient, delay = 0, isString = false }: KpiProps) {
-  const count = useCountUp(typeof value === 'number' ? value : 0)
-  const isLong = isString && typeof value === 'string' && value.length > 12
+  if (!onClick) return <div className={`${base} border-slate-200 bg-white`}>{body}</div>
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay, ease: [0.22, 0.61, 0.36, 1] }}
-      whileHover="hover"
-      variants={{ hover: { y: -4, transition: { duration: 0.2, ease: [0.22, 0.61, 0.36, 1] } } }}
-      className="group relative cursor-default overflow-hidden rounded-2xl bg-white p-6 shadow-kpi ring-1 ring-slate-100/80 transition-shadow duration-300 hover:shadow-emc-md hover:ring-slate-200"
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`${base} text-right transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40 ${
+        active ? 'border-customBlue bg-customBlue/5' : 'border-slate-200 bg-white hover:bg-slate-50'
+      }`}
     >
-      {/* Colored top accent bar */}
-      <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${accentGradient} opacity-80`} />
-
-      <div className="flex flex-col gap-3">
-        {/* Icon rotates via Framer variant propagation on parent hover */}
-        <motion.div
-          variants={{ hover: { rotate: 8, transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] } } }}
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}
-        >
-          <Icon size={20} className={iconColor} />
-        </motion.div>
-
-        <p className="text-[11px] font-bold tracking-normal text-muted-500">{label}</p>
-
-        <p className={`font-black leading-none text-ink-500 ${isLong ? 'text-base leading-snug' : 'text-3xl'}`}>
-          {isString ? value : count}
-        </p>
-      </div>
-    </motion.div>
+      {body}
+    </button>
   )
 }
 
+/** The availability as the volunteer wrote it (older rows hold a code, which is translated). */
+function AvailabilityChip({ value }: { value: string | null | undefined }) {
+  const text = codeLabel(value)
+  if (!text) return <span className="text-slate-300">—</span>
+
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${NEUTRAL_TONE}`}><bdi>{text}</bdi></span>
+}
+
+const TABLE_HEADS = ['المتطوع', 'القسم', 'المدينة', 'التفرغ', 'تاريخ القبول', 'الحالة', 'السيرة']
+
+type Selected = { id: number; snapshot: VolunteerRequest; opener: HTMLElement | null }
+
 /* ─────────────────────────────────────────────────────────────────────────
-   Main Page
+   Main page
 ───────────────────────────────────────────────────────────────────────── */
 
 export default function AcceptedVolunteersPage() {
-  const [items, setItems] = useState<VolunteerRequest[]>([])
-  const [meta, setMeta] = useState<AcceptedVolunteersMeta>({
-    total_accepted: 0,
-    total_converted: 0,
-    accepted_this_month: 0,
-    top_department: null,
-  })
-  const [listTotal, setListTotal] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  /* filters — unchanged */
+  /* filters: all of them but the conversion cards and the page are sent to the server */
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [filterDept, setFilterDept] = useState('')
   const [filterCity, setFilterCity] = useState('')
   const [filterAvailability, setFilterAvailability] = useState('')
@@ -323,111 +182,60 @@ export default function AcceptedVolunteersPage() {
   const [filterDateTo, setFilterDateTo] = useState('')
   const [sort, setSort] = useState('accepted_asc')
   const [showFilters, setShowFilters] = useState(false)
+  const [page, setPage] = useState(1)
 
-  /* modals */
-  const [selected, setSelected] = useState<VolunteerRequest | null>(null)
-  const [convertTarget, setConvertTarget] = useState<VolunteerRequest | null>(null)
+  const [selected, setSelected] = useState<Selected | null>(null)
 
-  /* ── Data loading ─────────────────────────────────────────────────── */
+  // One request per pause in typing, not one per keystroke.
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(search.trim()), SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(t)
+  }, [search])
+
+  /* ── Data: one request per distinct query; a superseded answer is never applied ─────────── */
   const query = useMemo<VolunteersQuery>(
-    () => ({
-      sort,
-      dept: filterDept,
-      city: filterCity,
-      availability: filterAvailability,
-      hasCv: filterHasCv,
-      dateFrom: filterDateFrom,
-      dateTo: filterDateTo,
-    }),
-    [sort, filterDept, filterCity, filterAvailability, filterHasCv, filterDateFrom, filterDateTo],
+    () => ({ search: debouncedSearch, sort, dept: filterDept, city: filterCity, availability: filterAvailability, hasCv: filterHasCv, dateFrom: filterDateFrom, dateTo: filterDateTo }),
+    [debouncedSearch, sort, filterDept, filterCity, filterAvailability, filterHasCv, filterDateFrom, filterDateTo],
+  )
+  const list = useRetryableLoad(() => requestAcceptedVolunteers(query), JSON.stringify(query))
+
+  const data = list.data
+  const loading = list.loading
+  const loadError = list.error ? LOAD_ERROR : null
+  const items = useMemo(() => data?.data ?? [], [data])
+  const listTotal = data?.pagination.total ?? null
+
+  // Dropdown values: the server's unfiltered lists; without them, the values seen so far (render-phase adjustment).
+  const [seenData, setSeenData] = useState<typeof data>(null)
+  const [pool, setPool] = useState<AcceptedVolunteersFilterOptions>(EMPTY_OPTIONS)
+  if (data && data !== seenData) {
+    setSeenData(data)
+    if (!data.meta.filters) setPool((prev) => mergeOptions(prev, data.data))
+  }
+  const options = data?.meta.filters ?? pool
+
+  /* ── The conversion cards narrow the loaded rows ──────────────────── */
+  const filtered = useMemo(
+    () => items.filter((r) => (statusFilter === 'converted' ? isConvertedRequest(r) : statusFilter === 'pending' ? !isConvertedRequest(r) : true)),
+    [items, statusFilter],
   )
 
-  // Return to the loading state during render when the server-side query changes, so
-  // the effect below never has to set it synchronously (react.dev "adjusting state").
-  const [seenQuery, setSeenQuery] = useState(query)
-  if (seenQuery !== query) {
-    setSeenQuery(query)
-    setLoading(true)
-    setLoadError(null)
-  }
+  const lastPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, lastPage)
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  // Re-read the list without the skeleton flash (used behind an open dialog); a failure keeps what is on screen.
-  const refreshQuietly = useCallback(async () => {
-    try {
-      const result = await requestAcceptedVolunteers(query)
-      setItems(result.data)
-      setMeta(result.meta)
-      setListTotal(result.pagination.total)
-    } catch {
-      /* the optimistic row stays; the refresh button reports a real failure */
+  /** Any filter change goes back to the first page. */
+  function changeFilter<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      setter(value)
+      setPage(1)
     }
-  }, [query])
-
-  // Imperative re-run from the refresh / retry buttons — outside an effect, so it may
-  // flip to the loading state synchronously.
-  const load = useCallback(async () => {
-    setLoadError(null)
-    setLoading(true)
-    try {
-      const result = await requestAcceptedVolunteers(query)
-      setItems(result.data)
-      setMeta(result.meta)
-      setListTotal(result.pagination.total)
-    } catch {
-      setLoadError('تعذّر تحميل قائمة المتطوعين المقبولين.')
-    } finally {
-      setLoading(false)
-    }
-  }, [query])
-
-  useEffect(() => {
-    let alive = true
-    void (async () => {
-      try {
-        const result = await requestAcceptedVolunteers(query)
-        if (!alive) return
-        setItems(result.data)
-        setMeta(result.meta)
-        setListTotal(result.pagination.total)
-      } catch {
-        if (!alive) return
-        setLoadError('تعذّر تحميل قائمة المتطوعين المقبولين.')
-      } finally {
-        if (alive) setLoading(false)
-      }
-    })()
-    return () => {
-      alive = false
-    }
-  }, [query])
-
-  /* ── Client-side search — unchanged ──────────────────────────────── */
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return items.filter((r) => {
-      if (!q) return true
-      const hay = `${r.full_name} ${r.email} ${r.phone ?? ''} ${r.city ?? ''} ${r.desired_department ?? ''}`.toLowerCase()
-      return hay.includes(q)
-    })
-  }, [items, search])
-
-  /* ── Callbacks — unchanged ────────────────────────────────────────── */
-  // The dialog stays open on its result (account / e-mail outcome); the row turns «تم التحويل» right away and the
-  // list + counters are re-read from the server, which is the source of truth for both.
-  function handleConverted(result: ConvertVolunteerResult) {
-    const updated = result.request
-    setItems((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
-    setSelected((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev))
-    void refreshQuietly()
-  }
-
-  function handleUpdated(updated: VolunteerRequest) {
-    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-    setSelected((prev) => (prev?.id === updated.id ? updated : prev))
   }
 
   function resetFilters() {
     setSearch('')
+    setDebouncedSearch('')
+    setStatusFilter('all')
     setFilterDept('')
     setFilterCity('')
     setFilterAvailability('')
@@ -435,510 +243,323 @@ export default function AcceptedVolunteersPage() {
     setFilterDateFrom('')
     setFilterDateTo('')
     setSort('accepted_asc')
+    setPage(1)
   }
 
   const hasActiveFilters = !!(
-    search || filterDept || filterCity || filterAvailability ||
+    search || statusFilter !== 'all' || filterDept || filterCity || filterAvailability ||
     filterHasCv || filterDateFrom || filterDateTo || sort !== 'accepted_asc'
   )
-  // «بانتظار التحويل» and «تم التحويل» must never both count the same request. With the whole unfiltered list in hand the
-  // rows themselves are the truth (and follow a conversion instantly); otherwise the server's counters are used as sent.
-  const listIsComplete = listTotal != null && listTotal <= items.length && !filterDept && !filterCity && !filterAvailability && !filterHasCv && !filterDateFrom && !filterDateTo
-  const convertedCount = listIsComplete ? items.filter((r) => r.is_converted).length : meta.total_converted
-  const pendingCount = listIsComplete ? items.filter((r) => !r.is_converted).length : meta.total_accepted
-
   const hasExtraFilters = !!(filterCity || filterAvailability || filterHasCv || filterDateFrom || filterDateTo)
 
-  const cities = useMemo(() => {
-    const s = new Set<string>()
-    items.forEach((r) => { if (r.city) s.add(r.city) })
-    return Array.from(s).sort()
-  }, [items])
+  // The counters are the server's, whatever the filters: converted + not yet converted = everyone accepted.
+  const convertedCount = data ? data.meta.total_converted : null
+  const pendingCount = data ? data.meta.total_accepted : null
+  const totalCount = convertedCount != null && pendingCount != null ? convertedCount + pendingCount : null
+
+  /* ── The open window: the row as the latest load has it; the snapshot while a reload is running ── */
+  const shown = selected ? (items.find((r) => r.id === selected.id) ?? selected.snapshot) : null
+
+  function openWindow(request: VolunteerRequest, opener: HTMLElement | null) {
+    setSelected({ id: request.id, snapshot: request, opener })
+  }
+
+  function closeWindow() {
+    const opener = selected?.opener
+    setSelected(null)
+    // After the window is gone, so the focus trap's own restore cannot win; for a click on the row it is the row's name button.
+    window.setTimeout(() => opener?.focus(), 0)
+  }
 
   /* ── Render ───────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#F8FAFC]" dir="rtl">
-
-      {/* ══ Hero Header ═══════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden border-b border-slate-200/80 bg-white">
-        <div className="pointer-events-none absolute inset-0 bg-emc-hero opacity-60" />
-        <div className="relative mx-auto max-w-7xl px-6 py-8">
-          <div className="flex items-center justify-between gap-6">
-
-            {/* RTL start (visual right): brand icon */}
-            <motion.div
-              initial={{ scale: 0.7, rotate: -15, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              transition={{ duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient shadow-emc-glow"
-            >
-              <UserCheck size={28} className="text-white" />
-            </motion.div>
-
-            {/* Center: title + subtitle */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 0.61, 0.36, 1] }}
-              className="flex-1 text-center"
-            >
-              <h1 className="text-[26px] font-black leading-tight text-ink-500 sm:text-3xl">
-                المتطوعون المقبولون
-              </h1>
-              <p className="mt-1.5 text-sm font-medium text-muted-500">
-                إدارة المتطوعين المقبولين قبل تحويلهم إلى أعضاء رسميين
-              </p>
-            </motion.div>
-
-            {/* RTL end (visual left): refresh */}
-            <motion.button
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 0.61, 0.36, 1] }}
-              type="button"
-              onClick={() => void load()}
-              disabled={loading}
-              aria-label="تحديث البيانات"
-              className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-emc-xs transition-all duration-150 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-600 hover:shadow-emc-sm disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-              تحديث
-            </motion.button>
-          </div>
+    <div dir="rtl" className="mx-auto max-w-7xl px-4 py-8">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-l from-customBlue to-deepBlue p-6 text-white shadow-lg">
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-2 text-xl font-black">
+            <UserCheck size={20} aria-hidden="true" /> المتطوعون المقبولون
+          </h1>
+          <p className="mt-1 text-sm font-semibold text-white/80">عرض بيانات المتطوعين الذين قُبلت طلباتهم ومتابعة حالتهم</p>
         </div>
+        <button
+          type="button"
+          onClick={list.retry}
+          disabled={loading}
+          aria-label="تحديث البيانات"
+          className="flex shrink-0 items-center gap-2 rounded-xl bg-white/15 px-3 py-2.5 text-xs font-black text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+          <span className="hidden sm:inline">تحديث</span>
+        </button>
       </div>
 
-      <div className="mx-auto max-w-8xl space-y-5 px-6 py-7">
+      {/* Stat cards */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="accepted-stats">
+        {loading ? (
+          [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[68px] rounded-xl" />)
+        ) : (
+          <>
+            <StatCard label="إجمالي المقبولين" value={totalCount} icon={Users} tone="bg-customBlue/10 text-customBlue" onClick={() => changeFilter(setStatusFilter)('all')} active={statusFilter === 'all'} />
+            <StatCard label="تم التحويل" value={convertedCount} icon={CheckCircle2} tone="bg-emerald-50 text-emerald-600" onClick={() => changeFilter(setStatusFilter)('converted')} active={statusFilter === 'converted'} />
+            <StatCard label="بانتظار التحويل" value={pendingCount} icon={UserCheck} tone="bg-amber-50 text-amber-600" onClick={() => changeFilter(setStatusFilter)('pending')} active={statusFilter === 'pending'} />
+            <StatCard label="مقبولون هذا الشهر" value={data ? data.meta.accepted_this_month : null} icon={TrendingUp} tone="bg-violet-50 text-violet-600" />
+          </>
+        )}
+      </div>
 
-        {/* ══ KPI Cards ════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {loading ? (
-            <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
-          ) : (
-            <>
-              <KpiCard
-                label="بانتظار التحويل" value={pendingCount}
-                icon={UserCheck} iconBg="bg-emerald-50" iconColor="text-emerald-600"
-                accentGradient="from-emerald-400 to-teal-400" delay={0}
-              />
-              <KpiCard
-                label="تم التحويل" value={convertedCount}
-                icon={CheckCircle2} iconBg="bg-sky-50" iconColor="text-sky-600"
-                accentGradient="from-sky-400 to-blue-500" delay={0.1}
-              />
-              <KpiCard
-                label="مقبولون هذا الشهر" value={meta.accepted_this_month}
-                icon={TrendingUp} iconBg="bg-violet-50" iconColor="text-violet-600"
-                accentGradient="from-violet-400 to-purple-500" delay={0.2}
-              />
-              <KpiCard
-                label="أكثر قسم طلباً" value={meta.top_department ?? '—'}
-                icon={Award} iconBg="bg-amber-50" iconColor="text-amber-600"
-                accentGradient="from-amber-400 to-orange-400" delay={0.3} isString
-              />
-            </>
-          )}
-        </div>
+      {/* Filters */}
+      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-52 flex-1">
+            <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => changeFilter(setSearch)(e.target.value)}
+              placeholder="بحث بالاسم أو البريد أو الهاتف..."
+              aria-label="بحث في المتطوعين المقبولين"
+              className={`${FIELD} w-full pr-9 pl-3`}
+            />
+          </div>
 
-        {/* ══ Filter Toolbar ═══════════════════════════════════════════ */}
-        <div className="rounded-2xl bg-white p-4 shadow-emc-xs ring-1 ring-slate-100">
-          <div className="flex flex-wrap items-center gap-2.5">
+          <select value={filterDept} onChange={(e) => changeFilter(setFilterDept)(e.target.value)} aria-label="تصفية حسب القسم" className={`${FIELD} min-w-40`}>
+            <option value="">كل الأقسام</option>
+            {withSelected(options.departments, filterDept).map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
 
-            {/* Search grows */}
-            <div className="relative min-w-[180px] flex-1">
-              <Search size={15} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="بحث بالاسم أو البريد أو الهاتف..."
-                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-10 pl-4 text-sm font-medium text-ink-500 placeholder:text-muted-400 transition-all duration-150 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/15"
-              />
-            </div>
+          <select value={sort} onChange={(e) => changeFilter(setSort)(e.target.value)} aria-label="ترتيب القائمة" className={`${FIELD} min-w-40`}>
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
 
-            {/* Department */}
-            <select
-              value={filterDept}
-              onChange={(e) => setFilterDept(e.target.value)}
-              className="h-10 min-w-[148px] rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-all duration-150 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/15"
-            >
-              <option value="">جميع الأقسام</option>
-              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            aria-expanded={showFilters}
+            aria-controls="accepted-extra-filters"
+            className={`flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40 ${
+              showFilters || hasExtraFilters
+                ? 'border-customBlue bg-customBlue/5 text-customBlue'
+                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Filter size={14} aria-hidden="true" />
+            فلاتر
+            {hasExtraFilters && <span className="h-2 w-2 rounded-full bg-customBlue" aria-label="فلاتر مفعّلة" />}
+            <ChevronDown size={12} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
 
-            {/* Sort */}
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="h-10 min-w-[158px] rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-all duration-150 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/15"
-            >
-              {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-
-            {/* More Filters */}
+          {hasActiveFilters && (
             <button
               type="button"
-              onClick={() => setShowFilters((v) => !v)}
-              className={`flex h-10 items-center gap-2 rounded-xl border px-4 text-sm font-bold transition-all duration-150 ${
-                showFilters || hasExtraFilters
-                  ? 'border-brand-300 bg-brand-50 text-brand-600'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200 hover:bg-brand-50/60 hover:text-brand-600'
-              }`}
+              onClick={resetFilters}
+              className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/60 px-3 text-xs font-black text-red-600 transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
             >
-              <Filter size={14} />
-              فلاتر
-              {hasExtraFilters && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[9px] font-black text-white">!</span>
-              )}
-              <ChevronDown size={12} className={`transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
+              <X size={13} aria-hidden="true" />
+              إعادة تعيين
             </button>
-
-            {/* Reset */}
-            <AnimatePresence>
-              {hasActiveFilters && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85 }}
-                  transition={{ duration: 0.15 }}
-                  type="button"
-                  onClick={resetFilters}
-                  className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/60 px-3.5 text-sm font-bold text-red-600 transition-all duration-150 hover:bg-red-100"
-                >
-                  <X size={13} />
-                  إعادة تعيين
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Expanded filter panel */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="mt-4 border-t border-slate-100 pt-4">
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">المدينة</label>
-                      <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}
-                        className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
-                        <option value="">الكل</option>
-                        {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">التفرغ</label>
-                      <select value={filterAvailability} onChange={(e) => setFilterAvailability(e.target.value)}
-                        className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
-                        <option value="">الكل</option>
-                        <option value="full_time">دوام كامل</option>
-                        <option value="part_time">دوام جزئي</option>
-                        <option value="weekends">عطلة نهاية الأسبوع</option>
-                        <option value="flexible">مرن</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">السيرة الذاتية</label>
-                      <select value={filterHasCv} onChange={(e) => setFilterHasCv(e.target.value)}
-                        className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none">
-                        <option value="">الكل</option>
-                        <option value="yes">لديه سيرة ذاتية</option>
-                        <option value="no">بدون سيرة ذاتية</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">القبول من</label>
-                      <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)}
-                        className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none" />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-black tracking-normal text-muted-400">القبول إلى</label>
-                      <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)}
-                        className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm font-medium text-slate-700 focus:border-brand-400 focus:outline-none" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          )}
         </div>
 
-        {/* ══ Error banner ═════════════════════════════════════════════ */}
-        {loadError && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4"
-          >
-            <p className="flex-1 text-sm font-bold text-red-600">{loadError}</p>
-            <button type="button" onClick={() => void load()}
-              className="rounded-xl border border-red-200 bg-white px-4 py-2 text-xs font-black text-red-600 transition hover:bg-red-50">
-              إعادة المحاولة
-            </button>
-          </motion.div>
+        {showFilters && (
+          <div id="accepted-extra-filters" className="mt-3 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div>
+              <label htmlFor="accepted-filter-city" className="mb-1 block text-[11px] font-black text-slate-400">المدينة</label>
+              <select id="accepted-filter-city" value={filterCity} onChange={(e) => changeFilter(setFilterCity)(e.target.value)} className={SMALL_FIELD}>
+                <option value="">الكل</option>
+                {withSelected(options.cities, filterCity).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="accepted-filter-availability" className="mb-1 block text-[11px] font-black text-slate-400">التفرغ</label>
+              <select id="accepted-filter-availability" value={filterAvailability} onChange={(e) => changeFilter(setFilterAvailability)(e.target.value)} className={SMALL_FIELD}>
+                <option value="">الكل</option>
+                {withSelected(options.availabilities, filterAvailability).map((a) => (
+                  <option key={a} value={a}>{codeLabel(a)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="accepted-filter-cv" className="mb-1 block text-[11px] font-black text-slate-400">السيرة الذاتية</label>
+              <select id="accepted-filter-cv" value={filterHasCv} onChange={(e) => changeFilter(setFilterHasCv)(e.target.value)} className={SMALL_FIELD}>
+                <option value="">الكل</option>
+                <option value="yes">لديه سيرة ذاتية</option>
+                <option value="no">بدون سيرة ذاتية</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="accepted-filter-from" className="mb-1 block text-[11px] font-black text-slate-400">القبول من</label>
+              <input id="accepted-filter-from" type="date" value={filterDateFrom} onChange={(e) => changeFilter(setFilterDateFrom)(e.target.value)} className={SMALL_FIELD} />
+            </div>
+            <div>
+              <label htmlFor="accepted-filter-to" className="mb-1 block text-[11px] font-black text-slate-400">القبول إلى</label>
+              <input id="accepted-filter-to" type="date" value={filterDateTo} onChange={(e) => changeFilter(setFilterDateTo)(e.target.value)} className={SMALL_FIELD} />
+            </div>
+          </div>
         )}
-
-        {/* ══ Table Card ═══════════════════════════════════════════════ */}
-        <div className="overflow-hidden rounded-2xl bg-white shadow-emc-xs ring-1 ring-slate-100">
-
-          {/* Bar: result count */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <p className="text-sm font-bold text-muted-500">
-              {loading
-                ? <span className="flex items-center gap-2 text-muted-400"><Loader2 size={13} className="animate-spin" />جارٍ التحميل...</span>
-                : <><span className="font-black text-ink-500">{filtered.length}</span>{' '}من{' '}<span className="font-black text-ink-500">{items.length}</span>{' '}متطوع مقبول</>
-              }
-            </p>
-          </div>
-
-          {/* ── Loading skeleton ─────────────────────────────────────── */}
-          {loading && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60">
-                    {['#','المتطوع','القسم','المدينة','التفرغ','تاريخ القبول','قُبل بواسطة','CV','الإجراءات'].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black tracking-normal text-muted-400">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {SKELETON_ROWS.map((ws, i) => <SkeletonRow key={i} widths={ws} />)}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── Empty state ──────────────────────────────────────────── */}
-          {!loading && !loadError && filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <motion.div
-                initial={{ scale: 0.75, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-                className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100"
-              >
-                <Users size={36} className="text-slate-300" />
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <p className="text-base font-black text-slate-400">
-                  {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر المحددة' : 'لا يوجد متطوعون مقبولون في انتظار التحويل'}
-                </p>
-                <p className="mt-1.5 text-sm font-medium text-slate-400">
-                  {hasActiveFilters ? 'جرّب تعديل الفلاتر أو إعادة تعيينها' : 'ستظهر هنا طلبات التطوع المقبولة'}
-                </p>
-                {hasActiveFilters && (
-                  <button type="button" onClick={resetFilters}
-                    className="mt-4 rounded-xl bg-brand-50 px-5 py-2 text-sm font-bold text-brand-600 transition hover:bg-brand-100">
-                    إعادة تعيين الفلاتر
-                  </button>
-                )}
-              </motion.div>
-            </div>
-          )}
-
-          {/* ── Data table ───────────────────────────────────────────── */}
-          {!loading && filtered.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60">
-                    {['#','المتطوع','القسم','المدينة','التفرغ','تاريخ القبول','قُبل بواسطة','CV','الإجراءات'].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black tracking-normal text-muted-400">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <AnimatePresence mode="popLayout">
-                    {filtered.map((r, index) => {
-                      const avail = r.availability
-                        ? (AVAILABILITY_MAP[r.availability] ?? { label: r.availability, cls: 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/60' })
-                        : null
-
-                      return (
-                        <motion.tr
-                          key={r.id}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -30, scale: 0.98 }}
-                          transition={{
-                            duration: 0.28,
-                            delay: Math.min(index * 0.04, 0.5),
-                            ease: [0.22, 0.61, 0.36, 1],
-                          }}
-                          className={`group border-b border-slate-50 transition-colors duration-150 ${
-                            index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'
-                          } hover:bg-brand-50/50`}
-                        >
-                          {/* # */}
-                          <td className="px-5 py-5">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-50 text-[11px] font-black text-ink-400">
-                              {index + 1}
-                            </span>
-                          </td>
-
-                          {/* Volunteer */}
-                          <td className="px-5 py-5">
-                            <button
-                              type="button"
-                              onClick={() => setSelected(r)}
-                              className="flex items-center gap-3 text-right"
-                            >
-                              <VolunteerAvatar name={r.full_name} />
-                              <div>
-                                <p className="text-[15px] font-black leading-tight text-ink-500 transition-colors duration-100 group-hover:text-brand-600">
-                                  {r.full_name}
-                                </p>
-                                <p className="mt-0.5 text-[12px] font-medium text-muted-400">{r.email}</p>
-                                {r.phone && <p className="text-[11px] font-medium text-muted-400">{r.phone}</p>}
-                              </div>
-                            </button>
-                          </td>
-
-                          {/* Department */}
-                          <td className="px-5 py-5">
-                            {r.desired_department
-                              ? <DepartmentBadge dept={r.desired_department} />
-                              : <span className="text-slate-300">—</span>
-                            }
-                          </td>
-
-                          {/* City */}
-                          <td className="px-5 py-5">
-                            <span className="text-[13px] font-semibold text-slate-600">{r.city ?? '—'}</span>
-                          </td>
-
-                          {/* Availability */}
-                          <td className="px-5 py-5">
-                            {avail
-                              ? <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${avail.cls}`}>{avail.label}</span>
-                              : <span className="text-slate-300">—</span>
-                            }
-                          </td>
-
-                          {/* Accepted at */}
-                          <td className="px-5 py-5">
-                            {r.accepted_at
-                              ? (
-                                <div className="flex items-center gap-1.5 text-[12px] font-medium text-muted-500">
-                                  <Calendar size={12} className="shrink-0 text-muted-400" />
-                                  {formatDate(r.accepted_at)}
-                                </div>
-                              )
-                              : <span className="text-slate-300">—</span>
-                            }
-                          </td>
-
-                          {/* Accepted by */}
-                          <td className="px-5 py-5">
-                            <span className="text-[12px] font-medium text-muted-500">
-                              {r.accepted_by_name ?? r.accepted_by?.name ?? '—'}
-                            </span>
-                          </td>
-
-                          {/* CV */}
-                          <td className="px-5 py-5">
-                            {(r.cv_view_url ?? r.cv_download_url) ? (
-                              <div className="flex items-center gap-1.5">
-                                <Tooltip label="عرض السيرة">
-                                  <a
-                                    href={r.cv_view_url ?? r.cv_download_url ?? undefined}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label="عرض السيرة الذاتية"
-                                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-muted-400 transition-all duration-150 hover:scale-110 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600"
-                                  >
-                                    <Eye size={14} />
-                                  </a>
-                                </Tooltip>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-slate-300">—</span>
-                            )}
-                          </td>
-
-                          {/* Actions */}
-                          <td className="px-5 py-5">
-                            <div className="flex items-center gap-2">
-                              {/* Convert primary action, first in RTL order */}
-                              {!r.is_converted ? (
-                                <button
-                                  type="button"
-                                  onClick={() => setConvertTarget(r)}
-                                  data-volunteer-row-action={r.id}
-                                  className="flex h-[44px] items-center justify-center gap-2 rounded-[14px] bg-gradient-to-l from-emerald-600 to-teal-500 px-5 text-[13px] font-bold text-white shadow-sm shadow-emerald-100 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-emerald-200 active:translate-y-0"
-                                  style={{ minWidth: '148px', whiteSpace: 'nowrap', lineHeight: 1 }}
-                                >
-                                  <UserPlus size={14} className="shrink-0" />
-                                  تحويل إلى عضو
-                                </button>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-600 ring-1 ring-emerald-200/60">
-                                  <CheckCircle2 size={12} />
-                                  تم التحويل
-                                </span>
-                              )}
-                              {r.is_converted ? (
-                                <ResendCredentialsButton
-                                  requestId={r.id}
-                                  rowActionId={r.id}
-                                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-bold text-slate-600 transition-all duration-150 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 disabled:opacity-50"
-                                />
-                              ) : null}
-
-                              {/* View ghost icon button */}
-                              <button
-                                type="button"
-                                onClick={() => setSelected(r)}
-                                aria-label="عرض تفاصيل المتطوع"
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-muted-400 transition-all duration-150 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600"
-                              >
-                                <Eye size={15} />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      )
-                    })}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* ── Detail modal ──────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {selected && (
-          <VolunteerRequestDetailModal
-            req={selected}
-            onClose={() => setSelected(null)}
-            onUpdated={handleUpdated}
-            onOpenConvert={(req) => { setSelected(null); setConvertTarget(req) }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Load error: said out loud, with the way to repeat it */}
+      {loadError && (
+        <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+          <p className="flex-1 text-sm font-bold text-red-600">{loadError}</p>
+          <button
+            type="button"
+            onClick={list.retry}
+            className="rounded-xl border border-red-200 bg-white px-4 py-2 text-xs font-black text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
 
-      {/* ── Convert dialog ────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {convertTarget && (
-          <ConvertVolunteerDialog
-            key={convertTarget.id}
-            request={convertTarget}
-            onClose={() => setConvertTarget(null)}
-            onConverted={handleConverted}
-            onListStale={() => void refreshQuietly()}
-            returnFocusTo={() => document.querySelector<HTMLElement>(`[data-volunteer-row-action="${convertTarget.id}"]`)}
-          />
-        )}
-      </AnimatePresence>
+      {/* The list is longer than what was loaded: say so, never pretend it is complete */}
+      {!loading && !loadError && listTotal != null && listTotal > items.length && (
+        <div role="status" data-testid="truncation-warning" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold leading-6 text-amber-900">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
+          <p>يُعرض أول {items.length} من أصل {listTotal} متطوع فقط. استخدم البحث أو الفلاتر للوصول إلى الباقي.</p>
+        </div>
+      )}
+
+      {/* Table */}
+      {loading ? (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-busy="true" data-testid="accepted-skeleton">
+          <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-400" role="status">
+            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            جارٍ التحميل...
+          </div>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 border-b border-slate-50 px-4 py-4">
+              <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-40" />
+                <Skeleton className="h-3 w-24 opacity-60" />
+              </div>
+              <Skeleton className="hidden h-4 w-24 sm:block" />
+              <Skeleton className="hidden h-4 w-16 sm:block" />
+            </div>
+          ))}
+        </div>
+      ) : loadError ? null : filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+          <Users size={32} className="mx-auto mb-3 text-slate-300" aria-hidden="true" />
+          <p className="text-sm font-black text-slate-500">
+            {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر المحددة' : 'لا يوجد متطوعون مقبولون حالياً'}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-400">
+            {hasActiveFilters ? 'جرّب تعديل الفلاتر أو إعادة تعيينها' : 'ستظهر هنا طلبات التطوع المقبولة'}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-4 rounded-xl bg-customBlue/10 px-5 py-2 text-xs font-black text-customBlue transition hover:bg-customBlue/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40"
+            >
+              إعادة تعيين الفلاتر
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <p className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500" data-testid="accepted-count">
+            <span className="font-black text-deepBlue">{filtered.length}</span> من <span className="font-black text-deepBlue">{listTotal ?? items.length}</span> متطوع مقبول
+          </p>
+          <table className="w-full min-w-[760px] text-right text-xs">
+            <thead className="bg-slate-50 text-[10px] font-black text-slate-400">
+              <tr>
+                {TABLE_HEADS.map((h) => (
+                  <th key={h} scope="col" className="px-4 py-3">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {pageRows.map((r) => {
+                const cvUrl = requestCvUrl(r)
+
+                return (
+                  <tr
+                    key={r.id}
+                    onClick={(e) => {
+                      // A click on the name button or the CV link does its own thing; anywhere else on the row opens the window,
+                      // and the name button of that row is where focus comes back to.
+                      if ((e.target as HTMLElement).closest('a, button')) return
+                      openWindow(r, e.currentTarget.querySelector<HTMLElement>('button[data-volunteer-name]'))
+                    }}
+                    className="cursor-pointer transition-colors hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        data-volunteer-name={r.id}
+                        onClick={(e) => openWindow(r, e.currentTarget)}
+                        aria-haspopup="dialog"
+                        className="block max-w-[260px] rounded-lg text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40"
+                      >
+                        <span className="block truncate text-[13px] font-black text-deepBlue underline-offset-4 hover:text-customBlue hover:underline"><bdi>{r.full_name}</bdi></span>
+                      </button>
+                      <span className="block truncate text-[10px] font-semibold text-slate-400" dir="ltr" style={{ textAlign: 'right' }}>{r.email}</span>
+                      {r.phone && <span className="block truncate text-[10px] font-semibold text-slate-400" dir="ltr" style={{ textAlign: 'right' }}>{r.phone}</span>}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-slate-600">{r.desired_department ? <bdi>{r.desired_department}</bdi> : <span className="text-slate-300">—</span>}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-600">{r.city ? <bdi>{r.city}</bdi> : <span className="text-slate-300">—</span>}</td>
+                    <td className="px-4 py-3"><AvailabilityChip value={r.volunteer_days_availability ?? r.availability} /></td>
+                    <td className="px-4 py-3 font-semibold text-slate-600">{r.accepted_at ? formatDate(r.accepted_at) : <span className="text-slate-300">—</span>}</td>
+                    <td className="px-4 py-3"><ConversionBadge converted={isConvertedRequest(r)} /></td>
+                    <td className="px-4 py-3">
+                      {cvUrl ? (
+                        <a
+                          href={cvUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`عرض السيرة الذاتية للمتطوع ${r.full_name}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-black text-slate-600 transition hover:border-customBlue hover:bg-customBlue/5 hover:text-customBlue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40"
+                        >
+                          <Eye size={13} aria-hidden="true" />
+                          عرض
+                        </a>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && !loadError && lastPage > 1 && (
+        <nav aria-label="صفحات القائمة" className="mt-4 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => setPage(currentPage - 1)}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold disabled:opacity-40"
+          >
+            <ChevronRight size={13} aria-hidden="true" />
+            السابق
+          </button>
+          <span className="text-xs font-bold text-slate-500">{currentPage} / {lastPage}</span>
+          <button
+            type="button"
+            disabled={currentPage >= lastPage}
+            onClick={() => setPage(currentPage + 1)}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold disabled:opacity-40"
+          >
+            التالي
+            <ChevronLeft size={13} aria-hidden="true" />
+          </button>
+        </nav>
+      )}
+
+      {shown && <AcceptedVolunteerDialog request={shown} onClose={closeWindow} />}
     </div>
   )
 }

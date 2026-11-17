@@ -36,9 +36,15 @@ export interface VolunteerFormState {
   personal_skills: string[]
   skill_level_rating: number
   technical_tools: string[]
+  /** Optional: languages the applicant speaks. */
+  languages: string[]
   value_add_contributions: string
+  /** Optional: a short plain-text bio, at most PROFESSIONAL_BIO_MAX_LENGTH characters. */
+  professional_bio: string
   portfolio_link_status: string
   portfolio_url: string
+  /** Optional: an http(s) link to the applicant's LinkedIn profile. */
+  linkedin_url: string
   cv_file: File | null
 
   // المستوى الرابع
@@ -57,8 +63,12 @@ export interface VolunteerFormState {
   quit_reasons: string[]
   suggestions: string
   notes: string
+  /** Optional yes/no on showing the professional data; null = not answered, and then nothing is sent. */
+  professional_profile_consent: boolean | null
   agree_terms: boolean
 }
+
+export const PROFESSIONAL_BIO_MAX_LENGTH = 500
 
 export type VolunteerFieldKey = keyof VolunteerFormState
 
@@ -90,9 +100,12 @@ export const initialVolunteerForm: VolunteerFormState = {
   personal_skills: [],
   skill_level_rating: 3,
   technical_tools: [],
+  languages: [],
   value_add_contributions: '',
+  professional_bio: '',
   portfolio_link_status: '',
   portfolio_url: '',
+  linkedin_url: '',
   cv_file: null,
 
   motivation_ratings: {},
@@ -109,6 +122,7 @@ export const initialVolunteerForm: VolunteerFormState = {
   quit_reasons: [],
   suggestions: '',
   notes: '',
+  professional_profile_consent: null,
   agree_terms: false,
 }
 
@@ -120,10 +134,11 @@ export const FIELD_STEP: Record<VolunteerFieldKey, number> = {
   education_level: 2, current_status: 2, job_title: 2, specialization: 2, volunteer_days_availability: 2, volunteer_days: 2,
   preferred_time_slot: 2, daily_hours: 2, in_person_capable: 2, remote_capable: 2,
   has_previous_volunteering: 3, volunteering_organizations: 3, volunteering_duration: 3, past_volunteer_tasks: 3, personal_skills: 3,
-  skill_level_rating: 3, technical_tools: 3, value_add_contributions: 3, portfolio_link_status: 3, portfolio_url: 3, cv_file: 3,
+  skill_level_rating: 3, technical_tools: 3, languages: 3, value_add_contributions: 3, professional_bio: 3, portfolio_link_status: 3, portfolio_url: 3,
+  linkedin_url: 3, cv_file: 3,
   motivation_ratings: 4, commitment_ratings: 4, situational_responses: 4, expected_duration: 4, commitment_three_months: 4,
   reasons_for_applying: 5, expected_gains: 5, primary_value_department: 5, department_skills: 5, preferred_work_environment: 5,
-  quit_reasons: 5, suggestions: 5, notes: 5, agree_terms: 5,
+  quit_reasons: 5, suggestions: 5, notes: 5, professional_profile_consent: 5, agree_terms: 5,
 }
 
 /** How each field is named in a sentence. */
@@ -135,12 +150,13 @@ export const FIELD_LABEL: Record<VolunteerFieldKey, string> = {
   in_person_capable: 'المشاركة الحضورية', remote_capable: 'المشاركة عن بُعد',
   has_previous_volunteering: 'الخبرة التطوعية السابقة', volunteering_organizations: 'الجهات التي تطوعت معها', volunteering_duration: 'مدة الخبرة التطوعية',
   past_volunteer_tasks: 'المهام السابقة', personal_skills: 'المهارات', skill_level_rating: 'مستوى المهارات', technical_tools: 'الأدوات التقنية',
+  languages: 'اللغات', professional_bio: 'النبذة التعريفية', linkedin_url: 'رابط LinkedIn',
   value_add_contributions: 'ما تستطيع تقديمه للمؤسسة', portfolio_link_status: 'نماذج الأعمال', portfolio_url: 'رابط نماذج الأعمال', cv_file: 'السيرة الذاتية',
   motivation_ratings: 'مقياس الدافعية', commitment_ratings: 'مقياس الجدية والالتزام', situational_responses: 'أسئلة المواقف العملية',
   expected_duration: 'مدة الاستمرار المتوقعة', commitment_three_months: 'الالتزام لثلاثة أشهر',
   reasons_for_applying: 'أسباب التقديم', expected_gains: 'ما تتوقع الحصول عليه', primary_value_department: 'الإدارة الأنسب لمهاراتك',
   department_skills: 'مهاراتك في الإدارة', preferred_work_environment: 'بيئة العمل المفضلة', quit_reasons: 'أسباب التوقف',
-  suggestions: 'الاقتراحات', notes: 'الملاحظات', agree_terms: 'الموافقة على استخدام البيانات',
+  suggestions: 'الاقتراحات', notes: 'الملاحظات', professional_profile_consent: 'الموافقة على عرض البيانات المهنية', agree_terms: 'الموافقة على استخدام البيانات',
 }
 
 /**
