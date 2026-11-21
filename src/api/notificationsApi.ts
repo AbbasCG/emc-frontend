@@ -48,6 +48,7 @@ function coalesceType(raw: unknown): NotificationType {
     'session_scheduled',
     'attendance_marked',
     'ticket_resolved',
+    'ticket_assigned',
     'suggestion_approved',
     'suggestion_implemented',
   ]

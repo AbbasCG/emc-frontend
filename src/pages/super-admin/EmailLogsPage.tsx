@@ -34,6 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
   assignment_submitted:       'تسليم واجب',
   assignment_graded:          'تقييم واجب',
   ticket_resolved:            'حل بلاغ',
+  ticket_assigned:            'إسناد تذكرة',
   suggestion_approved:        'اعتماد مقترح',
   suggestion_implemented:     'إضافة مقترح إلى النظام',
   assignment_reminder:        'تذكير واجب',

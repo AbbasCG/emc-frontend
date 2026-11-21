@@ -49,6 +49,7 @@ const icons: Record<NotificationType, typeof Bell> = {
   session_scheduled:         Video,
   attendance_marked:         UserCheck,
   ticket_resolved:           ClipboardCheck,
+  ticket_assigned:           UserCheck,
   suggestion_approved:       UserCheck,
   suggestion_implemented:    Lightbulb,
 }
