@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { CheckCircle2, PlayCircle, RotateCcw, ThumbsDown, UserPlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CalendarClock, CheckCircle2, PlayCircle, RotateCcw, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
 import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
 import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal';
@@ -9,6 +9,9 @@ import { RejectTaskModal } from '@/components/tickets/modals/RejectTaskModal';
 import { CompleteTaskModal } from '@/components/tickets/modals/CompleteTaskModal';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
 import { NestedLayer } from '@/components/ui/NestedLayer';
+import { PriorityPill } from '@/components/tickets/ops/TicketBadges';
+import { formatDateTime } from '@/components/tickets/ops/ticketOpsUi';
+import { cn } from '@/lib/utils';
 import toast from '@/lib/toast';
 
 type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | null;
@@ -17,6 +20,19 @@ export interface TicketActionCenterProps {
   ticket: Ticket;
   /** Called after any action succeeds — the caller re-fetches the canonical ticket. */
   onChanged: () => void;
+  /**
+   * Opened from the "ticket assigned to you" email / notification
+   * (`?review=assigned`): the card scrolls into view and is highlighted so the
+   * assignee lands on accept / decline. Purely presentational — what is shown
+   * is still decided by `ticket.capabilities`.
+   */
+  reviewMode?: boolean;
+  /**
+   * The signed-in user's id. `accept_task` is also true for global roles on
+   * anyone's ticket, so the "assigned to you" panel additionally requires the
+   * viewer to be the actual assignee.
+   */
+  currentUserId?: number | null;
 }
 
 /**
@@ -33,12 +49,22 @@ export interface TicketActionCenterProps {
  * table (or, for accept/reject-task/complete-task, the same backend endpoint
  * AssigneeWorkspacePage already calls) uses — no second workflow engine.
  */
-export function TicketActionCenter({ ticket, onChanged }: TicketActionCenterProps) {
+export function TicketActionCenter({ ticket, onChanged, reviewMode = false, currentUserId = null }: TicketActionCenterProps) {
   const [modal, setModal] = useState<ModalKind>(null);
   const [acceptConfirmOpen, setAcceptConfirmOpen] = useState(false);
   const [accepting, setAccepting] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const caps = ticket.capabilities;
+  // The assignee still has to answer: accept, or decline with a reason.
+  const assigneeId = ticket.assignee?.id ?? ticket.assigned_to_id ?? null;
+  const awaitingAssigneeReply =
+    Boolean(caps?.accept_task) && currentUserId != null && assigneeId != null && Number(assigneeId) === Number(currentUserId);
+  const highlight = reviewMode && awaitingAssigneeReply;
+
+  useEffect(() => {
+    if (highlight) cardRef.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+  }, [highlight]);
   if (!caps) return null;
 
   const close = () => setModal(null);
@@ -72,8 +98,40 @@ export function TicketActionCenter({ ticket, onChanged }: TicketActionCenterProp
   const reassignIcon = ticket.assignee ? <RotateCcw className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3" data-testid="ticket-action-center">
+    <div
+      ref={cardRef}
+      className={cn(
+        'bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 scroll-mt-6',
+        highlight && 'border-blue-300 ring-2 ring-blue-200',
+      )}
+      data-testid="ticket-action-center"
+      data-review-mode={highlight ? 'true' : undefined}
+    >
       <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">إجراءات التذكرة</h3>
+
+      {awaitingAssigneeReply && (
+        <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-2" data-testid="assignment-review-panel">
+          <div className="flex items-start gap-2.5 text-blue-900">
+            <UserCheck className="w-5 h-5 shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="space-y-1 min-w-0">
+              <p className="text-sm font-extrabold">أُسندت إليك هذه التذكرة وهي بانتظار ردّك</p>
+              <p className="text-xs leading-6 text-blue-800">
+                راجع الوصف والمرفقات أدناه، ثم اضغط «بدء المعالجة» إن كانت ضمن اختصاصك،
+                أو «اعتذار عن الاستلام» مع ذكر السبب ليُعاد توجيهها.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pr-7">
+            <PriorityPill priority={ticket.priority} />
+            {ticket.expected_resolution_time && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800">
+                <CalendarClock className="w-3.5 h-3.5" aria-hidden="true" />
+                الموعد النهائي: {formatDateTime(ticket.expected_resolution_time)}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {ticket.status === 'PENDING_APPROVAL' && (caps.approve || caps.reject) && (
         <p className="text-xs text-slate-500">تحتاج هذه التذكرة إلى قرار قبل بدء المعالجة.</p>

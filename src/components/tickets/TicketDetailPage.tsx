@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router';
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePageAccess } from '@/contexts/PageAccessContext';
@@ -103,6 +103,9 @@ const TicketDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  // Set by the "ticket assigned to you" email and notification link.
+  const reviewMode = searchParams.get('review') === 'assigned';
   const { user } = useAuth();
   const { canAccessPath } = usePageAccess();
 
@@ -264,7 +267,7 @@ const TicketDetailPage: React.FC = () => {
         </div>
 
         {/* ── Action Center: context-sensitive, capability-gated ── */}
-        <TicketActionCenter ticket={ticket} onChanged={fetchTicket} />
+        <TicketActionCenter ticket={ticket} onChanged={fetchTicket} reviewMode={reviewMode} currentUserId={user?.id ?? null} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
