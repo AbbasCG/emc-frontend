@@ -50,6 +50,7 @@ const icons: Record<NotificationType, typeof Bell> = {
   attendance_marked:         UserCheck,
   ticket_resolved:           ClipboardCheck,
   ticket_assigned:           UserCheck,
+  operations_ticket_assigned: UserCheck,
   suggestion_approved:       UserCheck,
   suggestion_implemented:    Lightbulb,
 }

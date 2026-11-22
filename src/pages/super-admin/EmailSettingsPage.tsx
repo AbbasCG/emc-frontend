@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import AssignmentNotificationAdminPanel from '@/components/settings/AssignmentNotificationAdminPanel'
+import { ASSIGNMENT_EMAIL_KEYS } from '@/api/assignmentNotificationsApi'
 import { Mail, Send, Save, RotateCcw, ChevronDown } from 'lucide-react'
 import {
   fetchEmailSettings,
@@ -246,6 +248,8 @@ export default function EmailSettingsPage() {
     if (!settings) return [] as Array<{ category: string; items: Row[] }>
     const byCategory = new Map<string, Row[]>()
     for (const item of Object.values(settings.settings)) {
+      // The assignment emails are switched in their own panel (with their in-app channel).
+      if (ASSIGNMENT_EMAIL_KEYS.includes(item.key)) continue
       const arr = byCategory.get(item.category) ?? []
       arr.push(item)
       byCategory.set(item.category, arr)
@@ -342,6 +346,8 @@ export default function EmailSettingsPage() {
         </div>
       ) : (
         <div className="space-y-4">
+          <AssignmentNotificationAdminPanel />
+
           {grouped.map(({ category, items }) => (
             <CategoryCard
               key={category}

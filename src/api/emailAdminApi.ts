@@ -35,7 +35,7 @@ export interface EmailLog {
   recipient_name: string | null
   type: string
   subject: string | null
-  status: 'pending' | 'sent' | 'failed' | 'queued' | 'sending' | 'bounced' | 'skipped_disabled'
+  status: 'pending' | 'sent' | 'failed' | 'queued' | 'sending' | 'bounced' | 'skipped_disabled' | 'skipped_user_preference'
   error_message: string | null
   smtp_response?: string | null
   payload?: Record<string, unknown> | null

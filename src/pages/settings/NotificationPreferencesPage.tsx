@@ -15,6 +15,7 @@ import { isRealtimeConfigured } from '@/lib/echo'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import { LoadingSkeletonStack } from '@/components/enterprise/LoadingSkeleton'
 import NotificationPreferenceRowComponent from '@/components/enterprise/NotificationPreferenceRow'
+import AssignmentNotificationPreferences from '@/components/settings/AssignmentNotificationPreferences'
 import type { NotificationPreferenceRow } from '@/types/phase7'
 import {
   Shield, BookOpen, CalendarDays, ClipboardList,
@@ -571,6 +572,11 @@ export default function NotificationPreferencesPage() {
 
         <div className="mb-6">
           <QuietHoursAndPushPanel />
+        </div>
+
+        {/* Saved on its own (its own endpoint and status), never by the sticky bar below. */}
+        <div className="mb-6">
+          <AssignmentNotificationPreferences />
         </div>
 
         {!loading && (
