@@ -70,6 +70,8 @@ export interface EmailLogStats {
   failed: number
   success_rate: number
   avg_delivery_ms: number | null
+  /** Rows deliberately not sent (admin switch / user preference); hidden from the default list. */
+  skipped?: number
 }
 
 export interface EmailChartPoint {

@@ -50,7 +50,34 @@ const TYPE_LABELS: Record<string, string> = {
   system_notification:        'إشعار نظام',
   manual:                     'يدوي',
   admin_new_registration:     'تسجيل جديد (إدارة)',
+  support_ticket_reply:       'رد على تذكرة دعم',
+  contact_confirmation:       'تأكيد استلام رسالة تواصل',
+  contact_admin_notification: 'رسالة تواصل جديدة (إدارة)',
+  payment_confirmed:          'تأكيد الدفع',
+  certificate_ready:          'شهادة جاهزة',
+  certificate_rejected:       'رفض شهادة',
+  certificate_revoked:        'إلغاء شهادة',
+  certificate_needs_approval: 'شهادة تنتظر الاعتماد',
+  certificate_pdf_failed:     'فشل إنشاء PDF للشهادة',
+  oral_assessment_booking_confirmed:    'تأكيد حجز مقابلة شفوية',
+  oral_assessment_meeting_link_updated: 'تحديث رابط المقابلة الشفوية',
+  oral_assessment_instructor_message:   'رسالة المدرب حول المقابلة',
+  volunteer_confirmation:     'تأكيد طلب تطوع',
+  volunteer_admin_notification: 'طلب تطوع جديد (إدارة)',
+  volunteer_accepted:         'قبول متطوع (بيانات الدخول)',
+  ambassador_confirmation:    'تأكيد طلب سفراء',
+  ambassador_admin_notification: 'طلب سفراء جديد (إدارة)',
+  ambassador_status_changed:  'تحديث حالة طلب السفراء',
+  workshop_request_confirmation: 'تأكيد طلب برنامج',
+  workshop_request_submitted: 'طلب برنامج لفريق التصميم',
+  workshop_request_admin_notification: 'طلب برنامج (إدارة)',
+  automation_email:           'بريد أتمتة',
+  template_notification:      'إشعار من قالب',
+  platform_notification_email: 'إشعار منصة بالبريد',
 }
+
+/** Emails deliberately not sent; the backend hides them unless one of these statuses is chosen. */
+const SKIPPED_STATUSES = ['skipped_disabled', 'skipped_user_preference']
 
 const STATUS: Record<string, { label: string; dot: string; badge: string; text: string; ring: string }> = {
   sent:     { label: 'مُرسَل',        dot: 'bg-emerald-500', badge: 'bg-emerald-50 border-emerald-200',  text: 'text-emerald-700', ring: 'ring-emerald-200' },
@@ -758,7 +785,7 @@ export default function EmailLogsPage() {
                   onChange={e => setStatusFilter(e.target.value)}
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]/20 bg-slate-50"
                 >
-                  <option value="">الكل</option>
+                  <option value="">الكل (دون المتخطّاة)</option>
                   {Object.entries(STATUS).map(([k, v]) => (
                     <option key={k} value={k}>{v.label}</option>
                   ))}
@@ -807,6 +834,11 @@ export default function EmailLogsPage() {
             <p className="text-xs text-slate-500 shrink-0">
               <strong className="text-slate-700">{n(meta.total)}</strong> رسالة
               {activeFilters > 0 && <span className="text-slate-400"> · فلتر نشط</span>}
+              {!SKIPPED_STATUSES.includes(statusFilter) && (stats?.skipped ?? 0) > 0 && (
+                <span className="text-slate-400" data-testid="skipped-hidden-hint">
+                  {' '}· أُخفيت {n(stats?.skipped ?? 0)} رسالة متخطّاة — اختر «تم التخطي» من الحالة لعرضها
+                </span>
+              )}
             </p>
             <div className="flex items-center gap-1 flex-wrap justify-end">
               {Object.entries(STATUS).map(([k, v]) => (
