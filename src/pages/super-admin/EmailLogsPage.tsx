@@ -836,7 +836,7 @@ export default function EmailLogsPage() {
               {activeFilters > 0 && <span className="text-slate-400"> · فلتر نشط</span>}
               {!SKIPPED_STATUSES.includes(statusFilter) && (stats?.skipped ?? 0) > 0 && (
                 <span className="text-slate-400" data-testid="skipped-hidden-hint">
-                  {' '}· أُخفيت {n(stats?.skipped ?? 0)} رسالة متخطّاة — اختر «تم التخطي» من الحالة لعرضها
+                  {' '}· أُخفيت {n(stats?.skipped ?? 0)} رسالة متخطّاة في السجل كاملًا — اختر «تم التخطي» من الحالة لعرضها
                 </span>
               )}
             </p>
