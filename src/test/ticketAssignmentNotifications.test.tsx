@@ -6,7 +6,7 @@ import type { Ticket, TicketCapabilities } from '@/types/ticket'
 
 /**
  * The backend tells an employee when a ticket is assigned to them
- * (ticket_assigned): in-app + email, both linking to
+ * (operations_ticket_assigned): in-app + email, both linking to
  * /dashboard/tickets/:id?review=assigned. The ticket page then shows the
  * assignee a review panel and highlights accept / decline.
  */
@@ -34,18 +34,31 @@ function ticket(overrides: Partial<Ticket> = {}): Ticket {
 
 const ASSIGNEE_CAPS: TicketCapabilities = { ...NO_CAPS, accept_task: true, reject_task: true }
 
-describe('ticket_assigned in the notification centre', () => {
+describe('operations_ticket_assigned in the notification centre', () => {
   it('keeps its type, Arabic text and the review link with its query string', () => {
     const n = normalizePlatformNotification({
-      id: 9, type: 'ticket_assigned', title: 'أُسندت إليك تذكرة',
+      id: 9, type: 'operations_ticket_assigned', title: 'أُسندت إليك تذكرة',
       message: 'أُسندت إليك التذكرة "تعطل بوابة الدفع" وهي بانتظار مراجعتك وقبولك. اضغط لمراجعتها.',
       entity_type: 'ticket', entity_id: 42, action_url: '/dashboard/tickets/42?review=assigned',
       is_read: false, created_at: '2026-11-21T09:00:00Z',
     })
 
-    expect(n?.type).toBe('ticket_assigned')
+    expect(n?.type).toBe('operations_ticket_assigned')
     expect(n?.title).toBe('أُسندت إليك تذكرة')
     expect(n?.href).toBe('/dashboard/tickets/42?review=assigned')
+  })
+})
+
+describe('support ticket_assigned rows, old and new', () => {
+  it('still open the support ticket they were written for', () => {
+    const n = normalizePlatformNotification({
+      id: 10, type: 'ticket_assigned', title: 'تم تعيين تذكرة دعم جديدة إليك', message: 'تم تعيين التذكرة #5 إليك.',
+      entity_type: 'App\\Models\\SupportTicket', entity_id: 5, action_url: '/dashboard/admin/support-tickets/5',
+      is_read: true, created_at: '2026-10-01T09:00:00Z',
+    })
+
+    expect(n?.type).toBe('ticket_assigned')
+    expect(n?.href).toBe('/dashboard/admin/support-tickets/5')
   })
 })
 

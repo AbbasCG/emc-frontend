@@ -142,6 +142,7 @@ export type NotificationType =
   | 'attendance_marked'
   | 'ticket_resolved'
   | 'ticket_assigned'
+  | 'operations_ticket_assigned'
   | 'suggestion_approved'
   | 'suggestion_implemented'
 

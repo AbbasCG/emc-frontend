@@ -34,7 +34,8 @@ const TYPE_LABELS: Record<string, string> = {
   assignment_submitted:       'تسليم واجب',
   assignment_graded:          'تقييم واجب',
   ticket_resolved:            'حل بلاغ',
-  ticket_assigned:            'إسناد تذكرة',
+  ticket_assigned:            'إسناد تذكرة الدعم الفني',
+  operations_ticket_assigned: 'إسناد تذكرة العمليات',
   suggestion_approved:        'اعتماد مقترح',
   suggestion_implemented:     'إضافة مقترح إلى النظام',
   assignment_reminder:        'تذكير واجب',
@@ -59,6 +60,7 @@ const STATUS: Record<string, { label: string; dot: string; badge: string; text: 
   failed:   { label: 'فاشل',          dot: 'bg-red-500',    badge: 'bg-red-50 border-red-200',          text: 'text-red-700',     ring: 'ring-red-200' },
   bounced:  { label: 'مُرتجَع',       dot: 'bg-purple-500', badge: 'bg-purple-50 border-purple-200',    text: 'text-purple-700',  ring: 'ring-purple-200' },
   skipped_disabled: { label: 'تم التخطي (معطّل من الإعدادات)', dot: 'bg-slate-400', badge: 'bg-slate-50 border-slate-200', text: 'text-slate-500', ring: 'ring-slate-200' },
+  skipped_user_preference: { label: 'تم التخطي (أوقفه المستخدم)', dot: 'bg-slate-400', badge: 'bg-slate-50 border-slate-200', text: 'text-slate-500', ring: 'ring-slate-200' },
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
