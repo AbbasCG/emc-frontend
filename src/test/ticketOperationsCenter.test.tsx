@@ -913,9 +913,18 @@ describe('priority and assignment help', () => {
 
     await userEvent.click(within(items[0]).getByRole('button', { name: 'إسناد التذكرة إلى سلمى' }))
     expect(svc.reassign).not.toHaveBeenCalled()
-    await userEvent.click(await screen.findByRole('button', { name: 'إسناد' }))
+    // Assigning now collects the work estimate: points are required, so an empty form does not send.
+    const est = within(await screen.findByTestId('assign-estimate-dialog'))
+    await userEvent.click(est.getByRole('button', { name: 'إسناد' }))
+    expect(svc.reassign).not.toHaveBeenCalled()
+    expect(await est.findByText('اختر حجم المهمة.')).toBeInTheDocument()
 
-    await waitFor(() => expect(svc.reassign).toHaveBeenCalledWith(501, { assigned_to_id: 9 }))
+    await userEvent.selectOptions(est.getByLabelText(/حجم المهمة/), 'medium')
+    await userEvent.type(est.getByLabelText(/نقاط المهمة/), '100')
+    await userEvent.click(est.getByRole('button', { name: 'إسناد' }))
+
+    // The duration was left empty, so the key is omitted (the server keeps any stored hours).
+    await waitFor(() => expect(svc.reassign).toHaveBeenCalledWith(501, { assigned_to_id: 9, task_scope: 'medium', task_points: 100 }))
   })
 
   it('says so when no one qualifies, instead of guessing', async () => {
@@ -1164,9 +1173,20 @@ describe('bulk actions', () => {
     await userEvent.click(await screen.findByText('سلمى'))
     await userEvent.click(screen.getByRole('button', { name: 'إسناد' }))
     expect(await screen.findByText(/ستُسند 1 تذكرة إلى سلمى/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'تنفيذ' }))
+    const est = within(await screen.findByTestId('bulk-estimate-dialog'))
+    await userEvent.selectOptions(est.getByLabelText(/حجم المهمة/), 'simple')
+    await userEvent.type(est.getByLabelText(/نقاط المهمة/), '40')
+    await userEvent.type(est.getByLabelText('المدة التقريبية'), '2.5')
+    await userEvent.click(est.getByRole('button', { name: 'تنفيذ الإسناد' }))
 
-    await waitFor(() => expect(ops.bulkUpdateTickets).toHaveBeenCalledWith({ action: 'reassign', ticketIds: [1], assignedToId: 9 }))
+    await waitFor(() =>
+      expect(ops.bulkUpdateTickets).toHaveBeenCalledWith({
+        action: 'reassign',
+        ticketIds: [1],
+        assignedToId: 9,
+        estimate: { task_scope: 'simple', task_points: 40, estimated_hours: 2.5 },
+      }),
+    )
   })
 
   it('the selection belongs to one set of filters: changing a filter drops it, paging keeps it', async () => {

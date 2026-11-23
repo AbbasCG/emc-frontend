@@ -15,6 +15,7 @@ export default function ChecklistEditor({ items, onToggle, disabled }: Props) {
           <input
             type="checkbox"
             checked={item.done}
+            aria-label={item.label}
             disabled={disabled}
             onChange={(e) => onToggle(item.id, e.target.checked)}
             className="h-4 w-4 accent-customBlue"

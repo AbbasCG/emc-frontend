@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UploadCloud, X } from 'lucide-react';
 import { ticketService } from '@/services/ticketService';
+import { CenteredModal } from '@/components/ui/CenteredModal';
 import toast from '@/lib/toast';
 
 export interface CompleteTaskModalProps {
@@ -61,11 +62,39 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 space-y-5 max-h-[90vh] overflow-y-auto" dir="rtl">
-        <h2 className="text-lg font-extrabold text-slate-900">إغلاق المهمة</h2>
+  const confirmCls = status === 'RESOLVED' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-600 hover:bg-orange-700';
 
+  return (
+    <CenteredModal
+      open
+      onClose={onClose}
+      size="md"
+      testId="complete-task-modal"
+      busy={submitting}
+      dirty={summary.trim() !== '' || unresolvedReason.trim() !== '' || files.length > 0}
+      title="إغلاق المهمة"
+      footer={(requestClose) => (
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={requestClose}
+            disabled={submitting}
+            className="flex-1 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+          <button
+            type="button"
+            onClick={handleComplete}
+            disabled={submitting}
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition disabled:opacity-60 ${confirmCls}`}
+          >
+            {submitting ? 'جارٍ الحفظ...' : status === 'RESOLVED' ? '✅ تأكيد الحل والإغلاق' : '⚠️ تأكيد تعذر الحل'}
+          </button>
+        </div>
+      )}
+    >
+      <div className="space-y-5 text-right" dir="rtl">
         <div className="flex gap-2">
           <button
             type="button"
@@ -76,7 +105,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             }`}
           >
-            🎯 تم الحل (Resolved)
+            🎯 تم الحل
           </button>
           <button
             type="button"
@@ -170,28 +199,8 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
             )}
           </div>
         )}
-
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-          >
-            إلغاء
-          </button>
-          <button
-            type="button"
-            onClick={handleComplete}
-            disabled={submitting}
-            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition disabled:opacity-60 ${
-              status === 'RESOLVED' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-600 hover:bg-orange-700'
-            }`}
-          >
-            {submitting ? 'جارٍ الحفظ...' : status === 'RESOLVED' ? '✅ تأكيد الحل والإغلاق' : '⚠️ تأكيد تعذر الحل'}
-          </button>
-        </div>
       </div>
-    </div>
+    </CenteredModal>
   );
 }
 

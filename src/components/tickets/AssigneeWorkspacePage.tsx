@@ -1,5 +1,7 @@
+import { ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketService } from '@/services/ticketService';
+import { apiMessage } from '@/services/ticketOpsService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Ticket, TicketAttachment, TicketPriority, TicketStatus } from '@/types/ticket';
 import TicketStatusBadge from './TicketStatusBadge';
@@ -232,8 +234,10 @@ const AssigneeWorkspacePage: React.FC = () => {
       await ticketService.acceptTask(ticketId);
       toast.success('تم قبول التكليف — التذكرة الآن قيد تنفيذك');
       refreshAfterAction(ticketId);
-    } catch {
-      toast.error('حدث خطأ أثناء قبول التكليف');
+    } catch (e) {
+      // The server says exactly why (e.g. an unassigned ticket cannot be accepted); read the list again.
+      toast.error(apiMessage(e, 'حدث خطأ أثناء قبول التكليف'));
+      fetchTasks();
     } finally {
       setActionLoading(false);
     }
@@ -684,7 +688,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                           >
                             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                            تم الحل (Resolved)
+                            تم الحل
                           </button>
                           <button
                             type="button"
@@ -790,7 +794,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                           <span className="absolute -right-[27px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-brand-500 bg-white">
                             <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
                           </span>
-                          <p className="text-xs font-bold text-navy">{ACTION_LABEL[log.action] ?? log.action}</p>
+                          <p className="text-xs font-bold text-navy">{ACTION_LABEL[log.action] ?? ticketActionLabel(log.action)}</p>
                           {log.details && <p className="mt-0.5 break-words text-[11px] text-muted-500">{log.details}</p>}
                           <p className="mt-0.5 text-[10px] text-slate-400">
                             {[log.performed_by_name, formatDateTime(log.logged_at)].filter(Boolean).join(' — ')}
@@ -877,7 +881,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                     : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                تم الحل (Resolved)
+                تم الحل
               </button>
               <button
                 type="button"

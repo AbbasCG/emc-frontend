@@ -8,9 +8,15 @@
  * safely when it exists, and picks a safe fallback when it doesn't.
  */
 
-/** Same-feature paths only — never trust an arbitrary state value blindly. */
+/**
+ * Same-feature paths only — never trust an arbitrary state value blindly. «مهامي ومسؤولياتي» is the one page
+ * outside /dashboard/tickets that opens tickets (from its work board), so "back" returns there too.
+ */
 export function isSafeTicketOrigin(path: unknown): path is string {
-  return typeof path === 'string' && path.startsWith('/dashboard/tickets');
+  return (
+    typeof path === 'string' &&
+    (path.startsWith('/dashboard/tickets') || path === '/dashboard/admin/tasks/my' || path.startsWith('/dashboard/admin/tasks/my?'))
+  );
 }
 
 export type TicketOriginCheck = {

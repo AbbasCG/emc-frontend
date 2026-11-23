@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { CalendarClock, CheckCircle2, PlayCircle, RotateCcw, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
+import { CalendarClock, CheckCircle2, PlayCircle, RotateCcw, Sparkles, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
 import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
+import { apiMessage } from '@/services/ticketOpsService';
 import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal';
 import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal';
 import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal';
 import { RejectTaskModal } from '@/components/tickets/modals/RejectTaskModal';
 import { CompleteTaskModal } from '@/components/tickets/modals/CompleteTaskModal';
+import { EditEstimateModal } from '@/components/tickets/modals/EditEstimateModal';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
-import { NestedLayer } from '@/components/ui/NestedLayer';
 import { PriorityPill } from '@/components/tickets/ops/TicketBadges';
 import { formatDateTime } from '@/components/tickets/ops/ticketOpsUi';
 import { cn } from '@/lib/utils';
 import toast from '@/lib/toast';
 
-type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | null;
+type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | 'estimate' | null;
 
 export interface TicketActionCenterProps {
   ticket: Ticket;
@@ -80,15 +81,18 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
       toast.success('تم قبول التكليف — التذكرة الآن قيد تنفيذك');
       setAcceptConfirmOpen(false);
       onChanged();
-    } catch {
-      toast.error('حدث خطأ أثناء قبول التكليف');
+    } catch (e) {
+      // The server says exactly why (e.g. «أسندها أولًا» on an unassigned ticket); the ticket may have changed under us.
+      toast.error(apiMessage(e, 'حدث خطأ أثناء قبول التكليف'));
+      setAcceptConfirmOpen(false);
+      onChanged();
     } finally {
       setAccepting(false);
     }
   };
 
   const hasAnyActionCapability =
-    caps.approve || caps.reject || caps.reassign || caps.accept_task || caps.reject_task || caps.complete_task;
+    caps.approve || caps.reject || caps.reassign || caps.accept_task || caps.reject_task || caps.complete_task || caps.can_edit_estimate === true;
 
   if (!hasAnyActionCapability) return null;
 
@@ -182,6 +186,17 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
           </button>
         )}
 
+        {caps.can_edit_estimate === true && (
+          <button
+            type="button"
+            onClick={() => setModal('estimate')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-customBlue/40 text-customBlue hover:bg-customBlue/5 text-xs font-bold transition"
+          >
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            تعديل النقاط والمدة
+          </button>
+        )}
+
         {caps.reject_task && (
           <button
             type="button"
@@ -204,8 +219,6 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
         )}
       </div>
 
-      {modal !== null ?
-      <NestedLayer>
       {modal === 'approve' && (
         <ApproveTicketModal
           ticketId={ticket.id}
@@ -222,6 +235,9 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
           ticketId={ticket.id}
           departmentId={ticket.department_id}
           currentUnitId={ticket.unit_id}
+          previousDeclineReason={ticket.assignee_rejection_reason}
+          declinedAssigneeId={ticket.status === 'REJECTED_BY_ASSIGNEE' ? (ticket.assigned_to_id ?? ticket.assignee?.id ?? null) : null}
+          currentEstimate={{ task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours }}
           onClose={close}
           onSuccess={handleSuccess}
         />
@@ -232,8 +248,14 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
       {modal === 'complete_task' && (
         <CompleteTaskModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} />
       )}
-      </NestedLayer>
-      : null}
+      {modal === 'estimate' && (
+        <EditEstimateModal
+          ticketId={ticket.id}
+          current={{ task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours }}
+          onClose={close}
+          onSuccess={handleSuccess}
+        />
+      )}
 
       <ConfirmDialog
         open={acceptConfirmOpen}

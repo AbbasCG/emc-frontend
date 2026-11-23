@@ -59,7 +59,8 @@ test('search, status and late-only filters stick and combine', async ({ page }) 
   )
 
   await page.goto('/dashboard/tickets/admin')
-  await expect(page.getByRole('heading', { name: 'مركز عمليات التذاكر' })).toBeVisible()
+  // the top bar repeats the page title in its own heading; the page's own is the last one
+  await expect(page.getByRole('heading', { name: 'إدارة تذاكر العمليات' }).last()).toBeVisible()
   await expect(page.getByText('5 تذكرة', { exact: true })).toBeVisible()
 
   if (process.env.PAUSE) await page.pause()

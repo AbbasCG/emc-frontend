@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   KanbanSquare,
@@ -34,7 +34,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { subscribeToUserNotifications } from '@/lib/echo'
 import type { PlatformNotification } from '../types/platform'
-import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
+import { getSidebarByRole, isSidebarItemActive, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { usePageAccess } from '@/contexts/PageAccessContext'
 import { resolveSidebarNavigation } from '@/utils/sidebarAccessFilter'
@@ -141,9 +141,10 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/admin/programs': 'إدارة البرامج والدورات',
   '/dashboard/admin/departments': 'الإدارات',
-  '/dashboard/admin/tasks': 'المهام',
+  '/dashboard/admin/tasks': 'إدارة المهام',
   '/dashboard/admin/tasks/kanban': 'كانبان المهام',
-  '/dashboard/admin/tasks/my': 'مهامي',
+  '/dashboard/admin/tasks/my': 'مهامي ومسؤولياتي',
+  '/dashboard/tickets/admin': 'إدارة تذاكر العمليات',
   '/dashboard/admin/tasks/overdue': 'المهام المتأخرة',
   '/dashboard/admin/meetings': 'الاجتماعات',
   '/dashboard/admin/forms': 'النماذج',
@@ -336,11 +337,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     const updates: Record<string, boolean> = {}
     for (const group of groups) {
       if (!group.collapsible || !group.title) continue
-      const hasActiveChild = group.items.some((item) =>
-        exactMatchSidebarRoutes.has(item.href)
-          ? location.pathname === item.href
-          : location.pathname.startsWith(item.href),
-      )
+      const hasActiveChild = group.items.some((item) => isSidebarItemActive(location.pathname, item.href))
       if (hasActiveChild) updates[group.title] = true
     }
 
@@ -365,8 +362,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   }
 
   function isActive(href: string) {
-    if (exactMatchSidebarRoutes.has(href)) return location.pathname === href
-    return location.pathname.startsWith(href)
+    return isSidebarItemActive(location.pathname, href)
   }
 
   // Nudge the active link into view on route change — e.g. navigating via the
@@ -511,10 +507,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                     const active = isActive(item.href)
                     return (
                       <li key={item.href}>
-                        <NavLink
+                        <Link
                           ref={active ? activeItemRef : undefined}
                           to={item.href}
-                          end={exactMatchSidebarRoutes.has(item.href)}
                           aria-current={active ? 'page' : undefined}
                           className={[
                             'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 ease-emc-out',
@@ -534,7 +529,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                           {!active ?
                             <ChevronLeft size={13} className="text-white/25 shrink-0 transition group-hover:text-white/50" />
                           : null}
-                        </NavLink>
+                        </Link>
                       </li>
                     )
                   })}

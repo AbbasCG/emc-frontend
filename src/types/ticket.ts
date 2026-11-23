@@ -1,3 +1,5 @@
+import type { TaskScope } from '@/types/operations';
+
 export type TicketCategory = 'OLD_ISSUE' | 'NEW_SUGGESTION';
 
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -37,6 +39,8 @@ export interface TicketCapabilities {
   comment: boolean;
   /** Manager of an open ticket. Absent on payloads from before the operations center. */
   change_priority?: boolean;
+  /** May edit the ticket's points and approximate duration («تعديل النقاط والمدة»). Absent on older payloads. */
+  can_edit_estimate?: boolean;
 }
 
 export interface DepartmentalUnit {
@@ -127,6 +131,13 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   is_delayed?: boolean;
+  /**
+   * The work estimate, set when the ticket is assigned (same scale as a task: size, points, hours). All null on
+   * tickets assigned before the estimate existed ("legacy"). Staff payloads only — never on {@link ReporterTicket}.
+   */
+  task_scope?: TaskScope | null;
+  task_points?: number | null;
+  estimated_hours?: number | null;
   /** Work-queue rows (`lite=1`) only: newest activity-log time and the attachment count. */
   last_activity_at?: string | null;
   attachments_count?: number;
@@ -143,6 +154,57 @@ export interface Ticket {
   assignee?: TicketUser;
   attachments?: TicketAttachment[];
   activity_logs?: TicketActivityLog[];
+}
+
+/** The estimate fields every assigning endpoint accepts (approve, reassign, bulk reassign, work-estimate). */
+export interface TicketEstimateInput {
+  task_scope: TaskScope;
+  task_points: number;
+  estimated_hours?: number | null;
+}
+
+/**
+ * One row of GET /v1/tickets/my-work: a ticket assigned to THE CURRENT USER (pending, in progress, or finished in
+ * the last 30 days). The server decides the capabilities; nothing here is derived from roles.
+ */
+export interface MyWorkTicket {
+  id: number;
+  ticket_number: string;
+  title: string;
+  description?: string | null;
+  status: TicketStatus;
+  priority: TicketPriority;
+  department?: { id: number; name: string } | null;
+  unit?: string | { id?: number; name_ar?: string } | null;
+  created_by_name?: string | null;
+  assigned_to_id?: number | null;
+  expected_resolution_time?: string | null;
+  is_delayed?: boolean;
+  accepted_at?: string | null;
+  resolved_at?: string | null;
+  task_scope?: TaskScope | null;
+  task_points?: number | null;
+  estimated_hours?: number | null;
+  created_at?: string;
+  updated_at?: string;
+  capabilities?: {
+    can_accept?: boolean;
+    can_reject?: boolean;
+    can_complete?: boolean;
+    can_open?: boolean;
+  };
+}
+
+/** `meta` of GET /v1/tickets/my-work: the true totals, and whether the list was cut short. */
+export interface MyWorkMeta {
+  open_total: number;
+  closed_total: number;
+  truncated: boolean;
+}
+
+export interface MyWorkResult {
+  tickets: MyWorkTicket[];
+  meta: MyWorkMeta;
 }
 
 export interface TicketMeta {

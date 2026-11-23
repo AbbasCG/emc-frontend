@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle, ArrowRightLeft, UserCheck, X } from 'lucide-react'
+import { AlertCircle, ArrowRightLeft, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getApiMessageOr } from '@/api/apiErrors'
 import { reassignTask, type BoardTask } from '@/api/operationsBoardApi'
+import { CenteredModal } from '@/components/ui/CenteredModal'
 import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
 
 type Props = {
@@ -19,6 +19,14 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
   const [notes, setNotes] = useState<string>('')
   const [loadingMembers, setLoadingMembers] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  // A new task (or a re-opened window) starts blank: never the member or note chosen for the previous one.
+  const [seen, setSeen] = useState({ open, id: task?.id })
+  if (seen.open !== open || seen.id !== task?.id) {
+    setSeen({ open, id: task?.id })
+    setSelectedMember('')
+    setNotes('')
+  }
 
   useEffect(() => {
     if (open && task?.department?.id) {
@@ -36,7 +44,7 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
     }
   }, [open, task])
 
-  if (!open || !task) return null
+  if (!task) return null
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -59,116 +67,94 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-          onClick={onClose}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          className="relative z-10 w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-deepBlue/10"
-          dir="rtl"
-        >
-          <header className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-customBlue">
-                <ArrowRightLeft size={13} />
-                إعادة توجيه / إسناد المهمة
-              </span>
-              <h2 className="mt-1 text-base font-black text-deepBlue truncate max-w-sm">
-                {task.title}
-              </h2>
+    <CenteredModal
+      open={open && task !== null}
+      onClose={onClose}
+      size="md"
+      testId="task-reassign-modal"
+      busy={submitting}
+      dirty={selectedMember !== '' || notes.trim() !== ''}
+      title={
+        <span className="block">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-customBlue">
+            <ArrowRightLeft size={13} aria-hidden="true" />
+            إعادة توجيه / إسناد المهمة
+          </span>
+          <span className="mt-1 block truncate text-base font-black text-deepBlue">{task.title}</span>
+        </span>
+      }
+      footer={(requestClose) => (
+        <div className="flex items-center justify-end gap-3">
+          <button type="button" onClick={requestClose} disabled={submitting} className="rounded-xl px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-50">
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            form="task-reassign-form"
+            disabled={submitting}
+            className="flex items-center gap-1.5 rounded-xl bg-customBlue px-5 py-2 text-xs font-black text-white shadow-sm transition hover:bg-customBlue/90 disabled:opacity-50"
+          >
+            <UserCheck size={14} aria-hidden="true" />
+            <span>{submitting ? 'جاري الإسناد...' : 'تأكيد الإسناد للعضو'}</span>
+          </button>
+        </div>
+      )}
+    >
+      <div className="space-y-4 text-right">
+        {/* إذا كانت المهمة مرفوضة: إظهار سبب الرفض بوضوح للمدير */}
+        {task.rejection_reason && (
+          <div className="rounded-2xl border border-rose-200/60 bg-rose-50 p-3.5 text-right">
+            <div className="mb-1 flex items-center gap-1.5 text-xs font-black text-rose-700">
+              <AlertCircle size={14} aria-hidden="true" />
+              <span>سبب اعتذار العضو السابق ({task.assigned_to?.name}):</span>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-deepBlue"
-            >
-              <X size={18} />
-            </button>
-          </header>
+            <p className="text-xs font-medium leading-relaxed text-rose-900">&quot;{task.rejection_reason}&quot;</p>
+          </div>
+        )}
 
-          {/* إذا كانت المهمة مرفوضة: إظهار سبب الرفض بوضوح للمدير */}
-          {task.rejection_reason && (
-            <div className="mt-4 rounded-2xl bg-rose-50 border border-rose-200/60 p-3.5 text-right">
-              <div className="flex items-center gap-1.5 text-xs font-black text-rose-700 mb-1">
-                <AlertCircle size={14} />
-                <span>سبب اعتذار العضو السابق ({task.assigned_to?.name}):</span>
-              </div>
-              <p className="text-xs text-rose-900 font-medium leading-relaxed">
-                "{task.rejection_reason}"
-              </p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-right">
-            <div>
-              <label className="block text-xs font-black text-deepBlue mb-1.5">
-                توجيه المهمة إلى عضو جديد <span className="text-red-500">*</span>
-              </label>
-              {loadingMembers ? (
-                <p className="text-xs text-slate-400">جاري تحميل الأعضاء...</p>
-              ) : (
-                <select
-                  required
-                  value={selectedMember}
-                  onChange={(e) => setSelectedMember(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-deepBlue"
-                >
-                  <option value="">-- اختر العضو الجديد --</option>
-                  {members.map((m) => {
-                    const memberId = m.user_id ?? m.id
-                    return (
-                      <option key={memberId} value={memberId}>
-                        {m.name} ({m.job_title ?? m.role ?? 'عضو'})
-                      </option>
-                    )
-                  })}
-                </select>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-deepBlue mb-1.5">
-                ملاحظات أو تعديلات توجيهية (اختياري)
-              </label>
-              <textarea
-                rows={2}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="توجيهات أو تعديل على متطلبات المهمة..."
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-deepBlue placeholder:text-slate-400 focus:border-customBlue"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+        <form id="task-reassign-form" onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div>
+            <label htmlFor="task-reassign-member" className="mb-1.5 block text-xs font-black text-deepBlue">
+              توجيه المهمة إلى عضو جديد <span className="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {loadingMembers ? (
+              <p className="text-xs text-slate-400">جاري تحميل الأعضاء...</p>
+            ) : (
+              <select
+                id="task-reassign-member"
+                required
+                value={selectedMember}
+                onChange={(e) => setSelectedMember(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-deepBlue"
               >
-                إلغاء
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex items-center gap-1.5 rounded-xl bg-customBlue px-5 py-2 text-xs font-black text-white shadow-sm hover:bg-customBlue/90 disabled:opacity-50 transition"
-              >
-                <UserCheck size={14} />
-                <span>{submitting ? 'جاري الإسناد...' : 'تأكيد الإسناد للعضو'}</span>
-              </button>
-            </div>
-          </form>
-        </motion.div>
+                <option value="">-- اختر العضو الجديد --</option>
+                {members.map((m) => {
+                  const memberId = m.user_id ?? m.id
+                  return (
+                    <option key={memberId} value={memberId}>
+                      {m.name} ({m.job_title ?? m.role ?? 'عضو'})
+                    </option>
+                  )
+                })}
+              </select>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="task-reassign-notes" className="mb-1.5 block text-xs font-black text-deepBlue">
+              ملاحظات أو تعديلات توجيهية (اختياري)
+            </label>
+            <textarea
+              id="task-reassign-notes"
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="توجيهات أو تعديل على متطلبات المهمة..."
+              className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-deepBlue placeholder:text-slate-400 focus:border-customBlue"
+            />
+          </div>
+        </form>
       </div>
-    </AnimatePresence>
+    </CenteredModal>
   )
 }
-

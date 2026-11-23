@@ -32,6 +32,24 @@ export function hasNestedLayer(): boolean {
   return document.querySelector('dialog[open]') !== null || document.querySelector('[data-nested-overlay]') !== null
 }
 
+const openModals: symbol[] = []
+
+/**
+ * Register an open CenteredModal. Dialogs can open over one another (a ticket's details, then its «تعديل النقاط»
+ * form); only the TOP one may answer Escape, so one key press never closes two layers. Returns the unregister.
+ */
+export function registerOpenModal(id: symbol): () => void {
+  openModals.push(id)
+
+  return () => {
+    const at = openModals.lastIndexOf(id)
+    if (at >= 0) openModals.splice(at, 1)
+  }
+}
+
+/** Is this modal the top-most open one? */
+export const isTopModal = (id: symbol): boolean => openModals[openModals.length - 1] === id
+
 let scrollLocks = 0
 let savedOverflow = ''
 

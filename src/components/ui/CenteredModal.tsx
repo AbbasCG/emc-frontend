@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { GuardContext, hasNestedLayer, lockBodyScroll, type Guard, type GuardApi } from './modalGuard'
+import { GuardContext, hasNestedLayer, isTopModal, lockBodyScroll, registerOpenModal, type Guard, type GuardApi } from './modalGuard'
 import { cn } from '@/lib/utils'
 
 /**
@@ -45,7 +45,8 @@ export interface CenteredModalProps {
   dirtyMessage?: string
   /** Where focus goes when it closes; defaults to whatever was focused when it opened. */
   returnFocusTo?: HTMLElement | null | (() => HTMLElement | null)
-  footer?: ReactNode
+  /** The footer, or a function of the modal's own close request: a «إلغاء» there asks the same questions (busy / unsaved input) as X, Escape and the backdrop. */
+  footer?: ReactNode | ((requestClose: () => void) => ReactNode)
   /** Test hook / analytics label for the panel. */
   testId?: string
   children: ReactNode
@@ -73,6 +74,15 @@ export function CenteredModal({
   const [guards, setGuards] = useState<Record<string, Guard>>({})
   const [confirming, setConfirming] = useState(false)
   const openerRef = useRef<HTMLElement | null>(null)
+  const stackId = useRef(Symbol('centered-modal'))
+  const bodyRef = useRef<HTMLDivElement>(null)
+
+  // Open dialogs stack: only the top-most one answers Escape (the registration is made before the key listener below).
+  useEffect(() => {
+    if (!open) return
+
+    return registerOpenModal(stackId.current)
+  }, [open])
 
   const api = useMemo<GuardApi>(
     () => ({
@@ -109,12 +119,22 @@ export function CenteredModal({
 
   useFocusTrap(panelRef, { active: open })
 
+  // Where focus starts: the first field of the BODY (the trap alone would pick the header's close button). A body
+  // that already took focus itself (autoFocus) keeps it. Declared after the trap so it runs after it.
+  useEffect(() => {
+    if (!open) return
+    const body = bodyRef.current
+    if (!body || body.contains(document.activeElement)) return
+    const first = body.querySelector<HTMLElement>('input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+    ;(first ?? panelRef.current)?.focus()
+  }, [open])
+
   // Escape: ignored while a nested layer owns it, otherwise a request to close.
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.defaultPrevented) return
-      if (hasNestedLayer()) return
+      if (hasNestedLayer() || !isTopModal(stackId.current)) return
       e.preventDefault()
       requestClose()
     }
@@ -212,9 +232,9 @@ export function CenteredModal({
                 </button>
               </header>
 
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">{children}</div>
+              <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">{children}</div>
 
-              {footer ? <footer className="flex-none border-t border-deepBlue/[0.08] bg-white px-4 py-3 sm:px-6">{footer}</footer> : null}
+              {footer ? <footer className="flex-none border-t border-deepBlue/[0.08] bg-white px-4 py-3 sm:px-6">{typeof footer === 'function' ? footer(requestClose) : footer}</footer> : null}
             </motion.div>
           </div>
 

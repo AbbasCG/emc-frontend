@@ -26,7 +26,10 @@ import {
   XCircle,
   Clock,
   Info,
+  Sparkles,
 } from 'lucide-react';
+import { ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi';
+import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue';
 import toast from '@/lib/toast';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -357,7 +360,7 @@ const TicketDetailPage: React.FC = () => {
                       </div>
                       <div className="mr-3">
                         <p className="text-xs font-bold text-slate-800">
-                          {ACTION_LABEL[log.action] ?? log.action}
+                          {ACTION_LABEL[log.action] ?? ticketActionLabel(log.action)}
                         </p>
                         {log.details && (
                           <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{log.details}</p>
@@ -420,6 +423,13 @@ const TicketDetailPage: React.FC = () => {
                   <span className="text-slate-400 italic">لم يتم التعيين بعد</span>
                 )}
               </div>
+              {(ticket.assignee || ticket.assigned_to_id) && (
+                <div className="flex items-center gap-2 text-sm" data-testid="ticket-estimate">
+                  <Sparkles className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span className="text-slate-500">النقاط والمدة:</span>
+                  <span className="text-slate-700 font-medium"><TicketEstimateValue ticket={ticket} /></span>
+                </div>
+              )}
             </div>
 
             {/* SLA Info */}

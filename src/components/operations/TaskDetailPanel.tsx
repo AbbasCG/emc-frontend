@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { hasNestedLayer, isTopModal, registerOpenModal } from '@/components/ui/modalGuard'
 import { X } from 'lucide-react'
 import type { OpsTask, TaskPriority, TaskStatus } from '@/types/operations'
 import { TASK_PRIORITY_AR, TASK_STATUS_AR } from '@/data/operationsLabels'
@@ -14,6 +17,11 @@ type Props = {
   onPatch: (patch: Partial<OpsTask>) => Promise<void>
   onToggleChecklist: (id: number, done: boolean) => Promise<void>
   onComment: (text: string) => Promise<void>
+  /**
+   * «مهامي»: the drawer of a plain member. They may move their task between stages, tick its checklist and comment;
+   * priority (and the other details) belong to management, so they are shown, not offered as controls.
+   */
+  memberView?: boolean
 }
 
 export default function TaskDetailPanel({
@@ -23,7 +31,39 @@ export default function TaskDetailPanel({
   onPatch,
   onToggleChecklist,
   onComment,
+  memberView = false,
 }: Props) {
+  const panelRef = useRef<HTMLElement>(null)
+  const stackId = useRef(Symbol('task-drawer'))
+  const active = open && task !== null
+
+  // Focus moves into the drawer when it opens and returns to the control that opened it when it closes.
+  useFocusTrap(panelRef, { active })
+
+  // The drawer is one layer in the dialog stack: a dialog opened over it (a decline form, a confirmation) owns Escape
+  // while it is open; with nothing above it, Escape closes the drawer.
+  useEffect(() => {
+    if (!active) return
+
+    return registerOpenModal(stackId.current)
+  }, [active])
+  const closeRef = useRef(onClose)
+  useEffect(() => {
+    closeRef.current = onClose
+  })
+  useEffect(() => {
+    if (!active) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      if (hasNestedLayer() || !isTopModal(stackId.current)) return
+      e.preventDefault()
+      closeRef.current()
+    }
+    document.addEventListener('keydown', onKey)
+
+    return () => document.removeEventListener('keydown', onKey)
+  }, [active])
+
   return (
     <AnimatePresence>
       {open && task && (
@@ -38,6 +78,8 @@ export default function TaskDetailPanel({
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
+            tabIndex={-1}
             initial={{ x: 120, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 120, opacity: 0 }}
@@ -79,20 +121,39 @@ export default function TaskDetailPanel({
               </section>
 
               <section className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-right text-xs font-black text-deepBlue">
-                  الحالة
-                  <select
-                    value={task.status}
-                    onChange={(e) => onPatch({ status: e.target.value as TaskStatus })}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue"
-                  >
-                    {(Object.keys(TASK_STATUS_AR) as TaskStatus[]).map((k) => (
-                      <option key={k} value={k}>
-                        {TASK_STATUS_AR[k]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {memberView && (task.status === 'completed' || task.acceptance_status === 'pending') ? (
+                  <div className="grid gap-1 text-right text-xs font-black text-deepBlue" data-testid="status-readonly">
+                    الحالة
+                    <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue/80">{TASK_STATUS_AR[task.status]}</span>
+                    <span className="text-[11px] font-semibold text-slate-500" data-testid="status-hint">
+                      {task.status === 'completed' ? 'المهمة مكتملة، ولا يغيّر العضو حالتها بعد ذلك.' : 'اقبل المهمة أولًا لتتمكن من تحريك حالتها.'}
+                    </span>
+                  </div>
+                ) : (
+                  <label className="grid gap-1 text-right text-xs font-black text-deepBlue">
+                    الحالة
+                    <select
+                      value={task.status}
+                      onChange={(e) => onPatch({ status: e.target.value as TaskStatus })}
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue"
+                    >
+                      {(Object.keys(TASK_STATUS_AR) as TaskStatus[])
+                        // A member sends finished work to «بانتظار التقييم»; «مكتملة» is the evaluator's to set.
+                        .filter((k) => !(memberView && k === 'completed'))
+                        .map((k) => (
+                          <option key={k} value={k}>
+                            {TASK_STATUS_AR[k]}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+                {memberView ? (
+                  <div className="grid gap-1 text-right text-xs font-black text-deepBlue" data-testid="priority-readonly">
+                    الأولوية
+                    <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue/80">{TASK_PRIORITY_AR[task.priority]}</span>
+                  </div>
+                ) : (
                 <label className="grid gap-1 text-right text-xs font-black text-deepBlue">
                   الأولوية
                   <select
@@ -107,6 +168,7 @@ export default function TaskDetailPanel({
                     ))}
                   </select>
                 </label>
+                )}
               </section>
 
               {task.checklist && task.checklist.length > 0 && (

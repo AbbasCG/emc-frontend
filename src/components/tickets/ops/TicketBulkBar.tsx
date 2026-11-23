@@ -5,6 +5,8 @@ import type { BulkResult } from '@/types/ticketOps'
 import AssigneeSearchSelect from '@/components/tickets/AssigneeSearchSelect'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import { apiMessage, bulkUpdateTickets } from '@/services/ticketOpsService'
+import { TicketEstimateDialog } from '@/components/tickets/modals/TicketEstimateDialog'
+import type { EstimatePayload } from '@/lib/taskEstimate'
 import { useTicketMeta } from '@/hooks/useTicketMeta'
 import toast from '@/lib/toast'
 import { TICKET_PRIORITIES } from '@/utils/ticketFilters'
@@ -37,19 +39,27 @@ export function TicketBulkBar({ selected, onClear, onDone }: { selected: Ticket[
   const canPriority = selected.some((t) => t.capabilities?.change_priority)
   const canReassign = selected.some((t) => t.capabilities?.reassign)
 
+  /** One bulk call. A bulk assignment carries the estimate that is applied to every selected ticket. */
+  async function execute(estimate?: EstimatePayload) {
+    if (!pending) return
+    const ids = selected.map((t) => t.id)
+    const res = await bulkUpdateTickets(
+      pending.kind === 'priority'
+        ? { action: 'priority', ticketIds: ids, priority: pending.priority }
+        : { action: 'reassign', ticketIds: ids, assignedToId: pending.assigneeId, ...(estimate ? { estimate } : {}) },
+    )
+    setResult(res)
+    setPending(null)
+    if (res.succeeded > 0) toast.success(`نُفِّذت العملية على ${res.succeeded} من ${res.requested} تذكرة.`)
+    else toast.error('لم تُنفَّذ العملية على أي تذكرة.')
+    onDone(res.results.filter((r) => r.ok).map((r) => r.id))
+  }
+
   async function run() {
     if (!pending || busy) return
     setBusy(true)
     try {
-      const ids = selected.map((t) => t.id)
-      const res = await bulkUpdateTickets(
-        pending.kind === 'priority' ? { action: 'priority', ticketIds: ids, priority: pending.priority } : { action: 'reassign', ticketIds: ids, assignedToId: pending.assigneeId },
-      )
-      setResult(res)
-      setPending(null)
-      if (res.succeeded > 0) toast.success(`نُفِّذت العملية على ${res.succeeded} من ${res.requested} تذكرة.`)
-      else toast.error('لم تُنفَّذ العملية على أي تذكرة.')
-      onDone(res.results.filter((r) => r.ok).map((r) => r.id))
+      await execute()
     } catch (e) {
       toast.error(apiMessage(e, 'تعذّر تنفيذ العملية.'))
       setPending(null)
@@ -106,14 +116,23 @@ export function TicketBulkBar({ selected, onClear, onDone }: { selected: Ticket[
         </div>
       : null}
 
+      {pending?.kind === 'reassign' ?
+        <TicketEstimateDialog
+          title="إسناد عدة تذاكر"
+          description={`ستُسند ${selected.length} تذكرة إلى ${pending.assigneeName}، ويُطلب منه قبول كل واحدة. التذاكر غير القابلة لإعادة التوجيه لن تتغير، ويُبلَّغ عن كل تذكرة تتعذّر على حدة.`}
+          extra={<p className="rounded-xl bg-slate-50 p-3 text-[11px] font-bold leading-relaxed text-deepBlue/70">يُطبَّق الحجم والنقاط نفسهما على كل تذكرة تُسند، ويحلّان محلّ قيمها السابقة. أما المدة التقريبية فإن تركتها فارغة بقيت على كل تذكرة كما هي.</p>}
+          submitLabel="تنفيذ الإسناد"
+          busyLabel="جارٍ التنفيذ…"
+          testId="bulk-estimate-dialog"
+          onSubmit={(estimate) => execute(estimate)}
+          onClose={() => setPending(null)}
+        />
+      : null}
+
       <ConfirmDialog
-        open={pending !== null}
-        title={pending?.kind === 'priority' ? 'تغيير أولوية عدة تذاكر' : 'إسناد عدة تذاكر'}
-        description={
-          pending?.kind === 'priority' ? `ستُغيَّر أولوية ${selected.length} تذكرة إلى «${PRIORITY_LABELS[pending.priority]}» حيث يُسمح لك بذلك. تُسجَّل العملية في سجل كل تذكرة.`
-          : pending ? `ستُسند ${selected.length} تذكرة إلى ${pending.assigneeName}، ويُطلب منه قبول كل واحدة. التذاكر غير القابلة لإعادة التوجيه لن تتغير.`
-          : ''
-        }
+        open={pending?.kind === 'priority'}
+        title="تغيير أولوية عدة تذاكر"
+        description={pending?.kind === 'priority' ? `ستُغيَّر أولوية ${selected.length} تذكرة إلى «${PRIORITY_LABELS[pending.priority]}» حيث يُسمح لك بذلك. تُسجَّل العملية في سجل كل تذكرة.` : ''}
         confirmLabel={busy ? 'جارٍ التنفيذ…' : 'تنفيذ'}
         cancelLabel="إلغاء"
         variant="primary"

@@ -15,6 +15,7 @@ import { TicketCommentBox } from './TicketCommentBox'
 import { TicketDuplicateHints } from './TicketDuplicateHints'
 import { TicketPriorityControl } from './TicketPriorityControl'
 import { ageText, formatDateTime } from './ticketOpsUi'
+import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -54,7 +55,7 @@ function BodySkeleton() {
 }
 
 type Head = Pick<Ticket, 'id' | 'title' | 'ticket_number' | 'status' | 'priority' | 'ticket_category' | 'department_id' | 'created_by_name' | 'created_at' | 'expected_resolution_time' | 'is_delayed'> &
-  Partial<Pick<Ticket, 'department' | 'unit' | 'assignee' | 'assigned_to_id' | 'capabilities' | 'created_by_email'>>
+  Partial<Pick<Ticket, 'department' | 'unit' | 'assignee' | 'assigned_to_id' | 'capabilities' | 'created_by_email' | 'task_scope' | 'task_points' | 'estimated_hours'>>
 
 function Body({
   ticketId,
@@ -153,6 +154,11 @@ function Body({
               <Fact label="الإدارة">{head.department?.name_ar ?? '—'}</Fact>
               {head.unit ? <Fact label="الوحدة">{head.unit.name_ar}</Fact> : null}
               <Fact label="المكلف">{head.assignee?.name ?? <span className="text-violet-700">غير مُسنَدة</span>}</Fact>
+              {head.assignee || head.assigned_to_id ?
+                <Fact label="النقاط والمدة">
+                  <span data-testid="ticket-estimate"><TicketEstimateValue ticket={head} mutedClass="text-deepBlue/45" /></span>
+                </Fact>
+              : null}
               {t?.approver ? <Fact label="اعتمدها">{t.approver.name}</Fact> : null}
               <Fact label="الإنشاء">{formatDateTime(head.created_at)}</Fact>
               {lastActivity ? <Fact label="آخر نشاط">{ageText(lastActivity) || formatDateTime(lastActivity)}</Fact> : null}
@@ -164,7 +170,7 @@ function Body({
         </dl>
 
         {head && caps?.change_priority ? <TicketPriorityControl key={`${head.id}:${head.priority}`} ticketId={head.id} current={head.priority} suggestion={insight?.suggestedPriority} onChanged={changed} /> : null}
-        {head && caps && (caps.reassign || caps.approve) ? <TicketAssignmentPanel ticket={{ id: head.id, assigned_to_id: head.assigned_to_id ?? null, status: head.status }} canAssign={caps.reassign} onChanged={changed} /> : null}
+        {head && caps && (caps.reassign || caps.approve) ? <TicketAssignmentPanel ticket={{ id: head.id, assigned_to_id: head.assigned_to_id ?? null, status: head.status, task_scope: head.task_scope, task_points: head.task_points, estimated_hours: head.estimated_hours }} canAssign={caps.reassign} onChanged={changed} /> : null}
         {head && caps?.add_internal_note ? <TicketDuplicateHints ticketId={head.id} onOpen={onOpenOther} /> : null}
       </aside>
 

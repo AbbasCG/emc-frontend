@@ -33,6 +33,7 @@ import {
   type BoardColumns,
   type BoardTask,
 } from '@/api/operationsBoardApi'
+import StatusBoard from '@/components/ui/StatusBoard'
 import TaskCreateModal from '@/components/operations/TaskCreateModal'
 import TaskEvaluationModal from '@/components/operations/TaskEvaluationModal'
 import TaskRejectModal from '@/components/operations/TaskRejectModal'
@@ -704,74 +705,55 @@ export default function OperationsBoardPage() {
         </select>
       </div>
 
-      {/* لوحة الكانبان (الأعمدة الـ 9) */}
+      {/* لوحة الكانبان (الأعمدة الـ 9): تتكيّف مع العرض، وعلى الشاشات الضيقة تُعرض حالة واحدة بمبدّل */}
       {view === 'kanban' && (
-        <div className="flex gap-4 overflow-x-auto pb-6 pt-1" dir="rtl">
-          {BOARD_COLUMNS.map((col) => {
+        <StatusBoard
+          ariaLabel="حالات مهام اللوحة"
+          testId="operations-board"
+          emptyText="لا مهام هنا"
+          columns={BOARD_COLUMNS.map((col) => {
             const list = filteredColumns[col.key] ?? []
             const isTarget = dropTarget === col.key
-            return (
-              <div
-                key={col.key}
-                onDragOver={(e) => {
+            return {
+              key: col.key,
+              label: col.label,
+              count: list.length,
+              className: isTarget ? 'border-customBlue bg-customBlue/[0.04] ring-2 ring-customBlue/30' : undefined,
+              columnProps: {
+                onDragOver: (e) => {
                   e.preventDefault()
                   setDropTarget(col.key)
-                }}
-                onDragLeave={() => setDropTarget(null)}
-                onDrop={(e) => handleDrop(e, col.key)}
-                className={`flex w-72 shrink-0 flex-col rounded-2xl border transition ${
-                  isTarget
-                    ? 'border-customBlue bg-customBlue/[0.04] ring-2 ring-customBlue/30'
-                    : 'border-slate-200/80 bg-slate-50/50'
-                }`}
-              >
-                {/* رأس العمود */}
-                <header className="flex items-center justify-between border-b border-slate-200/70 p-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-customBlue" />
-                    <h2 className="text-xs font-black text-deepBlue">{col.label}</h2>
-                  </div>
-                  <span className="rounded-lg bg-white px-2 py-0.5 text-[11px] font-black text-slate-500 shadow-sm ring-1 ring-slate-200/60">
-                    {list.length}
-                  </span>
-                </header>
-
-                {/* بطاقات المهام داخل العمود */}
-                <div className="flex-1 space-y-3 p-3 overflow-y-auto max-h-[72vh]">
-                  {list.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      currentUserId={user?.id}
-                      canManage={canManage}
-                      busy={busyId === task.id}
-                      draggable={true}
-                      onDragStart={(e) => e.dataTransfer.setData('text/task-id', String(task.id))}
-                      onStatusChange={(status) => void moveTask(task, status)}
-                      onToggleLock={() => void toggleLock(task)}
-                      onEvaluate={() => setEvaluatingTask(task)}
-                      onAccept={() => void handleAccept(task)}
-                      onReject={() => setRejectingTask(task)}
-                      onReassign={() => setReassigningTask(task)}
-                      onClaim={() => void handleClaim(task)}
-                    />
-                  ))}
-                  {list.length === 0 && (
-                    <p className="py-6 text-center text-xs font-semibold text-slate-400">
-                      لا مهام هنا
-                    </p>
-                  )}
-                </div>
-              </div>
-            )
+                },
+                onDragLeave: () => setDropTarget(null),
+                onDrop: (e) => handleDrop(e, col.key),
+              },
+              children: list.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  currentUserId={user?.id}
+                  canManage={canManage}
+                  busy={busyId === task.id}
+                  draggable={true}
+                  onDragStart={(e) => e.dataTransfer.setData('text/task-id', String(task.id))}
+                  onStatusChange={(status) => void moveTask(task, status)}
+                  onToggleLock={() => void toggleLock(task)}
+                  onEvaluate={() => setEvaluatingTask(task)}
+                  onAccept={() => void handleAccept(task)}
+                  onReject={() => setRejectingTask(task)}
+                  onReassign={() => setReassigningTask(task)}
+                  onClaim={() => void handleClaim(task)}
+                />
+              )),
+            }
           })}
-        </div>
+        />
       )}
 
       {/* عرض القائمة */}
       {view === 'list' && (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <table className="w-full text-right text-xs">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full min-w-[56rem] text-right text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-black">
               <tr>
                 <th className="p-3.5">المهمة</th>
