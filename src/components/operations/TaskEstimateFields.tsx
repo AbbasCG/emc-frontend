@@ -1,7 +1,14 @@
-import type { Ref } from 'react'
+import { useState, type Ref } from 'react'
 import { Clock, Info } from 'lucide-react'
+import { TICKET_DEPLOYMENT_CLAUSE } from '@/lib/ticketLifecycle'
 import {
   type ActualDurationDraft,
+  ACTUAL_MINUTES_CHOICES,
+  DURATION_PRESETS,
+  type TicketEstimateMode,
+  actualHoursChoices,
+  pointsChoices,
+  presetForDuration,
   TICKET_ESTIMATE_NOTE,
   TASK_SCOPES,
   TASK_SCOPE_RULES,
@@ -32,6 +39,11 @@ interface Common {
   autofillPoints?: boolean
   /** The line under the duration. The task form's default is about the volunteer's balance; tickets pass their own. */
   durationHint?: string
+  /**
+   * TICKET forms only: «نقاط المهمة» becomes a dropdown driven by the chosen size and the server's options, and
+   * «المدة التقريبية» a preset dropdown with «مدة مخصصة». Tasks never pass it, so their fields are exactly as before.
+   */
+  ticketMode?: TicketEstimateMode
 }
 
 function ErrorText({ id, children }: { id: string; children?: string }) {
@@ -45,7 +57,7 @@ function ErrorText({ id, children }: { id: string; children?: string }) {
 }
 
 /** «حجم المهمة» select. */
-export function EstimateScopeSelect({ value, onChange, errors, idPrefix, disabled, autofillPoints = false }: Common) {
+export function EstimateScopeSelect({ value, onChange, errors, idPrefix, disabled, autofillPoints = false, ticketMode }: Common) {
   const id = `${idPrefix}-scope`
 
   return (
@@ -62,7 +74,10 @@ export function EstimateScopeSelect({ value, onChange, errors, idPrefix, disable
         onChange={(e) => {
           const scope = isTaskScope(e.target.value) ? e.target.value : ''
           const exceptional = scope === 'strategic' ? value.exceptional : false
-          const points = autofillPoints && scope !== '' && !exceptional ? String(TASK_SCOPE_RULES[scope].min) : value.points
+          let points = autofillPoints && scope !== '' && !exceptional ? String(TASK_SCOPE_RULES[scope].min) : value.points
+          // Ticket forms: the points belong to the size they were picked for, so a new size always clears them (also
+          // while the options are still loading): a stale hidden value is never submitted.
+          if (ticketMode && scope !== value.scope) points = ''
           onChange({ ...value, scope, exceptional, points })
         }}
         className={`${FIELD} ${border(Boolean(errors?.task_scope))}`}
@@ -108,10 +123,16 @@ export function EstimateScopeCard({ scope }: { scope: EstimateDraft['scope'] }) 
 }
 
 /** «نقاط المهمة» + «المدة التقريبية» (ساعات / دقائق). */
-export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disabled, autofillPoints = false, durationHint = 'تُضاف لرصيد المتطوع التراكمي لإصدار شهادة الساعات عند الإنجاز' }: Common) {
+export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disabled, autofillPoints = false, durationHint = 'تُضاف لرصيد المتطوع التراكمي لإصدار شهادة الساعات عند الإنجاز', ticketMode }: Common) {
   const pointsId = `${idPrefix}-points`
   const durationId = `${idPrefix}-duration`
   const rule = value.scope === '' ? null : TASK_SCOPE_RULES[value.scope]
+  // Ticket forms: a points dropdown (while the server sent options or they are still loading) and duration presets.
+  const pointsDropdown = Boolean(ticketMode && (ticketMode.pointsOptions || ticketMode.pointsLoading))
+  const choices = pointsChoices(ticketMode?.pointsOptions, value.scope, ticketMode?.stored)
+  const preset = presetForDuration(value)
+  const [custom, setCustom] = useState(() => ticketMode !== undefined && value.duration.trim() !== '' && preset === null)
+  const customShown = ticketMode !== undefined && (custom || (value.duration.trim() !== '' && preset === null))
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -120,7 +141,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
           <label htmlFor={pointsId} className="text-xs font-black text-deepBlue">
             نقاط المهمة <span className="text-red-500" aria-hidden="true">*</span>
           </label>
-          {value.scope === 'strategic' ? (
+          {value.scope === 'strategic' && !pointsDropdown ? (
             <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-bold text-purple-700">
               <input
                 type="checkbox"
@@ -136,24 +157,46 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
             </label>
           ) : null}
         </div>
-        <input
-          id={pointsId}
-          type="number"
-          inputMode="numeric"
-          min={rule?.min}
-          max={rule && !value.exceptional && !rule.open ? rule.max : undefined}
-          value={value.points}
-          disabled={disabled}
-          aria-required="true"
-          aria-invalid={errors?.task_points ? true : undefined}
-          aria-describedby={errors?.task_points ? `${pointsId}-err` : `${pointsId}-hint`}
-          onChange={(e) => onChange({ ...value, points: e.target.value })}
-          placeholder={rule ? undefined : 'اختر الحجم أولًا'}
-          className={`${FIELD} ${border(Boolean(errors?.task_points))} font-black`}
-        />
+        {pointsDropdown ? (
+          <select
+            id={pointsId}
+            value={value.points}
+            disabled={disabled || value.scope === ''}
+            aria-required="true"
+            aria-invalid={errors?.task_points ? true : undefined}
+            aria-describedby={errors?.task_points ? `${pointsId}-err` : `${pointsId}-hint`}
+            onChange={(e) => onChange({ ...value, points: e.target.value })}
+            className={`${FIELD} ${border(Boolean(errors?.task_points))} font-black`}
+          >
+            <option value="">{value.scope === '' ? 'اختر الحجم أولًا' : ticketMode?.pointsLoading && choices.length === 0 ? 'جارٍ تحميل الخيارات...' : '-- اختر النقاط --'}</option>
+            {choices.map((n) => (
+              <option key={n} value={String(n)}>
+                {n}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            id={pointsId}
+            type="number"
+            inputMode="numeric"
+            min={rule?.min}
+            max={rule && !value.exceptional && !rule.open ? rule.max : undefined}
+            value={value.points}
+            disabled={disabled}
+            aria-required="true"
+            aria-invalid={errors?.task_points ? true : undefined}
+            aria-describedby={errors?.task_points ? `${pointsId}-err` : `${pointsId}-hint`}
+            onChange={(e) => onChange({ ...value, points: e.target.value })}
+            placeholder={rule ? undefined : 'اختر الحجم أولًا'}
+            className={`${FIELD} ${border(Boolean(errors?.task_points))} font-black`}
+          />
+        )}
         <ErrorText id={`${pointsId}-err`}>{errors?.task_points}</ErrorText>
         <span id={`${pointsId}-hint`} className="mt-1 block text-[10px] text-slate-400">
-          {rule === null
+          {pointsDropdown
+            ? 'تُختار النقاط من القيم المعتمدة للحجم المحدَّد'
+            : rule === null
             ? 'تُحدَّد النقاط ضمن نطاق الحجم المختار'
             : value.exceptional
               ? 'الحقل مفتوح لكمية نقاط غير محدودة للأثر الاستثنائي'
@@ -168,7 +211,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
           <label htmlFor={durationId} className="text-xs font-black text-deepBlue">
             المدة التقريبية
           </label>
-          <div className="flex gap-1" role="group" aria-label="وحدة المدة">
+          <div className={`flex gap-1 ${ticketMode && !customShown ? 'hidden' : ''}`} aria-hidden={ticketMode && !customShown ? true : undefined} role="group" aria-label="وحدة المدة">
             {(['hours', 'minutes'] as const).map((u) => (
               <button
                 key={u}
@@ -183,9 +226,39 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
             ))}
           </div>
         </div>
-        <div className="relative">
-          <input
+        {ticketMode ? (
+          <select
             id={durationId}
+            value={customShown ? 'custom' : preset === null ? '' : String(preset)}
+            disabled={disabled}
+            aria-invalid={errors?.estimated_hours ? true : undefined}
+            aria-describedby={errors?.estimated_hours ? `${durationId}-err` : `${durationId}-hint`}
+            onChange={(e) => {
+              const v = e.target.value
+              if (v === 'custom') {
+                setCustom(true)
+
+                return
+              }
+              setCustom(false)
+              onChange({ ...value, duration: v, unit: 'hours' })
+            }}
+            className={`${FIELD} ${border(Boolean(errors?.estimated_hours))} font-black`}
+          >
+            <option value="">بدون مدة تقريبية</option>
+            {DURATION_PRESETS.map((p) => (
+              <option key={p.hours} value={String(p.hours)}>
+                {p.label}
+              </option>
+            ))}
+            <option value="custom">مدة مخصصة</option>
+          </select>
+        ) : null}
+        {ticketMode && !customShown ? null : (
+        <div className={`relative ${ticketMode ? 'mt-2' : ''}`}>
+          <input
+            id={ticketMode ? `${durationId}-custom` : durationId}
+            aria-label={ticketMode ? 'المدة التقريبية (مخصصة)' : undefined}
             type="number"
             step="0.5"
             min="0"
@@ -199,6 +272,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
           />
           <Clock size={15} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" aria-hidden="true" />
         </div>
+        )}
         <ErrorText id={`${durationId}-err`}>{errors?.estimated_hours}</ErrorText>
         <span id={`${durationId}-hint`} className="mt-1 block text-[10px] text-slate-400">
           {durationHint}
@@ -226,15 +300,17 @@ export default function TaskEstimateFields({ legacy = false, ...p }: Common & { 
       {legacy ? <LegacyEstimateNote /> : null}
       <EstimateScopeSelect {...p} />
       <EstimateScopeCard scope={p.value.scope} />
-      <EstimatePointsDuration {...p} durationHint={TICKET_ESTIMATE_NOTE} />
+      <EstimatePointsDuration {...p} durationHint={p.ticketMode?.requiresDeployment ? `${TICKET_ESTIMATE_NOTE} ${TICKET_DEPLOYMENT_CLAUSE}` : TICKET_ESTIMATE_NOTE} />
     </fieldset>
   )
 }
 
 /**
- * «المدة الفعلية» in whole hours and whole minutes: the time the reviewer approves at the final approval, and the ONLY
- * time added to the member's balance. Styled like «المدة التقريبية»; controlled (the parent owns the draft and the
- * error, so the server's 422 on `actual_minutes` and the client check show in the same place).
+ * «المدة الفعلية» as two dropdowns, hours and minutes: the time the reviewer approves, and the ONLY time added to the
+ * member's balance. Both start EMPTY (placeholders «ساعات» / «دقائق»: no zero default, never the estimate). Hours offer
+ * 0..24 and a few long values (and the stored value if it is not among them); minutes offer every value 0..59.
+ * Controlled: the parent owns the draft and the error, so the server's 422 on `actual_minutes` and the client check
+ * show in the same place.
  */
 export function ActualDurationFields({
   value,
@@ -243,6 +319,7 @@ export function ActualDurationFields({
   idPrefix,
   disabled,
   hoursRef,
+  storedHours,
 }: {
   value: ActualDurationDraft
   onChange: (next: ActualDurationDraft) => void
@@ -250,11 +327,14 @@ export function ActualDurationFields({
   idPrefix: string
   disabled?: boolean
   /** Lets the form move focus to the first field when the entry is refused. */
-  hoursRef?: Ref<HTMLInputElement>
+  hoursRef?: Ref<HTMLSelectElement>
+  /** Whole hours already stored for the ticket: always offered, even when it is not one of the usual choices. */
+  storedHours?: number | null
 }) {
   const hoursId = `${idPrefix}-hours`
   const minutesId = `${idPrefix}-minutes`
   const errId = `${idPrefix}-err`
+  const hourChoices = actualHoursChoices(storedHours ?? (value.hours.trim() !== '' && Number.isInteger(Number(value.hours)) ? Number(value.hours) : null))
 
   return (
     <div className="grid grid-cols-2 gap-3" data-testid="actual-duration-fields">
@@ -262,43 +342,46 @@ export function ActualDurationFields({
         <label htmlFor={hoursId} className="mb-1.5 block text-xs font-black text-deepBlue">
           ساعات
         </label>
-        <input
+        <select
           id={hoursId}
           ref={hoursRef}
-          type="number"
-          inputMode="numeric"
-          step="1"
-          min="0"
-          max="1000"
           value={value.hours}
           disabled={disabled}
           aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errId : undefined}
           onChange={(e) => onChange({ ...value, hours: e.target.value })}
-          placeholder="0"
           className={`${FIELD} ${border(Boolean(error))} font-black`}
-        />
+        >
+          <option value="">ساعات</option>
+          {hourChoices.map((h) => (
+            <option key={h} value={String(h)}>
+              {h}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label htmlFor={minutesId} className="mb-1.5 block text-xs font-black text-deepBlue">
           دقائق
         </label>
-        <input
+        <select
           id={minutesId}
-          type="number"
-          inputMode="numeric"
-          step="1"
-          min="0"
           value={value.minutes}
           disabled={disabled}
           aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errId : undefined}
           onChange={(e) => onChange({ ...value, minutes: e.target.value })}
-          placeholder="0"
           className={`${FIELD} ${border(Boolean(error))} font-black`}
-        />
+        >
+          <option value="">دقائق</option>
+          {ACTUAL_MINUTES_CHOICES.map((m) => (
+            <option key={m} value={String(m)}>
+              {m}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="col-span-2">
         <ErrorText id={errId}>{error ?? undefined}</ErrorText>

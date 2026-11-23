@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Hourglass, Inbox, Layers, PlayCircle, UserX, Zap } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock, FlaskConical, Hourglass, Inbox, Layers, PlayCircle, Rocket, UserX, Zap } from 'lucide-react'
 import type { TicketFilters, TicketStats } from '@/types/ticketOps'
 import { isKpiActive, type KpiKey } from '@/utils/ticketFilters'
 import { cn } from '@/lib/utils'
@@ -27,6 +27,8 @@ const SECONDARY: CardDef[] = [
   { key: 'total', label: 'الإجمالي', hint: 'كل التذاكر في النطاق', value: (s) => s.counts.total, icon: Layers, tone: 'text-deepBlue bg-slate-100' },
   { key: 'inProgress', label: 'قيد المعالجة', hint: 'يعمل عليها المكلف', value: (s) => s.counts.inProgress, icon: PlayCircle, tone: 'text-violet-700 bg-violet-50' },
   { key: 'pendingReview', label: 'بانتظار المراجعة', hint: 'قُدِّم إنجازها وتنتظر الاعتماد النهائي', value: (s) => s.counts.pendingReview, icon: Hourglass, tone: 'text-indigo-700 bg-indigo-50' },
+  { key: 'approvedForDeploy', label: 'معتمدة للنشر', hint: 'تنتظر النشر على الموقع الحي', value: (s) => s.counts.approvedForDeploy, icon: Rocket, tone: 'text-teal-700 bg-teal-50' },
+  { key: 'pendingVerification', label: 'بانتظار الاختبار الحي', hint: 'تنتظر اختبار المكلّف على الموقع الحي', value: (s) => s.counts.pendingVerification, icon: FlaskConical, tone: 'text-cyan-700 bg-cyan-50' },
   { key: 'resolved', label: 'تم الحل', hint: 'حُلّت بنجاح', value: (s) => s.counts.resolved, icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-50' },
   { key: 'closed', label: 'مغلقة', hint: 'حُلّت أو رُفضت أو تعذّر حلها', value: (s) => s.counts.closed, icon: Clock, tone: 'text-slate-600 bg-slate-100' },
 ]
@@ -51,7 +53,7 @@ function KpiButton({ def, stats, filters, onPick }: { def: CardDef; stats: Ticke
       </span>
       <span className="min-w-0">
         <span className="block text-2xl font-black leading-none text-deepBlue" data-testid={`kpi-value-${def.key}`}>
-          {stats ? def.value(stats).toLocaleString('en-US') : <span className="inline-block h-6 w-10 animate-pulse rounded bg-deepBlue/[0.08]" />}
+          {stats ? Number(def.value(stats) ?? 0).toLocaleString('en-US') : <span className="inline-block h-6 w-10 animate-pulse rounded bg-deepBlue/[0.08]" />}
         </span>
         <span className="mt-1 block truncate text-[12px] font-black text-deepBlue/80">{def.label}</span>
         <span className="block truncate text-[10px] font-semibold text-deepBlue/45">{def.hint}</span>

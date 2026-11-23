@@ -1,4 +1,6 @@
 import { ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi';
+import { Link } from 'react-router';
+import { TICKET_STAGE_CARD } from '@/lib/myWork';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketService } from '@/services/ticketService';
 import { apiMessage } from '@/services/ticketOpsService';
@@ -59,6 +61,12 @@ const ACTION_LABEL: Record<string, string> = {
   SUBMITTED_FOR_REVIEW: 'قدّمت الإنجاز للمراجعة',
   APPROVED_COMPLETION:  'اعتُمد الإنجاز نهائيًا',
   RETURNED_FOR_REWORK:  'أُعيدت للتنفيذ',
+  APPROVED_FOR_DEPLOY:  'اعتُمدت للنشر',
+  DEPLOY_DETAILS:       'تفاصيل النشر',
+  DEPLOYMENT_FLAG_CHANGED: 'تغيير شرط النشر على الموقع الحي',
+  DEPLOYED_LIVE:        'نُشرت على الموقع الحي',
+  VERIFIED_RESOLVED:    'أكّدتَ الحل بعد الاختبار الحي',
+  VERIFICATION_FAILED:  'فشل الاختبار الحي',
 };
 
 const PRIORITY_META: Record<TicketPriority, { label: string; className: string }> = {
@@ -68,7 +76,7 @@ const PRIORITY_META: Record<TicketPriority, { label: string; className: string }
   CRITICAL: { label: 'أولوية حرجة',   className: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
 
-const ACTIVE_STATUSES: TicketStatus[] = ['ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW'];
+const ACTIVE_STATUSES: TicketStatus[] = ['ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW', 'APPROVED_FOR_DEPLOY', 'PENDING_VERIFICATION'];
 const CLOSED_STATUSES: TicketStatus[] = ['RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ASSIGNEE'];
 
 function formatDateTime(str?: string | null): string {
@@ -295,8 +303,8 @@ const AssigneeWorkspacePage: React.FC = () => {
       toast.success(status === 'RESOLVED' ? 'تم تقديم التذكرة للمراجعة والاعتماد' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       setModal(null);
       refreshAfterAction(ticketId);
-    } catch {
-      toast.error('حدث خطأ أثناء حفظ نتيجة المهمة');
+    } catch (e) {
+      toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
     } finally {
       setActionLoading(false);
     }
@@ -334,6 +342,12 @@ const AssigneeWorkspacePage: React.FC = () => {
   const canReject   = !!caps?.reject_task;
   const canComplete = !!caps?.complete_task;
   const canNote     = !!caps?.add_internal_note;
+  // A ticket that requires live deployment (or is already past the assignee's own work: in review, approved for
+  // deployment or waiting for the live test) is worked on from its own page. The old resolve dialog and its copy are
+  // for regular tickets only.
+  const deploymentFlow = !!ticket && (ticket.requires_deployment === true || ticket.status in TICKET_STAGE_CARD);
+  const stage = ticket ? TICKET_STAGE_CARD[ticket.status] : undefined;
+  const liveUrl = ticket?.deployment?.live_url && /^https:\/\/\S+$/i.test(ticket.deployment.live_url) ? ticket.deployment.live_url : null;
 
   const attachments    = ticket?.attachments ?? [];
   const originalFiles  = attachments.filter((a) => a.attachment_context !== 'RESOLUTION_PROOF');
@@ -672,7 +686,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                       </section>
                     )}
 
-                    {canComplete && (
+                    {canComplete && !deploymentFlow && (
                       <section className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                         <p className="text-sm font-bold text-navy">المهمة قيد التنفيذ — قدّمها للمراجعة</p>
                         <div className="flex flex-col gap-3 sm:flex-row">
@@ -714,7 +728,34 @@ const AssigneeWorkspacePage: React.FC = () => {
                       </section>
                     )}
 
-                    {!canAccept && !canReject && !canComplete && (
+                    {deploymentFlow && !canAccept && !canReject && (
+                      <section className="space-y-3 rounded-2xl border border-teal-200 bg-teal-50/50 p-5" data-testid="workspace-deployment-flow">
+                        {stage ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-teal-800 ring-1 ring-teal-200" data-testid="workspace-stage-badge">{stage.badge}</span>
+                            <span className="text-xs font-bold text-teal-900" data-testid="workspace-next-step">{stage.next}</span>
+                          </div>
+                        ) : null}
+                        <p className="text-sm font-bold text-navy">
+                          {ticket.status === 'IN_PROGRESS' || ticket.status === 'ASSIGNED'
+                            ? 'هذه التذكرة تتطلب نشرًا على الموقع الحي. أرسلها للمراجعة وتابع مراحلها من صفحة التذكرة.'
+                            : 'تُنفَّذ إجراءات هذه المرحلة من صفحة التذكرة.'}
+                        </p>
+                        {liveUrl ? (
+                          <a href={liveUrl} target="_blank" rel="noopener noreferrer" dir="ltr" className="block truncate text-xs font-bold text-brand-500 hover:underline" data-testid="workspace-live-link">
+                            {liveUrl}
+                          </a>
+                        ) : null}
+                        <Link
+                          to={`/dashboard/tickets/${ticket.id}`}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600"
+                        >
+                          فتح التذكرة
+                        </Link>
+                      </section>
+                    )}
+
+                    {!canAccept && !canReject && !canComplete && !deploymentFlow && (
                       <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs text-muted-500">
                         لا توجد إجراءات متاحة لك على هذه التذكرة في حالتها الحالية.
                       </p>

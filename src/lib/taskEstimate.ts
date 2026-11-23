@@ -223,6 +223,8 @@ export const MIN_ACTUAL_MINUTES = 1
 export const MAX_ACTUAL_MINUTES = 60000
 
 export const ACTUAL_DURATION_REQUIRED_MESSAGE = 'أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد النهائي.'
+/** The same sentence for «اعتماد للنشر» (the server words it per endpoint). */
+export const ACTUAL_DURATION_REQUIRED_DEPLOY_MESSAGE = 'أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد للنشر.'
 
 /** What the reviewer typed for the actual duration: whole hours and whole minutes, as strings (empty stays empty). */
 export interface ActualDurationDraft {
@@ -259,8 +261,8 @@ export function actualDraftToMinutes(d: ActualDurationDraft): { ok: true; minute
 }
 
 /** The Arabic message for a rejected entry (the server's own sentence for «empty»). */
-export function actualDurationMessage(reason: 'empty' | 'invalid' | 'too_long'): string {
-  if (reason === 'empty') return ACTUAL_DURATION_REQUIRED_MESSAGE
+export function actualDurationMessage(reason: 'empty' | 'invalid' | 'too_long', deploy = false): string {
+  if (reason === 'empty') return deploy ? ACTUAL_DURATION_REQUIRED_DEPLOY_MESSAGE : ACTUAL_DURATION_REQUIRED_MESSAGE
   if (reason === 'too_long') return `المدة الفعلية لا تتجاوز ${MAX_HOURS} ساعة.`
 
   return 'أدخل ساعات ودقائق صحيحة (أعدادًا صحيحة).'
@@ -298,3 +300,66 @@ export const formatDurationHours = (hours: number | string | null | undefined): 
 export function creditedDurationText(credit: { minutes?: number | null; hours?: number | null }): string {
   return credit.minutes != null ? formatDurationMinutes(credit.minutes) : formatDurationHours(credit.hours ?? 0)
 }
+
+// ── Ticket forms: points dropdown, approximate-duration presets, actual-duration choices ─────────────────────────
+
+/** The points a ticket of each size may be given, from `meta().points_options`. */
+export type PointsOptions = Partial<Record<TaskScope, number[]>>
+
+/** What a ticket form needs to render its dropdowns (tasks never pass this: their forms keep the free inputs). */
+export interface TicketEstimateMode {
+  /** The ticket requires live deployment (the switch is on): the note then carries the deployment clause. */
+  requiresDeployment?: boolean
+  /** `null`: the server did not send any (an older one): the form falls back to the free number input. */
+  pointsOptions: PointsOptions | null
+  pointsLoading?: boolean
+  /** The ticket's stored size and points: its stored value is always offered while that size is chosen. */
+  stored?: { scope: TaskScope | ''; points: string }
+}
+
+/** The numbers offered for a size: the server's options, plus the stored value while the stored size is selected. Sorted, unique. */
+export function pointsChoices(options: PointsOptions | null | undefined, scope: TaskScope | '', stored?: { scope: TaskScope | ''; points: string }): number[] {
+  if (scope === '') return []
+  const set = new Set<number>((options?.[scope] ?? []).map(Number).filter((n) => Number.isFinite(n)))
+  if (stored && stored.scope === scope && stored.points.trim() !== '' && Number.isFinite(Number(stored.points))) set.add(Number(stored.points))
+
+  return [...set].sort((a, b) => a - b)
+}
+
+/** The approximate-duration presets of the ticket forms (hours as decimals, the label as the user reads it). */
+export const DURATION_PRESETS: ReadonlyArray<{ hours: number; label: string }> = [
+  { hours: 0.25, label: '15 دقيقة' },
+  { hours: 0.5, label: '30 دقيقة' },
+  { hours: 0.75, label: '45 دقيقة' },
+  { hours: 1, label: 'ساعة' },
+  { hours: 1.5, label: 'ساعة ونصف' },
+  { hours: 2, label: 'ساعتان' },
+  { hours: 3, label: '3 ساعات' },
+  { hours: 4, label: '4 ساعات' },
+  { hours: 6, label: '6 ساعات' },
+  { hours: 8, label: '8 ساعات' },
+  { hours: 12, label: '12 ساعة' },
+  { hours: 16, label: '16 ساعة' },
+  { hours: 24, label: '24 ساعة' },
+  { hours: 40, label: '40 ساعة' },
+]
+
+/** The preset a draft's duration equals (in hours), or null (empty, or a custom value). */
+export function presetForDuration(d: Pick<EstimateDraft, 'duration' | 'unit'>): number | null {
+  const hours = durationToHours(d.duration, d.unit)
+  if (hours === null || !Number.isFinite(hours)) return null
+
+  return DURATION_PRESETS.find((p) => Math.abs(p.hours - hours) < 0.005)?.hours ?? null
+}
+
+/** Whole hours the reviewer may pick for the actual duration: 0..48 in full, then the long ones; the stored value is always present. */
+const LONG_HOURS = [56, 60, 72, 80, 100, 120, 160, 200]
+export function actualHoursChoices(stored?: number | null): number[] {
+  const base = [...Array.from({ length: 49 }, (_, i) => i), ...LONG_HOURS]
+  if (stored != null && Number.isInteger(stored) && stored >= 0 && !base.includes(stored)) base.push(stored)
+
+  return base.sort((a, b) => a - b)
+}
+
+/** Every minute value 0..59. */
+export const ACTUAL_MINUTES_CHOICES: readonly number[] = Array.from({ length: 60 }, (_, i) => i)

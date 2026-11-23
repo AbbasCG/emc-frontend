@@ -14,13 +14,17 @@ export interface ReturnForReworkModalProps {
   onSuccess: () => void;
   /** The ticket is no longer waiting for review (409): close and re-read it. Defaults to `onSuccess`. */
   onStale?: () => void;
+  /** The ticket is already approved for deployment: say that the approval is cancelled. */
+  fromDeploy?: boolean;
+  /** A manager sends back a ticket waiting for the live test because its assignee is unavailable. */
+  assigneeUnavailable?: boolean;
 }
 
 /**
  * «إعادة للتنفيذ»: POST /v1/tickets/{id}/return-for-rework. The ticket goes back to its assignee (IN_PROGRESS) and
  * nothing is credited. The reason is required, 5 to 1000 characters; the server checks the same.
  */
-export function ReturnForReworkModal({ ticketId, onClose, onSuccess, onStale }: ReturnForReworkModalProps) {
+export function ReturnForReworkModal({ ticketId, onClose, onSuccess, onStale, fromDeploy = false, assigneeUnavailable = false }: ReturnForReworkModalProps) {
   const formId = useId();
   const inFlight = useRef(false);
   const [reason, setReason] = useState('');
@@ -73,7 +77,7 @@ export function ReturnForReworkModal({ ticketId, onClose, onSuccess, onStale }: 
       busy={submitting}
       dirty={reason.trim() !== ''}
       title="إعادة للتنفيذ"
-      subtitle="تعود التذكرة إلى المكلف لاستكمال العمل، ولا يُضاف أي رصيد."
+      subtitle={assigneeUnavailable ? 'المكلّف غير متاح لإكمال الاختبار الحي، فتعود التذكرة إلى التنفيذ ولا يُضاف أي رصيد.' : fromDeploy ? 'يُلغى الاعتماد للنشر وتعود التذكرة إلى المكلف لاستكمال العمل، ثم تحتاج مراجعة جديدة. لا يُضاف أي رصيد.' : 'تعود التذكرة إلى المكلف لاستكمال العمل، ولا يُضاف أي رصيد.'}
       footer={(requestClose) => (
         <div className="flex justify-end gap-3">
           <button

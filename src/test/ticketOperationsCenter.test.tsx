@@ -54,7 +54,7 @@ const list = (items: Ticket[], over: Partial<TicketListResult> = {}): TicketList
 
 function stats(over: Partial<TicketStats['counts']> = {}): TicketStats {
   return {
-    counts: { total: 120, pendingApproval: 14, assigned: 20, inProgress: 31, pendingReview: 6, resolved: 40, unresolved: 3, rejectedByAdmin: 4, rejectedByAssignee: 8, open: 73, closed: 47, overdue: 9, dueSoon: 6, unassigned: 17, highPriority: 11, new24h: 5, ...over },
+    counts: { total: 120, pendingApproval: 14, assigned: 20, inProgress: 31, pendingReview: 6, approvedForDeploy: 4, pendingVerification: 3, resolved: 40, unresolved: 3, rejectedByAdmin: 4, rejectedByAssignee: 8, open: 73, closed: 47, overdue: 9, dueSoon: 6, unassigned: 17, highPriority: 11, new24h: 5, ...over },
     timings: { windowDays: 30, avgResponseHours: 2.5, responseSample: 40, avgResolutionHours: 30, resolutionSample: 25, truncated: false, definitions: { response: 'من الإنشاء إلى أول قرار.', resolution: 'من الإنشاء إلى الحل.' } },
     scopeNote: 'ملاحظة النطاق', dueSoonHours: 24,
   }
@@ -1176,7 +1176,8 @@ describe('bulk actions', () => {
     const est = within(await screen.findByTestId('bulk-estimate-dialog'))
     await userEvent.selectOptions(est.getByLabelText(/حجم المهمة/), 'simple')
     await userEvent.type(est.getByLabelText(/نقاط المهمة/), '40')
-    await userEvent.type(est.getByLabelText('المدة التقريبية'), '2.5')
+    await userEvent.selectOptions(est.getByLabelText('المدة التقريبية'), 'custom')
+    await userEvent.type(est.getByLabelText('المدة التقريبية (مخصصة)'), '2.5')
     await userEvent.click(est.getByRole('button', { name: 'تنفيذ الإسناد' }))
 
     await waitFor(() =>
@@ -1359,5 +1360,17 @@ describe('navigation', () => {
 
     await waitFor(() => expect(ops.fetchTicketList.mock.calls.length).toBe(before + 1))
     expect(url().get('status')).toBe('ASSIGNED')
+  })
+})
+
+describe('the ticket table sends the right rework dialog', () => {
+  it.each([
+    ['APPROVED_FOR_DEPLOY', 'يُلغى الاعتماد للنشر'],
+    ['PENDING_VERIFICATION', 'المكلّف غير متاح لإكمال الاختبار الحي'],
+  ] as const)('%s', async (status, wording) => {
+    ops.fetchTicketList.mockResolvedValue(list([ticket({ status, requires_deployment: true, capabilities: { ...CAPS, return_for_rework: true } })]))
+    renderAt()
+    await userEvent.click(await screen.findByRole('button', { name: /إعادة التذكرة EMC-501 للتنفيذ/ }))
+    expect(await screen.findByTestId('return-for-rework-modal')).toHaveTextContent(wording)
   })
 })

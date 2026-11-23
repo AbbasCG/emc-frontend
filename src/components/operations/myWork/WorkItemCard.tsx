@@ -60,7 +60,7 @@ export default function WorkItemCard({
         </span>
         <OpsPriorityBadge p={item.priority} />
         {item.overdue ? <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700">متأخرة</span> : null}
-        {item.awaitingApproval ? <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700 ring-1 ring-indigo-200" data-testid="awaiting-approval">بانتظار الاعتماد</span> : null}
+        {item.stageBadge ? <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700 ring-1 ring-indigo-200" data-testid="stage-badge">{item.stageBadge}</span> : null}
       </div>
 
       {isTicket ?
@@ -70,6 +70,8 @@ export default function WorkItemCard({
           </Link>
         : <div>{heading}</div>
       : <button type="button" onClick={() => onOpenTask?.(item)} className={openCls}>{heading}</button>}
+
+      {item.nextStep ? <p className="mt-1.5 text-[11px] font-black text-indigo-700" data-testid="next-step">{item.nextStep}</p> : null}
 
       {item.description ? <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-relaxed text-slate-500">{item.description}</p> : null}
 
@@ -136,14 +138,14 @@ export default function WorkItemCard({
         </div>
       : null}
 
-      {isTicket && item.canComplete && item.canOpen ?
+      {isTicket && (item.canComplete || item.awaitingApproval) && item.canOpen ?
         <div className="mt-3 border-t border-slate-100 pt-2.5">
           <Link
             to={`/dashboard/tickets/${item.id}`}
             state={{ from: MY_WORK_PATH }}
             className="block rounded-xl border border-emerald-300 py-1.5 text-center text-xs font-black text-emerald-700 transition hover:bg-emerald-50"
           >
-            فتح التذكرة لإنهاء المهمة
+            فتح التذكرة
           </Link>
         </div>
       : null}

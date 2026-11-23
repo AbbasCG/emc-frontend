@@ -10,6 +10,10 @@ export type TicketStatus =
   | 'IN_PROGRESS'
   /** The assignee submitted the work; it waits for the final approval that credits points and hours. An OPEN status. */
   | 'PENDING_REVIEW'
+  /** Deployment tickets only: the reviewer approved the work (points/time approved, nothing credited yet); it waits to be deployed. */
+  | 'APPROVED_FOR_DEPLOY'
+  /** Deployment tickets only: deployed to the live site; the assignee tests it live and confirms (that is what credits). */
+  | 'PENDING_VERIFICATION'
   | 'RESOLVED'
   | 'UNRESOLVED'
   | 'REJECTED_BY_ADMIN'
@@ -45,8 +49,39 @@ export interface TicketCapabilities {
   can_edit_estimate?: boolean;
   /** May give the FINAL approval of a PENDING_REVIEW ticket (this is what credits points and hours). Trust it; never recompute. */
   approve_completion?: boolean;
-  /** May send a PENDING_REVIEW ticket back to the assignee. */
+  /** May send a PENDING_REVIEW / APPROVED_FOR_DEPLOY ticket back to the assignee. */
   return_for_rework?: boolean;
+  /** Deployment tickets: may approve the reviewed work for deployment (approves points and time; credits nothing). */
+  approve_for_deploy?: boolean;
+  /** Deployment tickets: may record that the work is deployed on the live site. */
+  mark_deployed?: boolean;
+  /** Deployment tickets: the assignee may confirm the live test passed (this credits the balance). */
+  verify_resolved?: boolean;
+  /** Deployment tickets: the assignee may report that the live test failed (the ticket goes back to work). */
+  verify_failed?: boolean;
+}
+
+/** Where a ticket is in its lifecycle, as the server reports it (managers, global roles and the assignee only). */
+export type TicketWorkflowStage = 'in_progress' | 'pending_review' | 'approved_for_deploy' | 'pending_verification' | 'resolved';
+export type TicketNextActor = 'assignee' | 'reviewer' | 'deployer' | null;
+export type TicketNextStepKey = 'submit_for_review' | 'review' | 'deploy' | 'verify_live' | 'none';
+
+export interface TicketWorkflow {
+  stage: TicketWorkflowStage;
+  next_actor: TicketNextActor;
+  next_step_key: TicketNextStepKey;
+}
+
+/** The deployment trail of a deployment ticket; nulls where the step has not been reached. */
+export interface TicketDeployment {
+  review_approved_by_name: string | null;
+  review_approved_at: string | null;
+  deployed_by_name: string | null;
+  deployed_at: string | null;
+  live_url: string | null;
+  verified_at: string | null;
+  /** Which round of review/deploy/verify this is: it grows on every resubmission for review (after a rework or a failed live test). */
+  round: number | null;
 }
 
 /**
@@ -54,7 +89,8 @@ export interface TicketCapabilities {
  * assignee; absent for plain members and reporters, in which case nothing about it may be rendered.
  */
 export interface TicketCredit {
-  status: 'none' | 'pending_review' | 'credited';
+  /** `approved`: points and time are approved but NOT credited yet (deployment tickets, until the live test is confirmed). */
+  status: 'none' | 'pending_review' | 'approved' | 'credited';
   /** Credited points / hours; null until credited. */
   points: number | null;
   /** Decimal hours = minutes / 60 (kept for credits made before the actual duration existed). */
@@ -164,6 +200,10 @@ export interface Ticket {
   actual_minutes?: number | null;
   /** The credit block (see {@link TicketCredit}); absent when the viewer may not read it. */
   credit?: TicketCredit;
+  /** Deployment ticket: goes through review, deployment and a live test by the assignee before closing. Managers/assignee only. */
+  requires_deployment?: boolean;
+  deployment?: TicketDeployment | null;
+  workflow?: TicketWorkflow;
   /** Work-queue rows (`lite=1`) only: newest activity-log time and the attachment count. */
   last_activity_at?: string | null;
   attachments_count?: number;
@@ -212,6 +252,8 @@ export interface MyWorkTicket {
   task_points?: number | null;
   estimated_hours?: number | null;
   credit?: TicketCredit;
+  requires_deployment?: boolean;
+  workflow?: TicketWorkflow;
   created_at?: string;
   updated_at?: string;
   capabilities?: {
@@ -241,6 +283,10 @@ export interface TicketMeta {
   categories: { id: TicketCategory; label_ar: string; label_en: string }[];
   priorities: { id: TicketPriority; label_ar: string; color: string }[];
   statuses: Record<TicketStatus, { label_ar: string; color: string }>;
+  /** The points a ticket of each size may be given (the dropdown options). Absent on older servers: the form falls back to a free number. */
+  points_options?: Partial<Record<TaskScope, number[]>>;
+  /** The server's accepted range per size; `max` is null for the open-ended strategic size. */
+  scope_ranges?: Partial<Record<TaskScope, { min: number; max: number | null }>>;
 }
 
 /** One step of the reporter's simplified history. `key` is stable; `label` is ready to display. */

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, ArrowUpDown, BadgeCheck, CheckCircle2, Columns3, Paperclip, RotateCcw, Undo2, UserPlus, XCircle } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, BadgeCheck, CheckCircle2, Columns3, Paperclip, RotateCcw, Rocket, Undo2, UserPlus, XCircle } from 'lucide-react'
 import type { Ticket } from '@/types/ticket'
 import type { TicketFilters, TicketSortKey } from '@/types/ticketOps'
 import { cn } from '@/lib/utils'
@@ -7,14 +7,14 @@ import { CategoryPill, DeadlineText, PriorityPill, StatusPill } from './TicketBa
 import { COLUMNS, DEFAULT_COLUMNS, saveColumns, type ColumnKey } from './ticketColumns'
 import { ageText, formatDateTime } from './ticketOpsUi'
 
-export type RowAction = 'approve' | 'reject' | 'reassign' | 'approve_completion' | 'return_for_rework'
+export type RowAction = 'approve' | 'reject' | 'reassign' | 'approve_completion' | 'approve_for_deploy' | 'return_for_rework'
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation()
 
 /** Quick actions allowed by the server's capabilities for THIS user and ticket. Pressing one never opens the ticket. */
 export function RowActions({ ticket, onAction }: { ticket: Ticket; onAction: (a: RowAction, t: Ticket) => void }) {
   const c = ticket.capabilities
-  if (!c || (!c.approve && !c.reject && !c.reassign && !c.approve_completion && !c.return_for_rework)) return null
+  if (!c || (!c.approve && !c.reject && !c.reassign && !c.approve_completion && !c.approve_for_deploy && !c.return_for_rework)) return null
   const btn = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40'
 
   return (
@@ -27,6 +27,11 @@ export function RowActions({ ticket, onAction }: { ticket: Ticket; onAction: (a:
       {c.approve_completion === true ?
         <button type="button" onClick={() => onAction('approve_completion', ticket)} className={cn(btn, 'bg-emerald-600 text-white hover:bg-emerald-700')} aria-label={`اعتماد إنجاز التذكرة ${ticket.ticket_number}`}>
           <BadgeCheck size={12} aria-hidden="true" /> اعتماد الإنجاز
+        </button>
+      : null}
+      {c.approve_for_deploy === true ?
+        <button type="button" onClick={() => onAction('approve_for_deploy', ticket)} className={cn(btn, 'bg-teal-600 text-white hover:bg-teal-700')} aria-label={`اعتماد التذكرة ${ticket.ticket_number} للنشر`}>
+          <Rocket size={12} aria-hidden="true" /> اعتماد للنشر
         </button>
       : null}
       {c.return_for_rework === true ?

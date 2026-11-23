@@ -130,8 +130,10 @@ describe('ApproveTicketModal: points and duration are required to assign', () =>
     await fillApprove()
     await userEvent.selectOptions(scope(), 'simple')
     await userEvent.type(points(), '30')
+    // the ticket form offers presets; «مدة مخصصة» reveals the free hours/minutes input
+    await userEvent.selectOptions(duration(), 'custom')
     await userEvent.click(screen.getByRole('button', { name: 'دقائق' }))
-    await userEvent.type(duration(), '150')
+    await userEvent.type(screen.getByLabelText('المدة التقريبية (مخصصة)'), '150')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
     await waitFor(() => expect(svc.approveTicket).toHaveBeenCalled())
     expect(svc.approveTicket.mock.calls[0][1].estimated_hours).toBe(2.5)
@@ -172,7 +174,9 @@ describe('ReassignTicketModal', () => {
     await screen.findByRole('dialog')
     expect(scope().value).toBe('medium')
     expect(points().value).toBe('120')
-    expect(duration().value).toBe('2.5')
+    // 2.5 hours is not a preset: «مدة مخصصة» with the free input filled
+    expect(duration().value).toBe('custom')
+    expect((screen.getByLabelText('المدة التقريبية (مخصصة)') as HTMLInputElement).value).toBe('2.5')
     expect(screen.queryByTestId('legacy-estimate-note')).not.toBeInTheDocument()
   })
 
@@ -228,22 +232,25 @@ describe('EditEstimateModal («تعديل النقاط والمدة»)', () => {
 
   it('saves the new values with PATCH', async () => {
     svc.updateWorkEstimate.mockResolvedValue({ success: true })
+    svc.getMeta.mockResolvedValue({ tech_units: [], users: [], points_options: { medium: [75, 100, 120, 140, 150] } })
     const onSuccess = vi.fn()
     render(<EditEstimateModal ticketId={3} current={{ task_scope: 'medium', task_points: 100, estimated_hours: 2 }} onClose={vi.fn()} onSuccess={onSuccess} />)
-    await userEvent.clear(points())
-    await userEvent.type(points(), '140')
+    // the points are a dropdown of the server's options for the size (the stored 100 is among them)
+    await screen.findByRole('option', { name: '140' })
+    await userEvent.selectOptions(points(), '140')
     await userEvent.click(screen.getByRole('button', { name: 'حفظ النقاط والمدة' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.updateWorkEstimate).toHaveBeenCalledWith(3, { task_scope: 'medium', task_points: 140, estimated_hours: 2 })
+    expect(svc.updateWorkEstimate).toHaveBeenCalledWith(3, { task_scope: 'medium', task_points: 140, estimated_hours: 2, requires_deployment: false })
   })
 
   it('emptying the duration sends an explicit null (clears the hours)', async () => {
     svc.updateWorkEstimate.mockResolvedValue({ success: true })
     render(<EditEstimateModal ticketId={3} current={{ task_scope: 'medium', task_points: 100, estimated_hours: 2 }} onClose={vi.fn()} onSuccess={vi.fn()} />)
-    await userEvent.clear(duration())
+    // 2 hours is a preset: «بدون مدة تقريبية» empties it
+    await userEvent.selectOptions(duration(), '')
     await userEvent.click(screen.getByRole('button', { name: 'حفظ النقاط والمدة' }))
     await waitFor(() => expect(svc.updateWorkEstimate).toHaveBeenCalled())
-    expect(svc.updateWorkEstimate.mock.calls[0][1]).toEqual({ task_scope: 'medium', task_points: 100, estimated_hours: null })
+    expect(svc.updateWorkEstimate.mock.calls[0][1]).toEqual({ task_scope: 'medium', task_points: 100, estimated_hours: null, requires_deployment: false })
   })
 
   it('leaving an empty duration untouched does not send a key for it', async () => {

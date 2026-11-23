@@ -9,6 +9,7 @@ type CreditSubject = {
   task_points?: number | null
   estimated_hours?: number | string | null
   actual_minutes?: number | null
+  requires_deployment?: boolean
   credit?: TicketCredit
   assignee?: { name: string } | null
 }
@@ -43,7 +44,7 @@ export function TicketCreditBlock({ ticket, className = '' }: { ticket: CreditSu
   const who = ticket.assignee?.name ?? 'المكلف'
   const credited = credit?.status === 'credited'
   // The approved actual time: what was credited, else what the reviewer has entered so far.
-  const actualMinutes = credited && credit?.minutes != null ? credit.minutes : (ticket.actual_minutes ?? null)
+  const actualMinutes = (credited || credit?.status === 'approved') && credit?.minutes != null ? credit.minutes : (ticket.actual_minutes ?? null)
   const legacyCredit = credited && credit?.minutes == null && ticket.actual_minutes == null
 
   return (
@@ -71,7 +72,7 @@ export function TicketCreditBlock({ ticket, className = '' }: { ticket: CreditSu
         <dl className="space-y-1.5 text-sm" data-testid="credit-actual">
           <Row label="المدة الفعلية (المعتمدة)" testId="credit-actual-duration">{formatDurationMinutes(actualMinutes)}</Row>
         </dl>
-      ) : credit?.status === 'pending_review' ? (
+      ) : credit?.status === 'pending_review' || credit?.status === 'approved' ? (
         <p className="text-xs font-bold text-indigo-700" data-testid="credit-actual-missing">لم تُدخَل المدة الفعلية بعد</p>
       ) : null}
 
@@ -88,8 +89,14 @@ export function TicketCreditBlock({ ticket, className = '' }: { ticket: CreditSu
               </p>
               {credit.credited_by_name ? <p className="text-xs font-semibold text-slate-500">اعتمده: {credit.credited_by_name}</p> : null}
             </>
+          ) : credit.status === 'approved' ? (
+            <p className="text-sm font-bold text-teal-700" data-testid="credit-approved">
+              اعتُمدت النقاط والمدة الفعلية، وتُضافان إلى رصيد {who} عند تأكيد الحل بعد الاختبار الحي.
+            </p>
           ) : credit.status === 'pending_review' ? (
-            <p className="text-sm font-bold text-indigo-700">بانتظار الاعتماد النهائي</p>
+            <p className="text-sm font-bold text-indigo-700" data-testid="credit-pending-text">
+              {ticket.requires_deployment === true ? 'بانتظار المراجعة والاعتماد للنشر' : 'بانتظار الاعتماد النهائي'}
+            </p>
           ) : (
             <p className="text-sm font-bold text-slate-500">لم يُسجَّل رصيد</p>
           )}

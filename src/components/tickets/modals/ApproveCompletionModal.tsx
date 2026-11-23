@@ -6,7 +6,9 @@ import { getLaravelFieldErrors } from '@/api/apiErrors';
 import TaskEstimateFields, { ActualDurationFields } from '@/components/operations/TaskEstimateFields';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { useEstimateDraft } from '@/hooks/useEstimateDraft';
+import { useTicketPointsOptions } from '@/hooks/useTicketPointsOptions';
 import {
+  ACTUAL_DURATION_REQUIRED_DEPLOY_MESSAGE,
   ACTUAL_DURATION_REQUIRED_MESSAGE,
   TASK_SCOPE_RULES,
   actualDraftFromMinutes,
@@ -38,7 +40,13 @@ function estimateChanged(draft: EstimateDraft, stored: EstimateDraft): boolean {
 }
 
 export interface ApproveCompletionModalProps {
-  ticket: Pick<Ticket, 'id' | 'task_scope' | 'task_points' | 'estimated_hours' | 'assignee'> & Partial<Pick<Ticket, 'actual_minutes'>>;
+  ticket: Pick<Ticket, 'id' | 'task_scope' | 'task_points' | 'estimated_hours' | 'assignee'> & Partial<Pick<Ticket, 'actual_minutes' | 'requires_deployment'>>;
+  /**
+   * `completion` (default): the final approval of a regular ticket, which credits. `deploy`: «اعتماد للنشر» for a ticket that
+   * requires live deployment: it APPROVES the points and the actual time (nothing is credited until the assignee confirms
+   * the live test) and always sends the size, the points and the actual duration.
+   */
+  mode?: 'completion' | 'deploy';
   onClose: () => void;
   /** Approved, or it had already been credited: close and re-read the ticket. */
   onSuccess: () => void;
@@ -62,16 +70,18 @@ export interface ApproveCompletionModalProps {
  *   `actual_minutes`. The approximate duration is shown read-only for comparison.
  * - One request at a time, even on a double click.
  */
-export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: ApproveCompletionModalProps) {
+export function ApproveCompletionModal({ ticket, mode = 'completion', onClose, onSuccess, onStale }: ApproveCompletionModalProps) {
+  const deploy = mode === 'deploy';
   const formId = useId();
   const inFlight = useRef(false);
   const known = { task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours };
   const missingEstimate = !isTaskScope(ticket.task_scope) || ticket.task_points == null;
   const initial = estimateFromRecord(known);
   const estimate = useEstimateDraft(initial);
+  const ticketMode = useTicketPointsOptions({ scope: isTaskScope(ticket.task_scope) ? ticket.task_scope : '', points: ticket.task_points == null ? '' : String(ticket.task_points) });
   const [actual, setActual] = useState<ActualDurationDraft>(() => actualDraftFromMinutes(ticket.actual_minutes));
   const [actualError, setActualError] = useState<string | null>(null);
-  const hoursRef = useRef<HTMLInputElement>(null);
+  const hoursRef = useRef<HTMLSelectElement>(null);
   const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -101,21 +111,24 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       setNoteError('الملاحظة طويلة جدًا؛ الحد الأقصى 1000 حرف.');
       return;
     }
-    const changed = missingEstimate || estimateChanged(estimate.draft, initial);
+    // A deployment approval always carries the size and points; a regular one only when the reviewer changed them.
+    const changed = deploy || missingEstimate || estimateChanged(estimate.draft, initial);
     const estimateOk = !changed || estimate.check(true);
     const minutes = actualDraftToMinutes(actual);
-    if (!minutes.ok) showActualError(actualDurationMessage(minutes.reason));
+    if (!minutes.ok) showActualError(actualDurationMessage(minutes.reason, deploy));
     if (!estimateOk) toast.error('أكمل حجم المهمة ونقاطها');
     if (!estimateOk || !minutes.ok) return;
     inFlight.current = true;
     setSubmitting(true);
     try {
-      await ticketService.approveCompletion(ticket.id, {
+      const body = {
         ...(changed ? estimate.payload() : {}),
         actual_minutes: minutes.minutes,
         ...(note.trim() ? { note: note.trim() } : {}),
-      });
-      toast.success('تم اعتماد الإنجاز وإضافة الرصيد إلى المكلف');
+      };
+      if (deploy) await ticketService.approveForDeploy(ticket.id, { ...estimate.payload(), ...body });
+      else await ticketService.approveCompletion(ticket.id, body);
+      toast.success(deploy ? 'تم اعتماد التذكرة للنشر' : 'تم اعتماد الإنجاز وإضافة الرصيد إلى المكلف');
       onSuccess();
     } catch (e) {
       const status = httpStatus(e);
@@ -124,12 +137,15 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
         // Already done (a replay or another approver): say so, never submit again, and show the real state.
         toast.message(message);
         onSuccess();
+      } else if (status === 409 && apiErrorCode(e) === 'ASSIGNEE_UNAVAILABLE') {
+        // Nothing a refresh would change: the assignee must be restored or the ticket reassigned. Stay and say so.
+        setFailure(message);
       } else if (status === 409) {
         toast.error(message);
         (onStale ?? onSuccess)();
       } else if (status === 422 && (getLaravelFieldErrors(e).actual_minutes || apiErrorCode(e) === ACTUAL_DURATION_REQUIRED_CODE)) {
         // The server's own sentence under the field (the code alone falls back to the same Arabic sentence).
-        showActualError(getLaravelFieldErrors(e).actual_minutes ?? ACTUAL_DURATION_REQUIRED_MESSAGE);
+        showActualError(getLaravelFieldErrors(e).actual_minutes ?? (deploy ? ACTUAL_DURATION_REQUIRED_DEPLOY_MESSAGE : ACTUAL_DURATION_REQUIRED_MESSAGE));
         estimate.fromServer(e);
       } else if (estimate.fromServer(e)) {
         toast.error('راجع النقاط والمدة');
@@ -150,11 +166,13 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       open
       onClose={onClose}
       size="md"
-      testId="approve-completion-modal"
+      testId={deploy ? 'approve-for-deploy-modal' : 'approve-completion-modal'}
       busy={submitting}
       dirty={dirty}
-      title="اعتماد إنجاز التذكرة"
-      subtitle="الاعتماد النهائي هو ما يُضيف النقاط والمدة الفعلية إلى رصيد المكلف، مرة واحدة فقط."
+      title={deploy ? 'اعتماد للنشر' : 'اعتماد إنجاز التذكرة'}
+      subtitle={deploy
+        ? 'يُعتمد العمل للنشر وتُعتمد النقاط والمدة الفعلية، ولا يُضاف شيء إلى الرصيد الآن؛ تُضاف عندما يؤكد المكلّف الحل بعد الاختبار الحي.'
+        : 'الاعتماد النهائي هو ما يُضيف النقاط والمدة الفعلية إلى رصيد المكلف، مرة واحدة فقط.'}
       footer={(requestClose) => (
         <div className="flex justify-end gap-3">
           <button
@@ -171,7 +189,7 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
             disabled={submitting}
             className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
           >
-            {submitting ? 'جارٍ الاعتماد...' : 'اعتماد الإنجاز وإضافة الرصيد'}
+            {submitting ? 'جارٍ الاعتماد...' : deploy ? 'اعتماد للنشر' : 'اعتماد الإنجاز وإضافة الرصيد'}
           </button>
         </div>
       )}
@@ -188,7 +206,7 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       >
         <dl className="space-y-1.5 rounded-xl bg-slate-50 p-3 text-sm" data-testid="completion-summary">
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-slate-500">سيُضاف الرصيد إلى</dt>
+            <dt className="text-slate-500">{deploy ? 'المكلّف' : 'سيُضاف الرصيد إلى'}</dt>
             <dd className="font-bold text-slate-800" data-testid="completion-assignee">{assigneeName}</dd>
           </div>
           {missingEstimate ? null : (
@@ -214,7 +232,7 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
             يمكنك تصحيح الحجم والنقاط والمدة التقريبية للتخطيط؛ المدة التي تُضاف إلى الرصيد هي المدة الفعلية أدناه.
           </p>
         )}
-        <TaskEstimateFields value={estimate.draft} onChange={estimate.setDraft} errors={estimate.errors} idPrefix={`${formId}-est`} disabled={submitting} />
+        <TaskEstimateFields value={estimate.draft} onChange={estimate.setDraft} errors={estimate.errors} idPrefix={`${formId}-est`} disabled={submitting} ticketMode={{ ...ticketMode, requiresDeployment: deploy || ticket.requires_deployment === true }} />
 
         <fieldset className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-4" data-testid="actual-duration-section" disabled={submitting}>
           <legend className="px-1 text-xs font-black text-emerald-800">
@@ -226,11 +244,11 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
           <p className="text-[11px] font-bold text-slate-500" data-testid="completion-estimated-duration">
             المدة التقريبية: {approximate ?? 'غير محددة'}
           </p>
-          <ActualDurationFields value={actual} onChange={(next) => { setActual(next); setActualError(null); }} error={actualError} idPrefix={`${formId}-actual`} disabled={submitting} hoursRef={hoursRef} />
+          <ActualDurationFields value={actual} onChange={(next) => { setActual(next); setActualError(null); }} error={actualError} idPrefix={`${formId}-actual`} disabled={submitting} hoursRef={hoursRef} storedHours={ticket.actual_minutes != null ? Math.floor(ticket.actual_minutes / 60) : null} />
           <p className="rounded-lg bg-white p-2.5 text-xs font-black text-emerald-800" data-testid="completion-preview" aria-live="polite">
             {entered.ok
-              ? `ستُضاف ${previewPoints == null ? '' : `${previewPoints} نقطة و`}${formatDurationMinutes(entered.minutes)} إلى رصيد ${assigneeName}`
-              : 'أدخل المدة الفعلية لمعرفة ما سيُضاف إلى الرصيد.'}
+              ? `ستُعتمد ${previewPoints == null ? '' : `${previewPoints} نقطة و`}مدة فعلية ${formatDurationMinutes(entered.minutes)}، وتُضافان إلى رصيد ${assigneeName} ${deploy ? 'عند تأكيد الحل بعد الاختبار الحي' : 'عند الاعتماد'}`
+              : 'أدخل المدة الفعلية لمعرفة ما سيُعتمد.'}
           </p>
         </fieldset>
 
@@ -263,6 +281,11 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       </form>
     </CenteredModal>
   );
+}
+
+/** «اعتماد للنشر»: the review of a ticket that requires live deployment. */
+export function ApproveForDeployModal(props: Omit<ApproveCompletionModalProps, 'mode'>) {
+  return <ApproveCompletionModal {...props} mode="deploy" />;
 }
 
 export default ApproveCompletionModal;

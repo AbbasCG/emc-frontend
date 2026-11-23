@@ -31,6 +31,7 @@ import {
 import { ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi';
 import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue';
 import { TicketCreditBlock } from '@/components/tickets/TicketCreditBlock';
+import { TicketLifecyclePanel } from '@/components/tickets/TicketLifecyclePanel';
 import toast from '@/lib/toast';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -63,6 +64,16 @@ const STATUS_META: Record<string, { label: string; icon: React.ReactNode; bg: st
     label: 'بانتظار المراجعة والاعتماد النهائي',
     icon: <Clock className="w-5 h-5" />,
     bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-300',
+  },
+  APPROVED_FOR_DEPLOY: {
+    label: 'معتمدة للنشر — بانتظار النشر على الموقع الحي',
+    icon: <CheckCircle2 className="w-5 h-5" />,
+    bg: 'bg-teal-50', text: 'text-teal-800', border: 'border-teal-300',
+  },
+  PENDING_VERIFICATION: {
+    label: 'بانتظار الاختبار الحي من المكلّف',
+    icon: <Clock className="w-5 h-5" />,
+    bg: 'bg-cyan-50', text: 'text-cyan-800', border: 'border-cyan-300',
   },
   RESOLVED: {
     label: 'تم الحل وإغلاق التذكرة ✔',
@@ -109,6 +120,12 @@ const ACTION_LABEL: Record<string, string> = {
   CREDIT_ADDED:          'إضافة الرصيد إلى المكلف',
   RETURNED_FOR_REWORK:   'إعادة التذكرة للتنفيذ',
   ESTIMATE_UPDATED:      'تحديث النقاط والمدة',
+  APPROVED_FOR_DEPLOY:   'الاعتماد للنشر',
+  DEPLOY_DETAILS:        'تفاصيل النشر',
+  DEPLOYMENT_FLAG_CHANGED: 'تغيير شرط النشر على الموقع الحي',
+  DEPLOYED_LIVE:         'النشر على الموقع الحي',
+  VERIFIED_RESOLVED:     'تأكيد الحل بعد الاختبار الحي',
+  VERIFICATION_FAILED:   'فشل الاختبار الحي — إعادة للتنفيذ',
 };
 
 
@@ -281,7 +298,9 @@ const TicketDetailPage: React.FC = () => {
         </div>
 
         {/* ── Action Center: context-sensitive, capability-gated ── */}
-        <TicketActionCenter ticket={ticket} onChanged={fetchTicket} reviewMode={reviewMode} currentUserId={user?.id ?? null} />
+        <TicketLifecyclePanel ticket={ticket} />
+
+        <TicketActionCenter ticket={ticket} onChanged={fetchTicket} reviewMode={reviewMode} currentUserId={user?.id ?? null} currentUserName={user?.name ?? null} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

@@ -4,6 +4,7 @@ import { apiMessage } from '@/services/ticketOpsService';
 import { getLaravelFieldErrors } from '@/api/apiErrors';
 import { AssignmentTargetFields } from '@/components/tickets/modals/AssignmentTargetFields';
 import { useAssignmentTargets } from '@/hooks/useAssignmentTargets';
+import { RequiresDeploymentSwitch } from '@/components/tickets/modals/RequiresDeploymentSwitch';
 import TaskEstimateFields from '@/components/operations/TaskEstimateFields';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { useEstimateDraft } from '@/hooks/useEstimateDraft';
@@ -60,6 +61,7 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
   const [slaHours, setSlaHours] = useState('24');
   const [notes, setNotes] = useState('');
   const estimate = useEstimateDraft(emptyEstimate);
+  const [requiresDeployment, setRequiresDeployment] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -86,6 +88,7 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
         assigned_to_id: Number(targets.assigneeId),
         sla_hours: Number(slaHours),
         internal_notes: notes,
+        requires_deployment: requiresDeployment,
         ...estimate.payload(),
       });
       toast.success('تم اعتماد التذكرة وإحالتها للمكلف');
@@ -110,7 +113,7 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
     }
   };
 
-  const dirty = Boolean(targets.unitId || targets.assigneeId || notes.trim() || estimate.draft.scope || estimate.draft.points);
+  const dirty = Boolean(requiresDeployment || targets.unitId || targets.assigneeId || notes.trim() || estimate.draft.scope || estimate.draft.points);
 
   return (
     <CenteredModal
@@ -186,7 +189,10 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
           errors={estimate.errors}
           idPrefix={`${formId}-est`}
           disabled={submitting}
+          ticketMode={{ requiresDeployment, pointsOptions: targets.pointsOptions, pointsLoading: targets.phase === 'loading' }}
         />
+
+        <RequiresDeploymentSwitch checked={requiresDeployment} onChange={setRequiresDeployment} disabled={submitting} />
 
         <div>
           <label htmlFor={`${formId}-notes`} className="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات داخلية (اختياري)</label>
