@@ -2,7 +2,7 @@ import { CheckCircle2, CircleDot, Lock, MessageSquare, Send, TriangleAlert, XCir
 import type { TicketActivityLog } from '@/types/ticket'
 import { cn } from '@/lib/utils'
 import { InternalMark } from './TicketBadges'
-import { STATUS_LABELS, TIMELINE_META, formatDateTime } from './ticketOpsUi'
+import { STATUS_LABELS, TIMELINE_META, formatDateTime, ticketActionLabel } from './ticketOpsUi'
 
 const TONE = {
   info: { dot: 'bg-sky-100 text-sky-700', icon: CircleDot },
@@ -24,7 +24,7 @@ export function TicketActivityTimeline({ logs }: { logs: TicketActivityLog[] }) 
   return (
     <ol className="relative space-y-4" aria-label="سجل نشاط التذكرة" data-testid="ticket-timeline">
       {ordered.map((log) => {
-        const meta = TIMELINE_META[log.action] ?? { label: log.action, tone: 'info' as const }
+        const meta = TIMELINE_META[log.action] ?? { label: ticketActionLabel(log.action), tone: 'info' as const }
         const tone = TONE[meta.tone]
         const Icon = log.action === 'INTERNAL_NOTE' ? Lock : log.action === 'SUBMITTED' ? Send : tone.icon
         const changed = log.previous_state && log.new_state && log.previous_state !== log.new_state
@@ -38,7 +38,7 @@ export function TicketActivityTimeline({ logs }: { logs: TicketActivityLog[] }) 
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="text-[12px] font-black text-deepBlue">{meta.label}</span>
                 {log.action === 'INTERNAL_NOTE' ? <InternalMark /> : null}
-                {changed && log.action !== 'PRIORITY_CHANGED' ?
+                {changed && log.action !== 'PRIORITY_CHANGED' && log.action !== 'ESTIMATE_UPDATED' ?
                   <span className="text-[11px] font-semibold text-deepBlue/45">{STATUS_LABELS[log.previous_state!] ?? log.previous_state} ← {STATUS_LABELS[log.new_state!] ?? log.new_state}</span>
                 : null}
                 <time dateTime={log.logged_at} className="ms-auto text-[11px] font-semibold text-deepBlue/45">{formatDateTime(log.logged_at)}</time>

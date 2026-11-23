@@ -199,7 +199,15 @@ export async function changeTicketPriority(ticketId: number, priority: TicketPri
 export async function bulkUpdateTickets(req: BulkRequest): Promise<BulkResult> {
   const body = req.action === 'priority'
     ? { action: 'priority', ticket_ids: req.ticketIds, priority: req.priority, reason: req.reason }
-    : { action: 'reassign', ticket_ids: req.ticketIds, assigned_to_id: req.assignedToId, unit_id: req.unitId, reason: req.reason }
+    : {
+        action: 'reassign',
+        ticket_ids: req.ticketIds,
+        assigned_to_id: req.assignedToId,
+        unit_id: req.unitId,
+        reason: req.reason,
+        // The same estimate is applied to every selected ticket; the server reports per-ticket failures.
+        ...(req.estimate ? { task_scope: req.estimate.task_scope, task_points: req.estimate.task_points, ...(req.estimate.estimated_hours != null ? { estimated_hours: req.estimate.estimated_hours } : {}) } : {}),
+      }
   const res = await apiClient.post<unknown>('/v1/tickets/bulk', body, silent)
   const d = rec(rec(res.data).data)
 

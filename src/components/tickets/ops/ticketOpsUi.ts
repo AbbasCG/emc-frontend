@@ -68,8 +68,17 @@ export const TIMELINE_META: Record<string, { label: string; tone: 'info' | 'good
   RESOLVED: { label: 'تم الحل', tone: 'good' },
   MARKED_UNRESOLVED: { label: 'تعذر الحل', tone: 'warn' },
   PRIORITY_CHANGED: { label: 'تغيّرت الأولوية', tone: 'info' },
+  ESTIMATE_UPDATED: { label: 'تحديث النقاط والمدة', tone: 'info' },
   COMMENT: { label: 'تعقيب', tone: 'note' },
   INTERNAL_NOTE: { label: 'ملاحظة داخلية', tone: 'note' },
+}
+
+/** What an unknown action key is called: a generic Arabic label, never the raw code. */
+export const UNKNOWN_ACTION_LABEL = 'إجراء على التذكرة'
+
+/** The Arabic title of a ticket activity entry, for every place that lists the history. */
+export function ticketActionLabel(action: string): string {
+  return TIMELINE_META[action]?.label ?? UNKNOWN_ACTION_LABEL
 }
 
 const LOCALE = 'ar-SA-u-ca-gregory-nu-latn'

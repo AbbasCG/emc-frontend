@@ -1,5 +1,6 @@
 import type { Ticket, TicketStatus } from '@/types/ticket'
 import type { BoardColumn } from '@/types/ticketOps'
+import StatusBoard from '@/components/ui/StatusBoard'
 import { cn } from '@/lib/utils'
 import { CategoryPill, DeadlineText, PriorityPill } from './TicketBadges'
 import { RowActions, type RowAction } from './TicketTable'
@@ -48,32 +49,37 @@ export function TicketKanbanBoard({
   onShowAll: (status: TicketStatus) => void
 }) {
   return (
-    <div className={cn('overflow-x-auto pb-2 transition-opacity', loading && 'opacity-60')} aria-busy={loading} data-testid="kanban-board">
-      <div className="flex min-w-max gap-3">
-        {columns.map((col) => {
+    <div className={cn('transition-opacity', loading && 'opacity-60')} aria-busy={loading} data-testid="kanban-board">
+      <StatusBoard
+        ariaLabel="حالات التذاكر"
+        testId="ticket-status-board"
+        emptyText="لا توجد تذاكر"
+        columns={columns.map((col) => {
           const meta = STATUS_META[col.status]
           const more = col.count - col.tickets.length
 
-          return (
-            <section key={col.status} aria-label={`${meta?.label ?? col.status}: ${col.count}`} className={cn('flex w-[17rem] shrink-0 flex-col rounded-3xl border-t-4 bg-slate-50/80 p-3', meta?.column ?? 'border-slate-300')} data-status={col.status}>
-              <header className="mb-3 flex items-center justify-between gap-2 px-1">
-                <h3 className="text-[13px] font-black text-deepBlue">{meta?.label ?? col.status}</h3>
-                <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-[12px] font-black text-deepBlue ring-1 ring-deepBlue/10" data-testid="column-count">{col.count}</span>
-              </header>
-
-              {col.tickets.length === 0 ?
-                <p className="rounded-2xl border border-dashed border-deepBlue/15 p-4 text-center text-[12px] font-bold text-deepBlue/40">لا توجد تذاكر</p>
-              : <ul className="space-y-2.5">{col.tickets.map((t) => <Card key={t.id} t={t} onOpen={onOpen} onAction={onAction} active={activeId === t.id} />)}</ul>}
-
-              {more > 0 ?
-                <button type="button" onClick={() => onShowAll(col.status)} className="mt-3 rounded-xl bg-white px-3 py-2 text-[12px] font-black text-customBlue ring-1 ring-customBlue/25 hover:bg-customBlue/[0.06]">
-                  عرض الباقي ({more}) في الجدول
-                </button>
-              : null}
-            </section>
-          )
+          return {
+            key: col.status,
+            label: meta?.label ?? col.status,
+            count: col.count,
+            className: cn('border-t-4', meta?.column ?? 'border-slate-300'),
+            children: (
+              <>
+                <ul className="space-y-2.5">
+                  {col.tickets.map((t) => (
+                    <Card key={t.id} t={t} onOpen={onOpen} onAction={onAction} active={activeId === t.id} />
+                  ))}
+                </ul>
+                {more > 0 ?
+                  <button type="button" onClick={() => onShowAll(col.status)} className="w-full rounded-xl bg-white px-3 py-2 text-[12px] font-black text-customBlue ring-1 ring-customBlue/25 hover:bg-customBlue/[0.06]">
+                    عرض الباقي ({more}) في الجدول
+                  </button>
+                : null}
+              </>
+            ),
+          }
         })}
-      </div>
+      />
     </div>
   )
 }

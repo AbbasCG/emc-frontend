@@ -1,8 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Calendar,
-  Clock,
   FileUp,
   Globe,
   Info,
@@ -16,48 +14,28 @@ import { getApiMessageOr } from '@/api/apiErrors'
 import { createAdvancedBoardTask } from '@/api/operationsBoardApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
-import type { TaskPriority, TaskScope, WorkspaceDepartment } from '@/types/operations'
+import { serverTaskPriority } from '@/api/normalizers/opsTask'
+import { CenteredModal } from '@/components/ui/CenteredModal'
+import {
+  EstimatePointsDuration,
+  EstimateScopeCard,
+  EstimateScopeSelect,
+} from '@/components/operations/TaskEstimateFields'
+import {
+  hasEstimateErrors,
+  taskFormEstimate,
+  toEstimatePayload,
+  validateEstimate,
+  mapEstimateServerErrors,
+  type EstimateErrors,
+} from '@/lib/taskEstimate'
+import type { TaskPriority, WorkspaceDepartment } from '@/types/operations'
 
 type Props = {
   open: boolean
   onClose: () => void
   onCreated: () => void
   defaultDepartmentId?: number
-}
-
-// مصفوفة حجم المهام والنقاط والأمثلة التوضيحية
-const TASK_SCOPE_RULES: Record<
-  TaskScope,
-  { label: string; min: number; max: number; desc: string; examples: string }
-> = {
-  simple: {
-    label: 'مهمة بسيطة',
-    min: 25,
-    max: 50,
-    desc: 'إنجاز مهمة تشغيلية روتينية سريعة، لا تحتاج اعتماد الموارد البشرية.',
-    examples: 'تصميم بسيط، نشر منشور، إدخال بيانات، تنسيق ملف، متابعة محدودة.',
-  },
-  medium: {
-    label: 'مهمة متوسطة',
-    min: 75,
-    max: 150,
-    desc: 'تتطلب تنسيقاً أو جهداً لعدة أيام، تحتاج اعتماد مدير الإدارة ثم الموارد البشرية.',
-    examples: 'إدارة لقاء، إعداد تقرير، تنسيق مدرب، متابعة مجموعة، تصميم حملة محدودة.',
-  },
-  large: {
-    label: 'مهمة كبيرة',
-    min: 200,
-    max: 300,
-    desc: 'قيادة أو بناء عمل رئيسي واسع النطاق، تحتاج اعتماد الموارد البشرية.',
-    examples: 'قيادة نشاط، إدارة حملة شاملة، إعداد برنامج، بناء نظام داخلي، حل مشكلة تشغيلية مؤثرة.',
-  },
-  strategic: {
-    label: 'مهمة استراتيجية أو عالية الأثر',
-    min: 300,
-    max: 500,
-    desc: 'مبادرة مؤسسية فارقة ذات أثر مباشر على أهداف المركز، ونقاط مفتوحة للأثر الاستثنائي.',
-    examples: 'مبادرة مؤسسية، تطوير عملية محورية، مشروع كبير متعدد الأطراف، أثر استثنائي غير محدود.',
-  },
 }
 
 export default function TaskCreateModal({ open, onClose, onCreated, defaultDepartmentId }: Props) {
@@ -73,11 +51,9 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
   const [description, setDescription] = useState('')
   const [notes, setNotes] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('medium')
-  const [taskScope, setTaskScope] = useState<TaskScope>('simple')
-  const [points, setPoints] = useState<number>(25)
-  const [exceptionalPoints, setExceptionalPoints] = useState(false)
-  const [estimatedHours, setEstimatedHours] = useState<string>('2')
-  const [timeUnit, setTimeUnit] = useState<'hours' | 'minutes'>('hours')
+  // Scope, points and duration: the shared estimate fields (same rules as the ticket flows).
+  const [estimate, setEstimate] = useState(taskFormEstimate)
+  const [estimateErrors, setEstimateErrors] = useState<EstimateErrors>({})
   const [dueDate, setDueDate] = useState('')
   const [dueTime, setDueTime] = useState('17:00')
   const [notesVisible, setNotesVisible] = useState(false)
@@ -124,18 +100,32 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
     }
   }, [departmentId])
 
-  // Sync points default when scope changes
-  useEffect(() => {
-    const rule = TASK_SCOPE_RULES[taskScope]
-    if (!exceptionalPoints) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- the default points follow the selected scope until exceptional points are chosen
-      setPoints(rule.min)
-    }
-  }, [taskScope, exceptionalPoints])
+  /** Back to a blank form (after a successful save, and whenever the window is closed). */
+  const resetForm = () => {
+    setTitle('')
+    setDescription('')
+    setNotes('')
+    setNotesVisible(false)
+    setPriority('medium')
+    setEstimate(taskFormEstimate())
+    setEstimateErrors({})
+    setDueDate('')
+    setDueTime('17:00')
+    setAssignmentMode('single')
+    setAssignedTo('')
+    setSelectedMembers([])
+    setAttachments([])
+  }
 
-  if (!open) return null
+  // Closing the window (by any route) throws the draft away, so the next opening never shows the previous one.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (wasOpen !== open) {
+    setWasOpen(open)
+    if (!open) resetForm()
+  }
 
-  const scopeRule = TASK_SCOPE_RULES[taskScope]
+  const dirty =
+    title.trim() !== '' || description.trim() !== '' || notes.trim() !== '' || attachments.length > 0 || selectedMembers.length > 0
 
   const handleMemberToggle = (id: number) => {
     if (selectedMembers.includes(id)) {
@@ -163,14 +153,11 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
       return
     }
 
-    // Points validation
-    if (!exceptionalPoints) {
-      if (points < scopeRule.min || (taskScope !== 'strategic' && points > scopeRule.max)) {
-        toast.error(`النقاط لهذا الحجم يجب أن تكون بين ${scopeRule.min} و ${scopeRule.max} نقطة`)
-        return
-      }
-    } else if (points < 300) {
-      toast.error('النقاط الاستثنائية تبدأ من 300 نقطة فما فوق')
+    // Points / duration validation (the same rules the server applies)
+    const found = validateEstimate(estimate, { required: true })
+    setEstimateErrors(found)
+    if (hasEstimateErrors(found)) {
+      toast.error(found.task_points ?? found.task_scope ?? found.estimated_hours ?? 'راجع النقاط والمدة')
       return
     }
 
@@ -179,18 +166,19 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
       return
     }
 
-    const calculatedHours =
-      timeUnit === 'minutes' ? (parseFloat(estimatedHours || '0') / 60).toFixed(2) : estimatedHours
+    const payload = toEstimatePayload(estimate)
 
     const formData = new FormData()
     formData.append('title', title)
     if (description) formData.append('description', description)
     if (notes) formData.append('notes', notes)
     if (departmentId) formData.append('department_id', departmentId)
-    formData.append('priority', priority)
-    formData.append('task_scope', taskScope)
-    formData.append('points', String(points))
-    if (calculatedHours) formData.append('estimated_hours', String(calculatedHours))
+    // The server's priority vocabulary is low / medium / high / urgent («حرجة» = urgent).
+    formData.append('priority', serverTaskPriority(priority))
+    formData.append('task_scope', payload.task_scope)
+    formData.append('points', String(payload.task_points))
+    // An emptied duration is simply not sent (undefined / null): never the text "undefined".
+    if (payload.estimated_hours != null) formData.append('estimated_hours', String(payload.estimated_hours))
 
     // Due datetime & date
     if (dueDate) {
@@ -223,9 +211,12 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
           ? `تم إنشاء وإسناد المهمة الجماعية إلى ${selectedMembers.length} أعضاء بنجاح`
           : 'تم إسناد المهمة بنجاح'
       )
+      resetForm()
       onCreated()
       onClose()
     } catch (err: unknown) {
+      const serverErrors = mapEstimateServerErrors(err)
+      if (hasEstimateErrors(serverErrors)) setEstimateErrors(serverErrors)
       toast.error(getApiMessageOr(err, 'تعذر حفظ المهمة'))
     } finally {
       setSubmitting(false)
@@ -236,47 +227,53 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
   const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-          onClick={onClose}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 12 }}
-          className="relative z-10 w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-deepBlue/10"
-          dir="rtl"
-        >
-          <header className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue/10 px-2.5 py-1 text-[11px] font-black text-customBlue">
-                <Sparkles size={13} />
-                إسناد مهمة جديدة
-              </span>
-              <h2 className="mt-1.5 text-lg font-black text-deepBlue">بيانات المهمة الشاملة</h2>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-deepBlue"
-            >
-              <X size={20} />
-            </button>
-          </header>
-
-          <form onSubmit={handleSubmit} className="mt-5 space-y-5 text-right">
+    <CenteredModal
+      open={open}
+      onClose={onClose}
+      size="md"
+      testId="task-create-modal"
+      dirty={dirty}
+      busy={submitting}
+      dirtyMessage="لديك بيانات مهمة لم تُحفظ. إن أغلقت النافذة الآن ستضيع."
+      title={
+        <span className="block">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue/10 px-2.5 py-1 text-[11px] font-black text-customBlue">
+            <Sparkles size={13} aria-hidden="true" />
+            إسناد مهمة جديدة
+          </span>
+          <span className="mt-1.5 block text-lg font-black text-deepBlue">بيانات المهمة الشاملة</span>
+        </span>
+      }
+      footer={(requestClose) => (
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={requestClose}
+            disabled={submitting}
+            className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            form="task-create-form"
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-deepBlue/90 disabled:opacity-50"
+          >
+            <Sparkles size={14} aria-hidden="true" />
+            <span>{submitting ? 'جاري الإرسال...' : 'إسناد المهمة الآن'}</span>
+          </button>
+        </div>
+      )}
+    >
+          <form id="task-create-form" onSubmit={handleSubmit} noValidate className="space-y-5 text-right">
             {/* عنوان المهمة */}
             <div>
-              <label className="block text-xs font-black text-deepBlue mb-1.5">
+              <label htmlFor="task-title" className="block text-xs font-black text-deepBlue mb-1.5">
                 عنوان المهمة <span className="text-red-500">*</span>
               </label>
               <input
+                id="task-title"
                 type="text"
                 required
                 value={title}
@@ -288,10 +285,11 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
 
             {/* تفاصيل المهمة */}
             <div>
-              <label className="block text-xs font-black text-deepBlue mb-1.5">
+              <label htmlFor="task-description" className="block text-xs font-black text-deepBlue mb-1.5">
                 التفاصيل والمخرجات المطلوبة
               </label>
               <textarea
+                id="task-description"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -345,10 +343,11 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
               {/* اختيار الإدارة */}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                  <label htmlFor="task-department" className="block text-[11px] font-bold text-slate-500 mb-1">
                     الإدارة التابعة
                   </label>
                   <select
+                    id="task-department"
                     value={departmentId}
                     onChange={(e) => setDepartmentId(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue"
@@ -363,10 +362,11 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
 
                 {assignmentMode === 'single' && (
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                    <label htmlFor="task-assignee" className="block text-[11px] font-bold text-slate-500 mb-1">
                       العضو المكلف
                     </label>
                     <select
+                      id="task-assignee"
                       value={assignedTo}
                       onChange={(e) => setAssignedTo(e.target.value)}
                       className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue"
@@ -440,8 +440,9 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
             {/* الأولوية وحجم المهمة */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-black text-deepBlue mb-1.5">الأولوية</label>
+                <label htmlFor="task-priority" className="block text-xs font-black text-deepBlue mb-1.5">الأولوية</label>
                 <select
+                  id="task-priority"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as TaskPriority)}
                   className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue"
@@ -453,118 +454,26 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-deepBlue mb-1.5">حجم المهمة</label>
-                <select
-                  value={taskScope}
-                  onChange={(e) => setTaskScope(e.target.value as TaskScope)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-deepBlue"
-                >
-                  <option value="simple">مهمة بسيطة (25 - 50 نقطة)</option>
-                  <option value="medium">مهمة متوسطة (75 - 150 نقطة)</option>
-                  <option value="large">مهمة كبيرة (200 - 300 نقطة)</option>
-                  <option value="strategic">استراتيجية أو عالية الأثر (300 - 500 أو مفتوح)</option>
-                </select>
-              </div>
+              <EstimateScopeSelect
+                value={estimate}
+                onChange={setEstimate}
+                errors={estimateErrors}
+                idPrefix="task-form"
+                autofillPoints
+              />
             </div>
 
             {/* بطاقة توضيحية لنوع المهمة والنقاط المقيدة */}
-            <div className="rounded-2xl border border-customBlue/20 bg-customBlue/[0.03] p-3.5 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-customBlue">{scopeRule.label}</span>
-                <span className="rounded-lg bg-customBlue/10 px-2 py-0.5 text-[11px] font-black text-customBlue">
-                  النطاق المعتمد: {scopeRule.min} - {scopeRule.max} نقطة
-                </span>
-              </div>
-              <p className="text-[11px] font-semibold text-slate-600">{scopeRule.desc}</p>
-              <p className="text-[10px] text-slate-500 font-medium">
-                <span className="font-bold">أمثلة: </span>
-                {scopeRule.examples}
-              </p>
-            </div>
+            <EstimateScopeCard scope={estimate.scope} />
 
             {/* النقاط والساعات التقريبية */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-black text-deepBlue">
-                    نقاط المهمة <span className="text-red-500">*</span>
-                  </label>
-                  {taskScope === 'strategic' && (
-                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-purple-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={exceptionalPoints}
-                        onChange={(e) => setExceptionalPoints(e.target.checked)}
-                        className="rounded text-purple-600"
-                      />
-                      أثر استثنائي (مفتوح)
-                    </label>
-                  )}
-                </div>
-                <input
-                  type="number"
-                  min={scopeRule.min}
-                  max={exceptionalPoints ? undefined : scopeRule.max}
-                  value={points}
-                  onChange={(e) => setPoints(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-black text-deepBlue focus:border-customBlue"
-                />
-                <span className="mt-1 block text-[10px] text-slate-400">
-                  {exceptionalPoints
-                    ? 'الحقل مفتوح لكمية نقاط غير محدودة للأثر الاستثنائي'
-                    : `مقيدة آلياً بين ${scopeRule.min} و ${scopeRule.max} نقطة`}
-                </span>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-black text-deepBlue">المدة التقريبية</label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setTimeUnit('hours')}
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-black ${
-                        timeUnit === 'hours'
-                          ? 'bg-deepBlue text-white'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      ساعات
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimeUnit('minutes')}
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-black ${
-                        timeUnit === 'minutes'
-                          ? 'bg-deepBlue text-white'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      دقائق
-                    </button>
-                  </div>
-                </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={estimatedHours}
-                    onChange={(e) => setEstimatedHours(e.target.value)}
-                    placeholder={timeUnit === 'hours' ? 'مثال: 2.5' : 'مثال: 45'}
-                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-black text-deepBlue focus:border-customBlue pl-10"
-                  />
-                  <Clock
-                    size={15}
-                    className="absolute left-3 top-2.5 text-slate-400 pointer-events-none"
-                  />
-                </div>
-                <span className="mt-1 block text-[10px] text-slate-400">
-                  تُضاف لرصيد المتطوع التراكمي لإصدار شهادة الساعات عند الإنجاز
-                </span>
-              </div>
-            </div>
+            <EstimatePointsDuration
+              value={estimate}
+              onChange={setEstimate}
+              errors={estimateErrors}
+              idPrefix="task-form"
+              autofillPoints
+            />
 
             {/* موعد التسليم مع مراعاة فارق التوقيت */}
             <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
@@ -581,8 +490,9 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">التاريخ</label>
+                  <label htmlFor="task-due-date" className="block text-[11px] font-bold text-slate-500 mb-1">التاريخ</label>
                   <input
+                    id="task-due-date"
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
@@ -590,10 +500,11 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                  <label htmlFor="task-due-time" className="block text-[11px] font-bold text-slate-500 mb-1">
                     الوقت (بتوقيت مكة UTC+3)
                   </label>
                   <input
+                    id="task-due-time"
                     type="time"
                     value={dueTime}
                     onChange={(e) => setDueTime(e.target.value)}
@@ -665,29 +576,7 @@ export default function TaskCreateModal({ open, onClose, onCreated, defaultDepar
                 />
               )}
             </div>
-
-            {/* زر الحفظ والإرسال */}
-            <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
-              >
-                إلغاء
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-xs font-black text-white shadow-md hover:bg-deepBlue/90 disabled:opacity-50 transition"
-              >
-                <Sparkles size={14} />
-                <span>{submitting ? 'جاري الإرسال...' : 'إسناد المهمة الآن'}</span>
-              </button>
-            </div>
           </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+    </CenteredModal>
   )
 }
-

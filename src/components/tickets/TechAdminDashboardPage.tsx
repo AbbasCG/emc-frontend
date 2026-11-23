@@ -32,7 +32,7 @@ import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from './ops/ticketOps
 // Charts are only needed on the analytics view, so they load on demand and stay out of the main bundle.
 const TicketAnalyticsPanel = lazy(() => import('./ops/TicketAnalyticsPanel'))
 
-type ActiveModal = { type: RowAction; ticketId: number; departmentId: number; unitId?: number } | null
+type ActiveModal = { type: RowAction; ticketId: number; departmentId: number; unitId?: number; ticket: Ticket } | null
 
 /** Below this content width the table needs sideways scrolling, so the card layout is used instead. */
 const TABLE_MIN_WIDTH = 900
@@ -213,7 +213,7 @@ export default function TechAdminDashboardPage() {
     return null
   }, [ticketId, list.data, board.data])
 
-  const onAction = (a: RowAction, t: Ticket) => setModal({ type: a, ticketId: t.id, departmentId: t.department_id, unitId: t.unit_id ?? undefined })
+  const onAction = (a: RowAction, t: Ticket) => setModal({ type: a, ticketId: t.id, departmentId: t.department_id, unitId: t.unit_id ?? undefined, ticket: t })
   const closeModal = () => setModal(null)
   const modalDone = () => {
     closeModal()
@@ -245,9 +245,9 @@ export default function TechAdminDashboardPage() {
     <div ref={rootRef} dir="rtl" className="mx-auto w-full max-w-[1400px] px-1">
       <DashboardPageShell
         eyebrow="لوحة التحكم التقنية"
-        title="مركز عمليات التذاكر"
+        title="إدارة تذاكر العمليات"
         description="تابع التذاكر، وحدّد ما يحتاج قرارك، وأسنده وراقب التأخير من مكان واحد."
-        breadcrumbs={[{ label: 'التذاكر', href: '/dashboard/tickets' }, { label: 'مركز العمليات' }]}
+        breadcrumbs={[{ label: 'التذاكر', href: '/dashboard/tickets' }, { label: 'إدارة تذاكر العمليات' }]}
         density="compact"
         actions={
           <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function TechAdminDashboardPage() {
 
       {modal?.type === 'approve' ? <ApproveTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} onClose={closeModal} onSuccess={modalDone} /> : null}
       {modal?.type === 'reject' ? <RejectTicketModal ticketId={modal.ticketId} onClose={closeModal} onSuccess={modalDone} /> : null}
-      {modal?.type === 'reassign' ? <ReassignTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} currentUnitId={modal.unitId} onClose={closeModal} onSuccess={modalDone} /> : null}
+      {modal?.type === 'reassign' ? <ReassignTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} currentUnitId={modal.unitId} previousDeclineReason={modal.ticket.assignee_rejection_reason} declinedAssigneeId={modal.ticket.status === 'REJECTED_BY_ASSIGNEE' ? (modal.ticket.assigned_to_id ?? modal.ticket.assignee?.id ?? null) : null} currentEstimate={{ task_scope: modal.ticket.task_scope, task_points: modal.ticket.task_points, estimated_hours: modal.ticket.estimated_hours }} onClose={closeModal} onSuccess={modalDone} /> : null}
     </div>
   )
 }

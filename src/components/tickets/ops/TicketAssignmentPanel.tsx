@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Loader2, UserCheck } from 'lucide-react'
+import { UserCheck } from 'lucide-react'
 import { ticketService } from '@/services/ticketService'
-import { apiMessage, fetchAssignmentSuggestions } from '@/services/ticketOpsService'
+import { fetchAssignmentSuggestions } from '@/services/ticketOpsService'
 import { useAbortableResource } from '@/hooks/useAbortableResource'
-import ConfirmDialog from '@/components/feedback/ConfirmDialog'
-import { useModalGuard } from '@/components/ui/modalGuard'
+import { TicketEstimateDialog } from '@/components/tickets/modals/TicketEstimateDialog'
+import { estimateFromRecord, isLegacyRecord } from '@/lib/taskEstimate'
 import toast from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
@@ -19,28 +19,16 @@ export interface AssignmentTarget {
   id: number
   assigned_to_id?: number | null
   status: string
+  /** The current estimate, if the ticket has one (a legacy ticket has none and the form opens empty). */
+  task_scope?: string | null
+  task_points?: number | null
+  estimated_hours?: number | null
 }
 
 export function TicketAssignmentPanel({ ticket, canAssign, onChanged }: { ticket: AssignmentTarget; canAssign: boolean; onChanged: () => void }) {
   const { data, loading, error } = useAbortableResource((signal) => fetchAssignmentSuggestions(ticket.id, { signal }), `suggest:${ticket.id}:${ticket.assigned_to_id ?? 0}:${ticket.status}`)
   const [pick, setPick] = useState<{ id: number; name: string } | null>(null)
-  const [busy, setBusy] = useState(false)
-  useModalGuard('assignment', { busy })
-
-  async function assign() {
-    if (!pick || busy) return
-    setBusy(true)
-    try {
-      await ticketService.reassign(ticket.id, { assigned_to_id: pick.id })
-      toast.success(`أُسندت التذكرة إلى ${pick.name}. سيُطلب منه قبول المهمة.`)
-      setPick(null)
-      onChanged()
-    } catch (e) {
-      toast.error(apiMessage(e, 'تعذّر إسناد التذكرة.'))
-    } finally {
-      setBusy(false)
-    }
-  }
+  const known = { task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours }
 
   return (
     <section aria-label="اقتراحات التكليف" className="space-y-2.5 rounded-2xl border border-deepBlue/[0.07] bg-white p-3.5">
@@ -80,17 +68,24 @@ export function TicketAssignmentPanel({ ticket, canAssign, onChanged }: { ticket
         </>
       : null}
 
-      <ConfirmDialog
-        open={pick !== null}
-        title="إسناد التذكرة"
-        description={pick ? `سيُسنَد التذكرة إلى ${pick.name} ويُطلب منه قبول المهمة. هل تريد المتابعة؟` : ''}
-        confirmLabel={busy ? 'جارٍ الإسناد…' : 'إسناد'}
-        cancelLabel="إلغاء"
-        variant="primary"
-        onConfirm={() => void assign()}
-        onCancel={() => setPick(null)}
-      />
-      {busy ? <Loader2 size={14} className="animate-spin text-customBlue" aria-hidden="true" /> : null}
+      {pick ?
+        <TicketEstimateDialog
+          title="إسناد التذكرة"
+          description={`ستُسند التذكرة إلى ${pick.name} ويُطلب منه قبول المهمة. حدّد النقاط والمدة، وهي تقدير للتخطيط فقط ولا تُضاف إلى رصيد المكلّف.`}
+          initial={estimateFromRecord(known)}
+          legacy={isLegacyRecord(known)}
+          submitLabel="إسناد"
+          busyLabel="جارٍ الإسناد…"
+          testId="assign-estimate-dialog"
+          onSubmit={async (estimate) => {
+            await ticketService.reassign(ticket.id, { assigned_to_id: pick.id, ...estimate })
+            toast.success(`أُسندت التذكرة إلى ${pick.name}. سيُطلب منه قبول المهمة.`)
+            setPick(null)
+            onChanged()
+          }}
+          onClose={() => setPick(null)}
+        />
+      : null}
     </section>
   )
 }

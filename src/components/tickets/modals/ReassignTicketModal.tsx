@@ -1,13 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { ticketService } from '@/services/ticketService';
+import { apiMessage } from '@/services/ticketOpsService';
 import type { DepartmentalUnit, TicketUser } from '@/types/ticket';
 import AssigneeSearchSelect from '@/components/tickets/AssigneeSearchSelect';
+import TaskEstimateFields from '@/components/operations/TaskEstimateFields';
+import { CenteredModal } from '@/components/ui/CenteredModal';
+import { useEstimateDraft } from '@/hooks/useEstimateDraft';
+import { estimateFromRecord, isLegacyRecord } from '@/lib/taskEstimate';
 import toast from '@/lib/toast';
 
 export interface ReassignTicketModalProps {
   ticketId: number;
   departmentId: number;
   currentUnitId?: number;
+  /**
+   * The ticket's current estimate. A ticket assigned before the estimate existed has none: the fields then open
+   * EMPTY with an explanatory note, never prefilled with invented values.
+   */
+  currentEstimate?: { task_scope?: string | null; task_points?: number | null; estimated_hours?: number | null };
+  /**
+   * Rerouting a DECLINED ticket: the one who declined (the ticket's current assignee) cannot be picked again, so
+   * the option is disabled with a hint; the server's 422 stays as the backstop.
+   */
+  declinedAssigneeId?: number | null;
+  /** The previous assignee's reason for declining, shown read-only (a declined ticket can be rerouted). */
+  previousDeclineReason?: string | null;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -23,24 +40,35 @@ export interface ReassignTicketModalProps {
  * exists. The caller decides the modal's heading/label based on whether the
  * ticket currently has an assignee; the backend call is identical either way.
  *
+ * A new assignee takes the work on with a size, points and an approximate
+ * duration, so those are collected here (points required, duration optional).
+ *
  * Shared between TechAdminDashboardPage and TicketDetailPage.
  */
 export function ReassignTicketModal({
   ticketId,
   departmentId,
   currentUnitId,
+  currentEstimate,
+  previousDeclineReason,
+  declinedAssigneeId,
   onClose,
   onSuccess,
 }: ReassignTicketModalProps) {
+  const formId = useId();
   const [unitId, setUnitId] = useState(currentUnitId ? String(currentUnitId) : '');
   const [assignedToId, setAssignedToId] = useState('');
   const [reason, setReason] = useState('');
+  const known = currentEstimate ?? {};
+  const estimate = useEstimateDraft(() => estimateFromRecord(known));
+  const legacy = isLegacyRecord(known);
 
   const [units, setUnits] = useState<DepartmentalUnit[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
   const [users, setUsers] = useState<TicketUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,8 +97,15 @@ export function ReassignTicketModal({
   }, [departmentId, unitId]);
 
   const handleReassign = async () => {
+    if (submitting) return;
+    setFailure(null);
     if (!assignedToId) {
       toast.error('يجب اختيار المكلف الجديد');
+      return;
+    }
+    // An assignee is being chosen: size and points are required (duration stays optional).
+    if (!estimate.check(true)) {
+      toast.error('أكمل حجم المهمة ونقاطها');
       return;
     }
     setSubmitting(true);
@@ -79,25 +114,75 @@ export function ReassignTicketModal({
         assigned_to_id: Number(assignedToId),
         unit_id: unitId ? Number(unitId) : undefined,
         reason,
+        ...estimate.payload(),
       });
       toast.success('تمت إعادة التوجيه وتغيير المكلف');
       onSuccess();
-    } catch {
-      toast.error('حدث خطأ أثناء إعادة التوجيه');
+    } catch (e) {
+      if (!estimate.fromServer(e)) {
+        const message = apiMessage(e, 'حدث خطأ أثناء إعادة التوجيه');
+        setFailure(message);
+        toast.error(message);
+      } else {
+        toast.error('راجع النقاط والمدة');
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-5" dir="rtl">
-        <h2 className="text-lg font-extrabold text-slate-900">🔄 إعادة التوجيه وتغيير المكلف</h2>
-        <p className="text-xs text-slate-500">ستُعاد التذكرة لحالة (معتمدة) وتُحال للمكلف الجديد.</p>
+    <CenteredModal
+      open
+      onClose={onClose}
+      size="md"
+      testId="reassign-ticket-modal"
+      busy={submitting}
+      dirty={Boolean(assignedToId || reason.trim())}
+      title="إعادة التوجيه وتغيير المكلف"
+      subtitle="ستُعاد التذكرة لحالة (معتمدة) وتُحال للمكلف الجديد."
+      footer={(requestClose) => (
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={requestClose}
+            disabled={submitting}
+            className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            form={formId}
+            disabled={submitting || !assignedToId}
+            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-60"
+          >
+            {submitting ? 'جاري الحفظ...' : 'تأكيد إعادة التوجيه'}
+          </button>
+        </div>
+      )}
+    >
+      <form
+        id={formId}
+        noValidate
+        dir="rtl"
+        className="space-y-5 text-right"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleReassign();
+        }}
+      >
+        {previousDeclineReason ? (
+          <section aria-label="سبب اعتذار المكلف السابق" className="rounded-xl border border-rose-200 bg-rose-50/70 p-3" data-testid="previous-decline-reason">
+            <h3 className="mb-1 text-[11px] font-black text-rose-700">سبب اعتذار المكلف السابق</h3>
+            <p className="whitespace-pre-wrap break-words text-xs font-semibold leading-relaxed text-slate-700">{previousDeclineReason}</p>
+          </section>
+        ) : null}
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية</label>
+          <label htmlFor={`${formId}-unit`} className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية</label>
           <select
+            id={`${formId}-unit`}
             value={unitId}
             disabled={unitsLoading}
             onChange={(e) => { setUnitId(e.target.value); setAssignedToId(''); }}
@@ -120,6 +205,8 @@ export function ReassignTicketModal({
             users={users}
             value={assignedToId}
             onChange={setAssignedToId}
+            disabledUserIds={declinedAssigneeId ? [declinedAssigneeId] : []}
+            disabledHint="اعتذر عن هذه التذكرة"
             isDisabled={!unitId || usersLoading}
             isLoading={usersLoading}
             placeholder={!unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
@@ -127,9 +214,19 @@ export function ReassignTicketModal({
           />
         </div>
 
+        <TaskEstimateFields
+          value={estimate.draft}
+          onChange={estimate.setDraft}
+          errors={estimate.errors}
+          idPrefix={`${formId}-est`}
+          legacy={legacy}
+          disabled={submitting}
+        />
+
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">سبب إعادة التوجيه (اختياري)</label>
+          <label htmlFor={`${formId}-reason`} className="block text-xs font-bold text-slate-700 mb-1.5">سبب إعادة التوجيه (اختياري)</label>
           <input
+            id={`${formId}-reason`}
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -138,25 +235,11 @@ export function ReassignTicketModal({
           />
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-          >
-            إلغاء
-          </button>
-          <button
-            type="button"
-            onClick={handleReassign}
-            disabled={submitting || !assignedToId}
-            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-60"
-          >
-            {submitting ? 'جاري الحفظ...' : '🔄 تأكيد إعادة التوجيه'}
-          </button>
-        </div>
-      </div>
-    </div>
+        {failure ? (
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">{failure}</p>
+        ) : null}
+      </form>
+    </CenteredModal>
   );
 }
 

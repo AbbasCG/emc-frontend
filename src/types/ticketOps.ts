@@ -1,4 +1,4 @@
-import type { Ticket, TicketCategory, TicketPriority, TicketStatus } from './ticket'
+import type { Ticket, TicketCategory, TicketEstimateInput, TicketPriority, TicketStatus } from './ticket'
 
 /** Everything the work queue can filter on. Empty string / empty array / false mean "not filtering". */
 export interface TicketFilters {
@@ -141,7 +141,7 @@ export interface BulkResult {
 
 export type BulkRequest =
   | { action: 'priority'; ticketIds: number[]; priority: TicketPriority; reason?: string }
-  | { action: 'reassign'; ticketIds: number[]; assignedToId: number; unitId?: number; reason?: string }
+  | { action: 'reassign'; ticketIds: number[]; assignedToId: number; unitId?: number; reason?: string; estimate?: TicketEstimateInput }
 
 /** A named set of filters, kept on this device. It stores filters only; the server still decides what is visible. */
 export interface SavedTicketView {

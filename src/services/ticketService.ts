@@ -1,5 +1,5 @@
 import apiClient from '@/api/axios';
-import type { Ticket, TicketMeta } from '@/types/ticket';
+import type { MyWorkMeta, MyWorkResult, MyWorkTicket, Ticket, TicketEstimateInput, TicketMeta } from '@/types/ticket';
 
 export interface TicketFilterParams {
   status?: string;
@@ -73,7 +73,7 @@ export const ticketService = {
    */
   approveTicket: async (
     id: number,
-    payload: { unit_id?: number; assigned_to_id?: number; sla_hours: number; internal_notes?: string }
+    payload: { unit_id?: number; assigned_to_id?: number; sla_hours: number; internal_notes?: string } & Partial<TicketEstimateInput>
   ): Promise<TicketDetailResponse> => {
     const res = await apiClient.post(`/v1/tickets/${id}/approve`, payload);
     return res.data;
@@ -138,9 +138,36 @@ export const ticketService = {
    */
   reassign: async (
     id: number,
-    payload: { assigned_to_id: number; unit_id?: number; reason?: string }
+    payload: { assigned_to_id: number; unit_id?: number; reason?: string } & Partial<TicketEstimateInput>
   ): Promise<TicketDetailResponse> => {
     const res = await apiClient.post(`/v1/tickets/${id}/reassign`, payload);
     return res.data;
+  },
+
+  /**
+   * Edit the ticket's points and approximate duration (server: `capabilities.can_edit_estimate`).
+   * `estimated_hours: null` CLEARS the stored hours; leaving the key out keeps them.
+   * A 422 carries `errors.task_points / task_scope / estimated_hours`.
+   */
+  updateWorkEstimate: async (
+    id: number,
+    payload: { task_scope: TicketEstimateInput['task_scope']; task_points: number; estimated_hours?: number | null }
+  ): Promise<TicketDetailResponse> => {
+    const res = await apiClient.patch(`/v1/tickets/${id}/work-estimate`, payload);
+    return res.data;
+  },
+
+  /**
+   * The tickets assigned to the CURRENT USER only (pending, in progress, and finished in the last 30 days).
+   * Reassigning a ticket removes it from the old assignee's answer, so a refetch is all that is needed.
+   */
+  getMyWork: async (signal?: AbortSignal): Promise<MyWorkResult> => {
+    const res = await apiClient.get('/v1/tickets/my-work', { signal, skipErrorToast: true });
+    const rows: unknown = res.data?.data;
+    const meta = (res.data?.meta ?? {}) as Partial<MyWorkMeta>;
+    return {
+      tickets: Array.isArray(rows) ? (rows as MyWorkTicket[]) : [],
+      meta: { open_total: Number(meta.open_total ?? 0), closed_total: Number(meta.closed_total ?? 0), truncated: meta.truncated === true },
+    };
   },
 };

@@ -114,6 +114,9 @@ type Props = {
   isDisabled?: boolean;
   isLoading?: boolean;
   noOptionsMessage?: string;
+  /** People who cannot be picked here (shown, greyed, with `disabledHint`): e.g. the one who declined this ticket. */
+  disabledUserIds?: number[];
+  disabledHint?: string;
 };
 
 export default function AssigneeSearchSelect({
@@ -127,13 +130,15 @@ export default function AssigneeSearchSelect({
   isDisabled = false,
   isLoading = false,
   noOptionsMessage,
+  disabledUserIds = [],
+  disabledHint,
 }: Props) {
   // Backend meta() intentionally omits email (least-privilege — only
   // id/name/role are ever selected for the assignable-users list), so the
   // label is name-only rather than risking a literal "(undefined)" suffix.
   const options: UserOption[] = users.map((u) => ({
     value: String(u.id),
-    label: u.name,
+    label: disabledUserIds.includes(u.id) && disabledHint ? `${u.name} — ${disabledHint}` : u.name,
   }));
   const selected = value ? options.find((o) => o.value === value) ?? null : null;
 
@@ -144,6 +149,7 @@ export default function AssigneeSearchSelect({
         options={options}
         value={selected}
         onChange={(opt: SingleValue<UserOption>) => onChange(opt ? opt.value : '')}
+        isOptionDisabled={(o) => disabledUserIds.map(String).includes(o.value)}
         isSearchable
         isClearable
         isDisabled={isDisabled}

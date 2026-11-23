@@ -1,15 +1,16 @@
 /** ── Tasks ─────────────────────────────────────────────────────────────── */
 
+/** The statuses the server stores for a task (Task::status), in lifecycle order. */
 export type TaskStatus =
   | 'idea'
-  | 'study'
+  | 'under_review'
   | 'planning'
-  | 'pending_approval'
+  | 'waiting_approval'
   | 'in_progress'
-  | 'done'
-  | 'deferred'
+  | 'needs_evaluation'
+  | 'completed'
+  | 'postponed'
   | 'cancelled'
-  | 'needs_review'
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical'
 
@@ -74,6 +75,8 @@ export type OpsTask = {
   evaluation?: TaskEvaluationData | null
   attachments?: TaskAttachmentData[] | null
   subtasks?: OpsTask[]
+  /** How many member copies a group task has, when the server says so (absent: unknown). */
+  subtasks_count?: number
 }
 
 export type OpsChecklistItem = {

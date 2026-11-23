@@ -4,11 +4,12 @@ import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import TaskCard from '@/components/operations/TaskCard'
 import TaskDetailPanel from '@/components/operations/TaskDetailPanel'
 import EmptyState from '@/components/dashboard/EmptyState'
+import OpsLoadError from '@/components/operations/OpsLoadError'
 import { AlarmClock } from 'lucide-react'
 import { useTasksWorkspace } from '../hooks/useTasksWorkspace'
 
 export default function OpsTasksOverduePage() {
-  const { tasks, loading, selected, panelOpen, openTask, closePanel, onPatch, onToggleChecklist, onComment } =
+  const { tasks, loading, error, reload, selected, panelOpen, openTask, closePanel, onPatch, onToggleChecklist, onComment } =
     useTasksWorkspace('overdue')
 
   if (loading) return <OpsPageSkeleton />
@@ -23,7 +24,9 @@ export default function OpsTasksOverduePage() {
         <OpsTaskTabs />
       </header>
 
-      {tasks.length === 0 ? (
+      {error ? (
+        <OpsLoadError title="تعذّر تحميل المهام المتأخرة" onRetry={() => void reload()} />
+      ) : tasks.length === 0 ? (
         <EmptyState
           icon={AlarmClock}
           title="لا توجد مهام متأخرة"

@@ -1,7 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { ticketService } from '@/services/ticketService';
+import { apiMessage } from '@/services/ticketOpsService';
 import type { DepartmentalUnit, TicketUser } from '@/types/ticket';
 import AssigneeSearchSelect from '@/components/tickets/AssigneeSearchSelect';
+import TaskEstimateFields from '@/components/operations/TaskEstimateFields';
+import { CenteredModal } from '@/components/ui/CenteredModal';
+import { useEstimateDraft } from '@/hooks/useEstimateDraft';
+import { emptyEstimate } from '@/lib/taskEstimate';
 import toast from '@/lib/toast';
 
 const SLA_HOUR_OPTIONS = [
@@ -31,20 +36,29 @@ export interface ApproveTicketModalProps {
  * separate "approve without assigning" path in this UI, matching the existing
  * product behaviour rather than loosening it.
  *
+ * Because an assignee is always chosen here, the work estimate (size, points,
+ * approximate duration) is required too — the same rule the server applies.
+ *
  * Shared between TechAdminDashboardPage and TicketDetailPage so the two
  * surfaces can never drift on what approving a ticket requires.
+ *
+ * Layout: ONE scroll area (the body) between a fixed header and a fixed footer
+ * (إلغاء / تأكيد), so the actions are always visible, on a 375px phone too.
  */
 export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess }: ApproveTicketModalProps) {
+  const formId = useId();
   const [unitId, setUnitId] = useState('');
   const [assignedToId, setAssignedToId] = useState('');
   const [slaHours, setSlaHours] = useState('24');
   const [notes, setNotes] = useState('');
+  const estimate = useEstimateDraft(emptyEstimate);
 
   const [units, setUnits] = useState<DepartmentalUnit[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
   const [users, setUsers] = useState<TicketUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,8 +87,15 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
   }, [departmentId, unitId]);
 
   const handleApprove = async () => {
+    if (submitting) return;
+    setFailure(null);
     if (!assignedToId || !unitId || !slaHours) {
       toast.error('يجب تحديد الوحدة التقنية والمكلف ومدة الـ SLA');
+      return;
+    }
+    // The estimate is required whenever an assignee is chosen (and one always is here).
+    if (!estimate.check(true)) {
+      toast.error('أكمل حجم المهمة ونقاطها');
       return;
     }
     setSubmitting(true);
@@ -84,26 +105,71 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
         assigned_to_id: Number(assignedToId),
         sla_hours: Number(slaHours),
         internal_notes: notes,
+        ...estimate.payload(),
       });
       toast.success('تم اعتماد التذكرة وإحالتها للمكلف');
       onSuccess();
-    } catch {
-      toast.error('حدث خطأ أثناء الاعتماد');
+    } catch (e) {
+      if (!estimate.fromServer(e)) {
+        const message = apiMessage(e, 'حدث خطأ أثناء الاعتماد');
+        setFailure(message);
+        toast.error(message);
+      } else {
+        toast.error('راجع النقاط والمدة');
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 space-y-5" dir="rtl">
-        <h2 className="text-lg font-extrabold text-slate-900">✅ اعتماد التذكرة وتحديد التكليف</h2>
+  const dirty = Boolean(unitId || assignedToId || notes.trim() || estimate.draft.scope || estimate.draft.points);
 
+  return (
+    <CenteredModal
+      open
+      onClose={onClose}
+      size="md"
+      testId="approve-ticket-modal"
+      busy={submitting}
+      dirty={dirty}
+      title="اعتماد التذكرة وتحديد التكليف"
+      footer={(requestClose) => (
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={requestClose}
+            disabled={submitting}
+            className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            form={formId}
+            disabled={submitting}
+            className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60"
+          >
+            {submitting ? 'جاري الاعتماد...' : 'تأكيد الاعتماد والإحالة'}
+          </button>
+        </div>
+      )}
+    >
+      <form
+        id={formId}
+        noValidate
+        dir="rtl"
+        className="space-y-5 text-right"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleApprove();
+        }}
+      >
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+          <label htmlFor={`${formId}-unit`} className="block text-xs font-bold text-slate-700 mb-1.5">
             الوحدة التقنية المستهدفة <span className="text-rose-500">*</span>
           </label>
           <select
+            id={`${formId}-unit`}
             value={unitId}
             disabled={unitsLoading}
             onChange={(e) => { setUnitId(e.target.value); setAssignedToId(''); }}
@@ -139,10 +205,11 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+          <label htmlFor={`${formId}-sla`} className="block text-xs font-bold text-slate-700 mb-1.5">
             مدة الـ SLA المسموح بها <span className="text-rose-500">*</span>
           </label>
           <select
+            id={`${formId}-sla`}
             value={slaHours}
             onChange={(e) => setSlaHours(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -153,9 +220,18 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
           </select>
         </div>
 
+        <TaskEstimateFields
+          value={estimate.draft}
+          onChange={estimate.setDraft}
+          errors={estimate.errors}
+          idPrefix={`${formId}-est`}
+          disabled={submitting}
+        />
+
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات داخلية (اختياري)</label>
+          <label htmlFor={`${formId}-notes`} className="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات داخلية (اختياري)</label>
           <textarea
+            id={`${formId}-notes`}
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -164,25 +240,11 @@ export function ApproveTicketModal({ ticketId, departmentId, onClose, onSuccess 
           />
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-          >
-            إلغاء
-          </button>
-          <button
-            type="button"
-            onClick={handleApprove}
-            disabled={submitting}
-            className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60"
-          >
-            {submitting ? 'جاري الاعتماد...' : '✅ تأكيد الاعتماد والإحالة'}
-          </button>
-        </div>
-      </div>
-    </div>
+        {failure ? (
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">{failure}</p>
+        ) : null}
+      </form>
+    </CenteredModal>
   );
 }
 

@@ -89,6 +89,8 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/super-admin/access-control',
   '/dashboard/super-admin/product-updates',
   '/dashboard/admin/operations',
+  // «مهامي ومسؤولياتي» is a sibling entry of «إدارة المهام», not one of its tabs.
+  '/dashboard/admin/tasks/my',
   '/dashboard/tech-admin',
   '/dashboard/programs-manager',
   '/dashboard/operations-manager',
@@ -107,6 +109,28 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/student/assistant',
   '/dashboard/student/profile',
 ])
+
+/**
+ * Entries whose href is a path prefix of ANOTHER sidebar entry's href. A prefix match would light both up on
+ * the sibling's page (the management entry on «مهامي ومسؤولياتي»), so the sibling's routes are excluded here.
+ */
+const siblingRoutesOfPrefixEntry: Record<string, string[]> = {
+  '/dashboard/admin/tasks': ['/dashboard/admin/tasks/my'],
+}
+
+/**
+ * Is the sidebar entry `href` the current page? Exact for the routes in {@link exactMatchSidebarRoutes}; a path
+ * prefix (so a section keeps its own sub-pages selected) for the rest, minus the sibling entries above.
+ */
+export function isSidebarItemActive(rawPathname: string, href: string): boolean {
+  // `/dashboard/admin/tasks/` is the same page as `/dashboard/admin/tasks`.
+  const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, '') : rawPathname
+  if (exactMatchSidebarRoutes.has(href)) return pathname === href
+  const siblings = siblingRoutesOfPrefixEntry[href]
+  if (siblings?.some((s) => pathname === s || pathname.startsWith(`${s}/`))) return false
+
+  return pathname.startsWith(href)
+}
 
 function membersNavItem(): SidebarNavItem {
   return { label: 'الأعضاء', href: '/dashboard/members', icon: UserCheck }
@@ -134,7 +158,7 @@ function emcTicketsBlock(role: string, opts: { collapsible?: boolean } = {}): Si
       ...(opts.collapsible ? { collapsible: true, defaultOpen: true } : {}),
       items: [
         { label: 'إدخال تذكرة / مقترح جديد', href: '/dashboard/tickets/new', icon: ShieldQuestion },
-        ...(isLeader ? [{ label: 'توجيه الإدارة والدعم الفني', href: '/dashboard/tickets/admin', icon: Building2 }] : []),
+        ...(isLeader ? [{ label: 'إدارة تذاكر العمليات', href: '/dashboard/tickets/admin', icon: Building2 }] : []),
         ...(isTechStaff ? [{ label: 'مساحة العضو المكلف', href: '/dashboard/tickets/workspace', icon: UserCheck }] : []),
         ...(isLeader ? [{ label: 'أعضاء الإدارات', href: '/dashboard/admin/team-members', icon: UserCog }] : []),
         ...(isLeader ? [{ label: 'الوحدات التقنية وأعضاؤها', href: '/dashboard/admin/department-units', icon: Users }] : []),
@@ -178,7 +202,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       collapsible: true,
       defaultOpen: true,
       items: [
-        { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+        { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
         { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
         { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
         { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -330,7 +354,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       collapsible: true,
       defaultOpen: true,
       items: [
-        { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+        { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
         { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
         { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
         { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -507,10 +531,10 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'طلبات المستشارين',        href: '/dashboard/admin/consultant-applications', icon: UserCheck      },
         { label: 'تحليلات الزوار',          href: '/dashboard/admin/visitor-analytics',       icon: Star           },
         { label: 'استيراد الكتالوج',        href: '/dashboard/admin/catalog-import',          icon: FileText       },
-        { label: 'مهامي',                   href: '/dashboard/admin/tasks/my',                icon: ClipboardList  },
+        { label: 'مهامي ومسؤولياتي',       href: '/dashboard/admin/tasks/my',                icon: ClipboardList  },
         { label: 'مهام واعتماد',            href: '/dashboard/hr/tasks',                      icon: ClipboardCheck },
         { label: 'لوحة الأجايل (Kanban)',    href: '/dashboard/operations/board',              icon: KanbanSquare   },
-        { label: 'المهام',                   href: '/dashboard/admin/tasks',                   icon: ClipboardList  },
+        { label: 'إدارة المهام',            href: '/dashboard/admin/tasks',                   icon: ClipboardList  },
         { label: 'الاجتماعات',              href: '/dashboard/admin/meetings',                icon: Calendar       },
         { label: 'التقويم',                 href: '/dashboard/admin/calendar',               icon: CalendarDays   },
         { label: 'النماذج',                  href: '/dashboard/admin/forms',                   icon: FileText       },
@@ -654,7 +678,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -696,7 +720,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -766,7 +790,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -825,7 +849,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -867,7 +891,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
     return [
       {
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'فرص التطوع', href: '/volunteer-opportunities', icon: HeartHandshake },
@@ -900,7 +924,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -985,7 +1009,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1116,7 +1140,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1137,7 +1161,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1154,7 +1178,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         title: 'إدارة العمليات',
         items: [
           { label: 'الإدارات',   href: '/dashboard/admin/departments', icon: Building2     },
-          { label: 'المهام',     href: '/dashboard/admin/tasks',        icon: ClipboardList },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings',     icon: Calendar      },
           { label: 'النماذج',    href: '/dashboard/admin/forms',        icon: FileText      },
         ],
@@ -1173,7 +1197,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1205,7 +1229,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1223,7 +1247,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         title: 'المجتمع والنشاطات',
         items: [
           { label: 'المتطوعون', href: '/dashboard/admin/volunteers', icon: Users         },
-          { label: 'المهام',    href: '/dashboard/admin/tasks',      icon: ClipboardList },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
           { label: 'النماذج',   href: '/dashboard/admin/forms',     icon: FileText      },
         ],
@@ -1241,7 +1265,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1277,7 +1301,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1317,7 +1341,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
         collapsible: true,
         defaultOpen: true,
         items: [
-          { label: 'مهامي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
+          { label: 'مهامي ومسؤولياتي', href: '/dashboard/admin/tasks/my', icon: ClipboardList },
           { label: 'مهام واعتماد', href: '/dashboard/hr/tasks', icon: ClipboardCheck },
           { label: 'لوحة الأجايل (Kanban)', href: '/dashboard/operations/board', icon: KanbanSquare },
           { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
@@ -1339,7 +1363,7 @@ function roleSidebar(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavG
       {
         title: 'نشاطات القسم',
         items: [
-          { label: 'المهام',     href: '/dashboard/admin/tasks',    icon: ClipboardList },
+          { label: 'إدارة المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
         ],
       },

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { OpsComment } from '@/types/operations'
+import { formatDateTime } from '@/components/tickets/ops/ticketOpsUi'
 
 export default function CommentThread({
   comments,
@@ -34,7 +35,7 @@ export default function CommentThread({
           <li key={c.id} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-100">
             <p className="text-[11px] font-black text-customBlue">{c.author_name}</p>
             <p className="mt-1 text-sm font-medium text-deepBlue/85">{c.body}</p>
-            <p className="mt-1 text-[10px] text-slate-400">{c.created_at}</p>
+            <p className="mt-1 text-[10px] text-slate-400">{c.created_at ? formatDateTime(c.created_at) : ''}</p>
           </li>
         ))}
       </ul>
@@ -44,6 +45,7 @@ export default function CommentThread({
           disabled={disabled || busy}
           onChange={(e) => setText(e.target.value)}
           rows={3}
+          maxLength={5000}
           placeholder="أضف تعليقاً..."
           className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-deepBlue outline-none focus:border-customBlue"
         />

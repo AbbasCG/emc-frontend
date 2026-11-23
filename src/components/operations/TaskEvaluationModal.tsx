@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Award, CheckCircle2, Info, ShieldCheck, Star, X } from 'lucide-react'
+import { Award, CheckCircle2, Info, ShieldCheck, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getApiMessageOr } from '@/api/apiErrors'
+import { CenteredModal } from '@/components/ui/CenteredModal'
 import { evaluateTask, type BoardTask } from '@/api/operationsBoardApi'
 
 type Props = {
@@ -22,7 +22,20 @@ export default function TaskEvaluationModal({ task, open, onClose, onEvaluated }
   const [feedback, setFeedback] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
 
-  if (!open || !task) return null
+  // A new task (or a re-opened window) starts from the default scores, never the previous task's.
+  const [seen, setSeen] = useState({ open, id: task?.id })
+  if (seen.open !== open || seen.id !== task?.id) {
+    setSeen({ open, id: task?.id })
+    setDeliveredOnTime(5)
+    setQualityOfOutputs(5)
+    setAutonomy(5)
+    setResponsiveness(5)
+    setCollaboration(5)
+    setCollaborationNa(false)
+    setFeedback('')
+  }
+
+  if (!task) return null
 
   const isSimple = task.task_scope === 'simple' || (!task.task_scope && (task.points ?? 0) <= 50)
 
@@ -97,47 +110,41 @@ export default function TaskEvaluationModal({ task, open, onClose, onEvaluated }
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-          onClick={onClose}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 12 }}
-          className="relative z-10 w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-deepBlue/10"
-          dir="rtl"
-        >
-          <header className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">
-                <CheckCircle2 size={13} />
-                تقييم المهمة وإغلاقها
-              </span>
-              <h2 className="mt-1.5 text-base font-black text-deepBlue truncate max-w-md">
-                {task.title}
-              </h2>
-              <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
-                <span>المكلف: <strong className="text-deepBlue">{task.assigned_to?.name ?? 'غير محدد'}</strong></span>
-                <span>النقاط: <strong className="text-customBlue">{task.points ?? '—'} نقطة</strong></span>
-                <span>المدة: <strong className="text-emerald-700">{task.estimated_hours ?? '—'} س</strong></span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-deepBlue"
-            >
-              <X size={20} />
-            </button>
-          </header>
-
+    <CenteredModal
+      open={open && task !== null}
+      onClose={onClose}
+      size="md"
+      testId="task-evaluation-modal"
+      busy={submitting}
+      dirty={feedback.trim() !== ''}
+      title={
+        <span className="block">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">
+            <CheckCircle2 size={13} aria-hidden="true" />
+            تقييم المهمة وإغلاقها
+          </span>
+          <span className="mt-1.5 block truncate text-base font-black text-deepBlue">{task.title}</span>
+        </span>
+      }
+      subtitle={`المكلف: ${task.assigned_to?.name ?? 'غير محدد'} · النقاط: ${task.points ?? '—'} · المدة: ${task.estimated_hours ?? '—'} س`}
+      footer={(requestClose) => (
+        <div className="flex items-center justify-end gap-3">
+          <button type="button" onClick={requestClose} disabled={submitting} className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-50">
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            form="task-evaluation-form"
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-deepBlue/90 disabled:opacity-50"
+          >
+            <Award size={14} className="text-amber-400" aria-hidden="true" />
+            <span>{submitting ? 'جاري الاعتماد...' : 'حفظ التقييم والاعتماد'}</span>
+          </button>
+        </div>
+      )}
+    >
+      <div className="text-right">
           {/* تنبيه مسار الاعتماد بحسب حجم المهمة */}
           <div className={`mt-4 rounded-2xl p-4 text-xs font-bold leading-relaxed flex items-start gap-3 ${
             isSimple
@@ -161,7 +168,7 @@ export default function TaskEvaluationModal({ task, open, onClose, onEvaluated }
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-right">
+          <form id="task-evaluation-form" onSubmit={handleSubmit} className="mt-1 space-y-4 text-right">
             <div className="flex items-center justify-between pb-1">
               <span className="text-xs font-black text-deepBlue">معايير التقييم الخمسة (مقياس ليكرت 1 - 5):</span>
               <div className="flex items-center gap-1.5 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-xl">
@@ -217,28 +224,8 @@ export default function TaskEvaluationModal({ task, open, onClose, onEvaluated }
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-medium text-deepBlue placeholder:text-slate-400 focus:border-customBlue"
               />
             </div>
-
-            <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
-              >
-                إلغاء
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-xs font-black text-white shadow-md hover:bg-deepBlue/90 disabled:opacity-50 transition"
-              >
-                <Award size={14} className="text-amber-400" />
-                <span>{submitting ? 'جاري الاعتماد...' : 'حفظ التقييم والاعتماد'}</span>
-              </button>
-            </div>
           </form>
-        </motion.div>
       </div>
-    </AnimatePresence>
+    </CenteredModal>
   )
 }
-

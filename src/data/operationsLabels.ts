@@ -8,26 +8,26 @@ import type {
 } from '@/types/operations'
 
 export const TASK_STATUS_AR: Record<TaskStatus, string> = {
-  idea: 'فكرة',
-  study: 'قيد الدراسة',
+  idea: 'أفكار',
+  under_review: 'قيد المراجعة',
   planning: 'قيد التخطيط',
-  pending_approval: 'بانتظار الموافقة',
+  waiting_approval: 'بانتظار الاعتماد',
   in_progress: 'قيد التنفيذ',
-  done: 'مكتملة',
-  deferred: 'مؤجلة',
+  needs_evaluation: 'بحاجة لتقييم',
+  completed: 'مكتملة',
+  postponed: 'مؤجلة',
   cancelled: 'ملغاة',
-  needs_review: 'تحتاج تقييم',
 }
 
 export const TASK_STATUS_ORDER: TaskStatus[] = [
   'idea',
-  'study',
+  'under_review',
   'planning',
-  'pending_approval',
+  'waiting_approval',
   'in_progress',
-  'needs_review',
-  'done',
-  'deferred',
+  'needs_evaluation',
+  'completed',
+  'postponed',
   'cancelled',
 ]
 
