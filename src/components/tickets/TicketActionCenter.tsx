@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CalendarClock, CheckCircle2, PlayCircle, RotateCcw, Sparkles, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
+import { BadgeCheck, CalendarClock, CheckCircle2, PlayCircle, Undo2, RotateCcw, Send, Sparkles, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
 import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
 import { apiMessage } from '@/services/ticketOpsService';
@@ -9,13 +9,15 @@ import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketM
 import { RejectTaskModal } from '@/components/tickets/modals/RejectTaskModal';
 import { CompleteTaskModal } from '@/components/tickets/modals/CompleteTaskModal';
 import { EditEstimateModal } from '@/components/tickets/modals/EditEstimateModal';
+import { ApproveCompletionModal } from '@/components/tickets/modals/ApproveCompletionModal';
+import { ReturnForReworkModal } from '@/components/tickets/modals/ReturnForReworkModal';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
 import { PriorityPill } from '@/components/tickets/ops/TicketBadges';
 import { formatDateTime } from '@/components/tickets/ops/ticketOpsUi';
 import { cn } from '@/lib/utils';
 import toast from '@/lib/toast';
 
-type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | 'estimate' | null;
+type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | 'estimate' | 'approve_completion' | 'return_for_rework' | null;
 
 export interface TicketActionCenterProps {
   ticket: Ticket;
@@ -92,7 +94,8 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
   };
 
   const hasAnyActionCapability =
-    caps.approve || caps.reject || caps.reassign || caps.accept_task || caps.reject_task || caps.complete_task || caps.can_edit_estimate === true;
+    caps.approve || caps.reject || caps.reassign || caps.accept_task || caps.reject_task || caps.complete_task || caps.can_edit_estimate === true ||
+    caps.approve_completion === true || caps.return_for_rework === true;
 
   if (!hasAnyActionCapability) return null;
 
@@ -141,6 +144,12 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
         <p className="text-xs text-slate-500">تحتاج هذه التذكرة إلى قرار قبل بدء المعالجة.</p>
       )}
 
+      {ticket.status === 'PENDING_REVIEW' && (caps.approve_completion || caps.return_for_rework) && (
+        <p className="text-xs text-slate-500" data-testid="review-hint">
+          قدّم المكلف الإنجاز. راجعه ثم اعتمده نهائيًا لإضافة النقاط والساعات إلى رصيده، أو أعده للتنفيذ.
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         {caps.approve && (
           <button
@@ -170,8 +179,30 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
             onClick={() => setModal('complete_task')}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
           >
-            <CheckCircle2 className="w-4 h-4" />
-            تم الحل
+            <Send className="w-4 h-4" />
+            تقديم للمراجعة
+          </button>
+        )}
+
+        {caps.approve_completion === true && (
+          <button
+            type="button"
+            onClick={() => setModal('approve_completion')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            اعتماد الإنجاز
+          </button>
+        )}
+
+        {caps.return_for_rework === true && (
+          <button
+            type="button"
+            onClick={() => setModal('return_for_rework')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs font-bold transition"
+          >
+            <Undo2 className="w-4 h-4" />
+            إعادة للتنفيذ
           </button>
         )}
 
@@ -247,6 +278,12 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
       )}
       {modal === 'complete_task' && (
         <CompleteTaskModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} />
+      )}
+      {modal === 'approve_completion' && (
+        <ApproveCompletionModal ticket={ticket} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
+      )}
+      {modal === 'return_for_rework' && (
+        <ReturnForReworkModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
       )}
       {modal === 'estimate' && (
         <EditEstimateModal

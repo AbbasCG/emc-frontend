@@ -56,6 +56,9 @@ const ACTION_LABEL: Record<string, string> = {
   REASSIGNED:        'إعادة توجيه',
   COMMENT:           'تعقيب',
   INTERNAL_NOTE:     'ملاحظة داخلية',
+  SUBMITTED_FOR_REVIEW: 'قدّمت الإنجاز للمراجعة',
+  APPROVED_COMPLETION:  'اعتُمد الإنجاز نهائيًا',
+  RETURNED_FOR_REWORK:  'أُعيدت للتنفيذ',
 };
 
 const PRIORITY_META: Record<TicketPriority, { label: string; className: string }> = {
@@ -65,7 +68,7 @@ const PRIORITY_META: Record<TicketPriority, { label: string; className: string }
   CRITICAL: { label: 'أولوية حرجة',   className: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
 
-const ACTIVE_STATUSES: TicketStatus[] = ['ASSIGNED', 'IN_PROGRESS'];
+const ACTIVE_STATUSES: TicketStatus[] = ['ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW'];
 const CLOSED_STATUSES: TicketStatus[] = ['RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ASSIGNEE'];
 
 function formatDateTime(str?: string | null): string {
@@ -270,7 +273,7 @@ const AssigneeWorkspacePage: React.FC = () => {
     const { ticketId, status, summary, unresolvedReason, files } = modal;
 
     if (status === 'RESOLVED' && !summary.trim()) {
-      toast.error('يجب توضيح ما تم بالتفصيل لإغلاق التذكرة كـ «تم الحل»');
+      toast.error('يجب توضيح ما تم بالتفصيل لتقديم التذكرة للمراجعة');
       return;
     }
     if (status === 'UNRESOLVED' && !unresolvedReason.trim()) {
@@ -289,7 +292,7 @@ const AssigneeWorkspacePage: React.FC = () => {
         formData.append('unresolved_reason', unresolvedReason.trim());
       }
       await ticketService.completeTask(ticketId, formData);
-      toast.success(status === 'RESOLVED' ? 'تم إغلاق التذكرة — أحسنت!' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
+      toast.success(status === 'RESOLVED' ? 'تم تقديم التذكرة للمراجعة والاعتماد' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       setModal(null);
       refreshAfterAction(ticketId);
     } catch {
@@ -671,7 +674,7 @@ const AssigneeWorkspacePage: React.FC = () => {
 
                     {canComplete && (
                       <section className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                        <p className="text-sm font-bold text-navy">المهمة قيد التنفيذ — أنهِ وأغلق التذكرة</p>
+                        <p className="text-sm font-bold text-navy">المهمة قيد التنفيذ — قدّمها للمراجعة</p>
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <button
                             type="button"
@@ -688,7 +691,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                           >
                             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                            تم الحل
+                            تقديم للمراجعة
                           </button>
                           <button
                             type="button"
@@ -866,7 +869,7 @@ const AssigneeWorkspacePage: React.FC = () => {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="إغلاق المهمة"
+            aria-label="تقديم المهمة للمراجعة"
             className="max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl"
             dir="rtl"
           >
@@ -881,7 +884,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                     : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                تم الحل
+                تقديم للمراجعة
               </button>
               <button
                 type="button"
@@ -898,6 +901,9 @@ const AssigneeWorkspacePage: React.FC = () => {
 
             {modal.status === 'RESOLVED' ? (
               <>
+                <p className="rounded-xl bg-indigo-50 p-3 text-xs font-bold leading-relaxed text-indigo-800" data-testid="submit-review-note">
+                  لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.
+                </p>
                 <div>
                   <label htmlFor="resolve-summary" className="mb-1.5 block text-xs font-bold text-slate-700">
                     ما الذي تم بالتفصيل لحل المشكلة؟ <span className="text-rose-500">*</span>
@@ -913,7 +919,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                     }`}
                   />
                   {modal.summary.trim().length === 0 && (
-                    <p className="mt-1 text-[11px] text-rose-500">يجب ملء هذا الحقل لإغلاق التذكرة كـ تم الحل</p>
+                    <p className="mt-1 text-[11px] text-rose-500">يجب ملء هذا الحقل لتقديم التذكرة للمراجعة</p>
                   )}
                 </div>
                 {/* Proof upload */}
@@ -994,7 +1000,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                     : 'bg-accent-500 hover:bg-accent-600'
                 }`}
               >
-                {actionLoading ? 'جاري الحفظ...' : modal.status === 'RESOLVED' ? 'تأكيد الإغلاق (تم الحل)' : 'تصعيد تعذر الحل'}
+                {actionLoading ? 'جاري الحفظ...' : modal.status === 'RESOLVED' ? 'تأكيد التقديم للمراجعة' : 'تصعيد تعذر الحل'}
               </button>
             </div>
           </div>

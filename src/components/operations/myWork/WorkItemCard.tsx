@@ -60,6 +60,7 @@ export default function WorkItemCard({
         </span>
         <OpsPriorityBadge p={item.priority} />
         {item.overdue ? <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700">متأخرة</span> : null}
+        {item.awaitingApproval ? <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700 ring-1 ring-indigo-200" data-testid="awaiting-approval">بانتظار الاعتماد</span> : null}
       </div>
 
       {isTicket ?
@@ -97,6 +98,13 @@ export default function WorkItemCard({
             {item.estimateHidden ? <span className="text-slate-400">غير متاح لك</span> : estimateKnown ? formatEstimate({ task_points: item.points, estimated_hours: item.hours }) : <span className="text-slate-400">— لم تُحدَّد</span>}
           </dd>
         </div>
+        {item.credited ?
+          <div className="flex items-center gap-1.5" data-testid="credited">
+            <CheckCircle2 size={11} className="shrink-0 text-emerald-600" aria-hidden="true" />
+            <dt className="sr-only">الرصيد المُضاف</dt>
+            <dd className="text-emerald-700">أُضيف إلى رصيدك: {formatEstimate({ task_points: item.credited.points, estimated_hours: item.credited.hours })}</dd>
+          </div>
+        : null}
       </dl>
 
       {item.canAccept || item.canReject ?

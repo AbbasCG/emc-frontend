@@ -34,7 +34,7 @@ describe('CompleteTaskModal — sends the field the backend actually validates',
       screen.getByPlaceholderText('اشرح الإجراءات التقنية المتخذة والنتيجة التي تحققت...'),
       'تم استبدال الكابل وإعادة تشغيل الجهاز',
     )
-    await userEvent.click(screen.getByText('✅ تأكيد الحل والإغلاق'))
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد التقديم للمراجعة' }))
 
     expect(mockCompleteTask).toHaveBeenCalledTimes(1)
     const [, formData] = mockCompleteTask.mock.calls[0] as [number, FormData]

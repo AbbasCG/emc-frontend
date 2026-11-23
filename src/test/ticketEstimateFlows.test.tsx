@@ -67,6 +67,7 @@ function expectPinnedLayout(testId: string, submitName: RegExp | string) {
 
 async function fillApprove() {
   await userEvent.selectOptions(await screen.findByLabelText(/الوحدة التقنية المستهدفة/), '4')
+  await screen.findByRole('option', { name: 'سلمى' })
   await userEvent.selectOptions(await screen.findByLabelText('الموظف المكلف بالإنجاز'), '9')
 }
 
@@ -186,6 +187,8 @@ describe('ReassignTicketModal', () => {
     svc.reassign.mockResolvedValue({ success: true })
     const onSuccess = vi.fn()
     render(<ReassignTicketModal ticketId={5} departmentId={2} currentUnitId={4} onClose={vi.fn()} onSuccess={onSuccess} />)
+    // The members of the preselected unit load after the department's units do.
+    await screen.findByRole('option', { name: 'سلمى' })
     await userEvent.selectOptions(await screen.findByLabelText('المكلف الجديد'), '9')
     await userEvent.selectOptions(scope(), 'large')
     await userEvent.type(points(), '250')
@@ -199,6 +202,7 @@ describe('ReassignTicketModal', () => {
   it('surfaces a server refusal of the reassignment (e.g. back to the one who declined)', async () => {
     svc.reassign.mockRejectedValue(unprocessable({ assigned_to_id: ['لا يمكن إسناد التذكرة لمن اعتذر عنها.'] }))
     render(<ReassignTicketModal ticketId={5} departmentId={2} currentUnitId={4} currentEstimate={{ task_scope: 'simple', task_points: 30, estimated_hours: null }} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByRole('option', { name: 'سلمى' })
     await userEvent.selectOptions(await screen.findByLabelText('المكلف الجديد'), '9')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد إعادة التوجيه' }))
     expect(await screen.findAllByText('لا يمكن إسناد التذكرة لمن اعتذر عنها.')).not.toHaveLength(0)

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi';
 import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue';
+import { TicketCreditBlock } from '@/components/tickets/TicketCreditBlock';
 import toast from '@/lib/toast';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -57,6 +58,11 @@ const STATUS_META: Record<string, { label: string; icon: React.ReactNode; bg: st
     label: 'قيد المعالجة والإنجاز',
     icon: <Clock className="w-5 h-5" />,
     bg: 'bg-violet-50', text: 'text-violet-800', border: 'border-violet-300',
+  },
+  PENDING_REVIEW: {
+    label: 'بانتظار المراجعة والاعتماد النهائي',
+    icon: <Clock className="w-5 h-5" />,
+    bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-300',
   },
   RESOLVED: {
     label: 'تم الحل وإغلاق التذكرة ✔',
@@ -98,6 +104,11 @@ const ACTION_LABEL: Record<string, string> = {
   ACCEPTED_BY_ASSIGNEE:  'قبول التكليف من المكلف',
   REJECTED_BY_ASSIGNEE:  'اعتذار المكلف عن الاستلام',
   PRIORITY_CHANGED:      'تغيير الأولوية',
+  SUBMITTED_FOR_REVIEW:  'تقديم الإنجاز للمراجعة',
+  APPROVED_COMPLETION:   'الاعتماد النهائي للإنجاز',
+  CREDIT_ADDED:          'إضافة الرصيد إلى المكلف',
+  RETURNED_FOR_REWORK:   'إعادة التذكرة للتنفيذ',
+  ESTIMATE_UPDATED:      'تحديث النقاط والمدة',
 };
 
 
@@ -431,6 +442,9 @@ const TicketDetailPage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Estimate and credit: rendered only when the server sent them for this viewer */}
+            <TicketCreditBlock ticket={ticket} />
 
             {/* SLA Info */}
             {ticket.expected_resolution_time && (

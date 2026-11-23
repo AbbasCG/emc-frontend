@@ -81,13 +81,15 @@ describe('D2: the ticket history never shows a raw action key', () => {
   })
 })
 
-describe('D3: the wording about points and duration is the truth (nothing is credited)', () => {
+describe('D3: the wording about points and duration is the truth (credited once, after the final approval)', () => {
   it('the edit dialog says it is a planning estimate and credits nothing', async () => {
     render(<EditEstimateModal ticketId={3} current={{ task_scope: 'simple', task_points: 30, estimated_hours: null }} onClose={vi.fn()} onSuccess={vi.fn()} />)
     const dialog = await screen.findByRole('dialog')
     expect(dialog).toHaveTextContent(TICKET_ESTIMATE_NOTE)
     expect(dialog).not.toHaveTextContent('تُحتسب')
     expect(dialog).not.toHaveTextContent('رصيد المتطوع')
+    // the old copy said points are never credited; they are, once, after the final approval
+    expect(dialog).not.toHaveTextContent('تقدير للتخطيط فقط')
   })
 
   it('the shared ticket fields say the same under the duration', () => {
@@ -103,7 +105,8 @@ describe('D3: the wording about points and duration is the truth (nothing is cre
   })
 
   it('the exact sentence', () => {
-    expect(TICKET_ESTIMATE_NOTE).toBe('النقاط والمدة تقدير للتخطيط فقط ولا تُضاف إلى رصيد المكلّف.')
+    expect(TICKET_ESTIMATE_NOTE).toBe('النقاط والمدة تقدير للتخطيط، ولا تُضاف إلى رصيد المكلّف إلا مرة واحدة بعد الاعتماد النهائي من معتمِد مخوّل.')
+    expect(TICKET_ESTIMATE_NOTE).not.toContain('فقط ولا تُضاف')
   })
 })
 

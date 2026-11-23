@@ -55,7 +55,9 @@ export function reporterStatusCopy(status: TicketStatus, category: TicketCategor
             hint: 'تمت مراجعة بلاغك وإحالته إلى الفريق المختص.',
             tone: 'progress',
           };
+    // The server already shows a reporter «قيد التنفيذ» for a ticket in review; PENDING_REVIEW is only the safe fallback.
     case 'IN_PROGRESS':
+    case 'PENDING_REVIEW':
       return {
         badge: isSuggestion ? 'المقترح قيد التنفيذ' : 'البلاغ قيد المعالجة',
         statusLabel: isSuggestion ? 'قيد التنفيذ' : 'قيد المعالجة',

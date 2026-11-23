@@ -11,8 +11,9 @@ export interface CompleteTaskModalProps {
 }
 
 /**
- * Assignee closes an IN_PROGRESS task as Resolved or Unresolved. Reuses the
- * SAME POST /v1/tickets/{id}/complete-task operation.
+ * Assignee hands an IN_PROGRESS task over: «تقديم للمراجعة» (the work is done; the ticket then waits for the final
+ * approval, and ONLY that approval credits points and hours) or «تعذر الحل» (escalation). Reuses the SAME
+ * POST /v1/tickets/{id}/complete-task operation.
  *
  * The proof-file picker's accept="image/*,video/*" is preserved EXACTLY as it
  * already exists elsewhere in the product (AssigneeWorkspacePage) — video is
@@ -34,7 +35,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
 
   const handleComplete = async () => {
     if (status === 'RESOLVED' && !summary.trim()) {
-      toast.error('يجب توضيح ما تم بالتفصيل لإغلاق التذكرة كـ «تم الحل»');
+      toast.error('يجب توضيح ما تم بالتفصيل لتقديم التذكرة للمراجعة');
       return;
     }
     if (status === 'UNRESOLVED' && !unresolvedReason.trim()) {
@@ -53,7 +54,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
         formData.append('unresolved_reason', unresolvedReason.trim());
       }
       await ticketService.completeTask(ticketId, formData);
-      toast.success(status === 'RESOLVED' ? 'تم إغلاق التذكرة — أحسنت!' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
+      toast.success(status === 'RESOLVED' ? 'تم تقديم التذكرة للمراجعة والاعتماد' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       onSuccess();
     } catch {
       toast.error('حدث خطأ أثناء حفظ نتيجة المهمة');
@@ -72,7 +73,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
       testId="complete-task-modal"
       busy={submitting}
       dirty={summary.trim() !== '' || unresolvedReason.trim() !== '' || files.length > 0}
-      title="إغلاق المهمة"
+      title="تقديم للمراجعة"
       footer={(requestClose) => (
         <div className="flex gap-3">
           <button
@@ -89,7 +90,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
             disabled={submitting}
             className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition disabled:opacity-60 ${confirmCls}`}
           >
-            {submitting ? 'جارٍ الحفظ...' : status === 'RESOLVED' ? '✅ تأكيد الحل والإغلاق' : '⚠️ تأكيد تعذر الحل'}
+            {submitting ? 'جارٍ الحفظ...' : status === 'RESOLVED' ? 'تأكيد التقديم للمراجعة' : '⚠️ تأكيد تعذر الحل'}
           </button>
         </div>
       )}
@@ -105,7 +106,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             }`}
           >
-            🎯 تم الحل
+            تقديم للمراجعة
           </button>
           <button
             type="button"
@@ -122,6 +123,9 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
 
         {status === 'RESOLVED' ? (
           <>
+            <p className="rounded-xl bg-indigo-50 p-3 text-xs font-bold leading-relaxed text-indigo-800" data-testid="submit-review-note">
+              لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.
+            </p>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 ما الذي تم بالتفصيل لحل المشكلة؟ <span className="text-rose-500">*</span>
@@ -136,7 +140,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
                 }`}
               />
               {summary.trim().length === 0 && (
-                <p className="text-[11px] text-rose-500 mt-1">⚠️ يجب ملء هذا الحقل لإغلاق التذكرة كـ تم الحل</p>
+                <p className="text-[11px] text-rose-500 mt-1">يجب ملء هذا الحقل لتقديم التذكرة للمراجعة</p>
               )}
             </div>
             <div>

@@ -1,6 +1,6 @@
 import { ticketService } from '@/services/ticketService'
 import { TicketEstimateDialog } from '@/components/tickets/modals/TicketEstimateDialog'
-import { estimateFromRecord, isLegacyRecord } from '@/lib/taskEstimate'
+import { estimateFromRecord, isLegacyRecord, TICKET_ESTIMATE_NOTE } from '@/lib/taskEstimate'
 import toast from '@/lib/toast'
 
 export interface EditEstimateModalProps {
@@ -21,7 +21,7 @@ export function EditEstimateModal({ ticketId, current, onClose, onSuccess }: Edi
   return (
     <TicketEstimateDialog
       title="تعديل النقاط والمدة"
-      description="تحدّد حجم العمل المطلوب في هذه التذكرة. النقاط والمدة تقدير للتخطيط فقط ولا تُضاف إلى رصيد المكلّف."
+      description={`تحدّد حجم العمل المطلوب في هذه التذكرة. ${TICKET_ESTIMATE_NOTE}`}
       initial={estimateFromRecord(current)}
       legacy={legacy}
       submitLabel="حفظ النقاط والمدة"

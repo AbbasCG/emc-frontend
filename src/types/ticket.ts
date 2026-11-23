@@ -8,6 +8,8 @@ export type TicketStatus =
   | 'PENDING_APPROVAL'
   | 'ASSIGNED'
   | 'IN_PROGRESS'
+  /** The assignee submitted the work; it waits for the final approval that credits points and hours. An OPEN status. */
+  | 'PENDING_REVIEW'
   | 'RESOLVED'
   | 'UNRESOLVED'
   | 'REJECTED_BY_ADMIN'
@@ -41,6 +43,23 @@ export interface TicketCapabilities {
   change_priority?: boolean;
   /** May edit the ticket's points and approximate duration («تعديل النقاط والمدة»). Absent on older payloads. */
   can_edit_estimate?: boolean;
+  /** May give the FINAL approval of a PENDING_REVIEW ticket (this is what credits points and hours). Trust it; never recompute. */
+  approve_completion?: boolean;
+  /** May send a PENDING_REVIEW ticket back to the assignee. */
+  return_for_rework?: boolean;
+}
+
+/**
+ * What the ticket has credited (or would credit) to its assignee. Present ONLY for managers, global roles and the
+ * assignee; absent for plain members and reporters, in which case nothing about it may be rendered.
+ */
+export interface TicketCredit {
+  status: 'none' | 'pending_review' | 'credited';
+  /** Credited points / hours; null until credited. */
+  points: number | null;
+  hours: number | null;
+  credited_at: string | null;
+  credited_by_name: string | null;
 }
 
 export interface DepartmentalUnit {
@@ -138,6 +157,8 @@ export interface Ticket {
   task_scope?: TaskScope | null;
   task_points?: number | null;
   estimated_hours?: number | null;
+  /** The credit block (see {@link TicketCredit}); absent when the viewer may not read it. */
+  credit?: TicketCredit;
   /** Work-queue rows (`lite=1`) only: newest activity-log time and the attachment count. */
   last_activity_at?: string | null;
   attachments_count?: number;
@@ -185,6 +206,7 @@ export interface MyWorkTicket {
   task_scope?: TaskScope | null;
   task_points?: number | null;
   estimated_hours?: number | null;
+  credit?: TicketCredit;
   created_at?: string;
   updated_at?: string;
   capabilities?: {

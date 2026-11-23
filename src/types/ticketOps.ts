@@ -32,6 +32,7 @@ export interface TicketCounts {
   pendingApproval: number
   assigned: number
   inProgress: number
+  pendingReview: number
   resolved: number
   unresolved: number
   rejectedByAdmin: number

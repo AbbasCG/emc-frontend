@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Inbox, Layers, PlayCircle, UserX, Zap } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Hourglass, Inbox, Layers, PlayCircle, UserX, Zap } from 'lucide-react'
 import type { TicketFilters, TicketStats } from '@/types/ticketOps'
 import { isKpiActive, type KpiKey } from '@/utils/ticketFilters'
 import { cn } from '@/lib/utils'
@@ -26,6 +26,7 @@ const PRIMARY: CardDef[] = [
 const SECONDARY: CardDef[] = [
   { key: 'total', label: 'الإجمالي', hint: 'كل التذاكر في النطاق', value: (s) => s.counts.total, icon: Layers, tone: 'text-deepBlue bg-slate-100' },
   { key: 'inProgress', label: 'قيد المعالجة', hint: 'يعمل عليها المكلف', value: (s) => s.counts.inProgress, icon: PlayCircle, tone: 'text-violet-700 bg-violet-50' },
+  { key: 'pendingReview', label: 'بانتظار المراجعة', hint: 'قُدِّم إنجازها وتنتظر الاعتماد النهائي', value: (s) => s.counts.pendingReview, icon: Hourglass, tone: 'text-indigo-700 bg-indigo-50' },
   { key: 'resolved', label: 'تم الحل', hint: 'حُلّت بنجاح', value: (s) => s.counts.resolved, icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-50' },
   { key: 'closed', label: 'مغلقة', hint: 'حُلّت أو رُفضت أو تعذّر حلها', value: (s) => s.counts.closed, icon: Clock, tone: 'text-slate-600 bg-slate-100' },
 ]

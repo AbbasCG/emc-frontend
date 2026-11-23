@@ -155,7 +155,7 @@ describe('the API query', () => {
 })
 
 describe('KPI cards', () => {
-  const keys: KpiKey[] = ['total', 'pending', 'open', 'inProgress', 'resolved', 'closed', 'overdue', 'unassigned', 'highPriority']
+  const keys: KpiKey[] = ['total', 'pending', 'open', 'inProgress', 'pendingReview', 'resolved', 'closed', 'overdue', 'unassigned', 'highPriority']
 
   it('applying a card replaces the card-level filters and keeps the rest', () => {
     const start = withFilters(DEFAULT_FILTERS, { search: 'شبكة', department: '2', createdFrom: '2026-10-01', status: ['RESOLVED'], mine: true, page: 3 })

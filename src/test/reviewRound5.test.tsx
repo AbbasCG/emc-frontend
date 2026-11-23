@@ -95,10 +95,11 @@ describe('2. Escape closes the task drawer', () => {
 })
 
 describe('3. no mixed Arabic / English labels in the ticket actions', () => {
-  it('the complete-task modal says «تم الحل», without «(Resolved)»', async () => {
+  it('the complete-task modal says «تقديم للمراجعة» and «تعذر الحل», without «(Resolved)»', async () => {
     render(<CompleteTaskModal ticketId={4} onClose={vi.fn()} onSuccess={vi.fn()} />)
-    const dialog = await screen.findByRole('dialog', { name: 'إغلاق المهمة' })
-    expect(within(dialog).getByRole('button', { name: /تم الحل/ })).toBeInTheDocument()
+    const dialog = await screen.findByRole('dialog', { name: 'تقديم للمراجعة' })
+    expect(within(dialog).getByRole('button', { name: /تأكيد التقديم للمراجعة/ })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: /تعذر الحل/ })).toBeInTheDocument()
     expect(dialog.textContent).not.toMatch(/Resolved|Unresolved/)
   })
 })

@@ -145,6 +145,26 @@ export const ticketService = {
   },
 
   /**
+   * FINAL approval of a PENDING_REVIEW ticket: the one call that credits points and hours to the assignee (once).
+   * The estimate is optional (it may correct the stored one) and REQUIRED when the ticket has none. Errors:
+   * 409 (already credited / not in review), 403 (not allowed, or the HR gate), 404, 422 (`task_scope`, `task_points`,
+   * `estimated_hours`, `note`).
+   */
+  approveCompletion: async (
+    id: number,
+    payload: Partial<TicketEstimateInput> & { note?: string } = {}
+  ): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/approve-completion`, payload, { skipErrorToast: true });
+    return res.data;
+  },
+
+  /** Send a PENDING_REVIEW ticket back to its assignee (back to IN_PROGRESS, nothing credited). `reason`: 5 to 1000 characters. */
+  returnForRework: async (id: number, reason: string): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/return-for-rework`, { reason }, { skipErrorToast: true });
+    return res.data;
+  },
+
+  /**
    * Edit the ticket's points and approximate duration (server: `capabilities.can_edit_estimate`).
    * `estimated_hours: null` CLEARS the stored hours; leaving the key out keeps them.
    * A 422 carries `errors.task_points / task_scope / estimated_hours`.
