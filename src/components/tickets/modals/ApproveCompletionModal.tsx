@@ -3,15 +3,29 @@ import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
 import { apiErrorCode, apiMessage, httpStatus } from '@/services/ticketOpsService';
 import { getLaravelFieldErrors } from '@/api/apiErrors';
-import TaskEstimateFields from '@/components/operations/TaskEstimateFields';
+import TaskEstimateFields, { ActualDurationFields } from '@/components/operations/TaskEstimateFields';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { useEstimateDraft } from '@/hooks/useEstimateDraft';
-import { TASK_SCOPE_RULES, durationToHours, estimateFromRecord, formatEstimate, isTaskScope, type EstimateDraft } from '@/lib/taskEstimate';
+import {
+  ACTUAL_DURATION_REQUIRED_MESSAGE,
+  TASK_SCOPE_RULES,
+  actualDraftFromMinutes,
+  actualDraftToMinutes,
+  actualDurationMessage,
+  durationToHours,
+  estimateFromRecord,
+  formatDurationHours,
+  formatDurationMinutes,
+  isTaskScope,
+  type ActualDurationDraft,
+  type EstimateDraft,
+} from '@/lib/taskEstimate';
 import toast from '@/lib/toast';
 
 /** The server's sentence when this ticket has already credited its assignee (a replay or a concurrent approval). Fallback only: the `code` is what decides. */
 export const ALREADY_CREDITED_MESSAGE = 'تم اعتماد هذه التذكرة وإضافة رصيدها مسبقًا.';
 export const ALREADY_CREDITED_CODE = 'ALREADY_CREDITED';
+export const ACTUAL_DURATION_REQUIRED_CODE = 'ACTUAL_DURATION_REQUIRED';
 
 /** Did the reviewer change the size, the points or the hours? (Typing the same value in minutes is not a change.) */
 function estimateChanged(draft: EstimateDraft, stored: EstimateDraft): boolean {
@@ -24,7 +38,7 @@ function estimateChanged(draft: EstimateDraft, stored: EstimateDraft): boolean {
 }
 
 export interface ApproveCompletionModalProps {
-  ticket: Pick<Ticket, 'id' | 'task_scope' | 'task_points' | 'estimated_hours' | 'assignee'>;
+  ticket: Pick<Ticket, 'id' | 'task_scope' | 'task_points' | 'estimated_hours' | 'assignee'> & Partial<Pick<Ticket, 'actual_minutes'>>;
   onClose: () => void;
   /** Approved, or it had already been credited: close and re-read the ticket. */
   onSuccess: () => void;
@@ -43,6 +57,9 @@ export interface ApproveCompletionModalProps {
  * - 409 ALREADY_CREDITED: shown as information, the modal closes and the ticket is re-read. Never resubmitted.
  * - Any other 409 (NOT_PENDING_REVIEW): the server's message and a re-read. 403 (SELF_REVIEW, HR_APPROVAL_REQUIRED
  *   when the size is above «بسيطة») and 422 stay in the dialog.
+ * - «المدة الفعلية» (hours + minutes) is REQUIRED and is the ONLY time credited: it starts empty (or at the stored
+ *   `actual_minutes`, so it can be corrected), never from the approximate duration, and is always sent as
+ *   `actual_minutes`. The approximate duration is shown read-only for comparison.
  * - One request at a time, even on a double click.
  */
 export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: ApproveCompletionModalProps) {
@@ -52,32 +69,50 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
   const missingEstimate = !isTaskScope(ticket.task_scope) || ticket.task_points == null;
   const initial = estimateFromRecord(known);
   const estimate = useEstimateDraft(initial);
+  const [actual, setActual] = useState<ActualDurationDraft>(() => actualDraftFromMinutes(ticket.actual_minutes));
+  const [actualError, setActualError] = useState<string | null>(null);
+  const hoursRef = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
   const assigneeName = ticket.assignee?.name ?? 'المكلف';
-  const dirty = note.trim() !== '' || JSON.stringify(estimate.draft) !== JSON.stringify(initial);
+  const storedActual = actualDraftFromMinutes(ticket.actual_minutes);
+  const dirty = note.trim() !== '' || JSON.stringify(estimate.draft) !== JSON.stringify(initial) || JSON.stringify(actual) !== JSON.stringify(storedActual);
+
+  // What will be added, live: the points of the (possibly corrected) estimate and the actual time entered.
+  const entered = actualDraftToMinutes(actual);
+  const draftPoints = estimate.draft.points.trim() !== '' && Number.isFinite(Number(estimate.draft.points)) ? Number(estimate.draft.points) : null;
+  const previewPoints = draftPoints ?? (ticket.task_points ?? null);
+  const approximate = ticket.estimated_hours == null ? null : formatDurationHours(ticket.estimated_hours);
+
+  const showActualError = (message: string) => {
+    setActualError(message);
+    hoursRef.current?.focus();
+  };
 
   const handleApprove = async () => {
     if (inFlight.current) return;
     setFailure(null);
     setNoteError(null);
+    setActualError(null);
     if (note.trim().length > 1000) {
       setNoteError('الملاحظة طويلة جدًا؛ الحد الأقصى 1000 حرف.');
       return;
     }
     const changed = missingEstimate || estimateChanged(estimate.draft, initial);
-    if (changed && !estimate.check(true)) {
-      toast.error('أكمل حجم المهمة ونقاطها');
-      return;
-    }
+    const estimateOk = !changed || estimate.check(true);
+    const minutes = actualDraftToMinutes(actual);
+    if (!minutes.ok) showActualError(actualDurationMessage(minutes.reason));
+    if (!estimateOk) toast.error('أكمل حجم المهمة ونقاطها');
+    if (!estimateOk || !minutes.ok) return;
     inFlight.current = true;
     setSubmitting(true);
     try {
       await ticketService.approveCompletion(ticket.id, {
         ...(changed ? estimate.payload() : {}),
+        actual_minutes: minutes.minutes,
         ...(note.trim() ? { note: note.trim() } : {}),
       });
       toast.success('تم اعتماد الإنجاز وإضافة الرصيد إلى المكلف');
@@ -92,6 +127,10 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       } else if (status === 409) {
         toast.error(message);
         (onStale ?? onSuccess)();
+      } else if (status === 422 && (getLaravelFieldErrors(e).actual_minutes || apiErrorCode(e) === ACTUAL_DURATION_REQUIRED_CODE)) {
+        // The server's own sentence under the field (the code alone falls back to the same Arabic sentence).
+        showActualError(getLaravelFieldErrors(e).actual_minutes ?? ACTUAL_DURATION_REQUIRED_MESSAGE);
+        estimate.fromServer(e);
       } else if (estimate.fromServer(e)) {
         toast.error('راجع النقاط والمدة');
       } else if (status === 422 && getLaravelFieldErrors(e).note) {
@@ -115,7 +154,7 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
       busy={submitting}
       dirty={dirty}
       title="اعتماد إنجاز التذكرة"
-      subtitle="الاعتماد النهائي هو ما يُضيف النقاط والساعات إلى رصيد المكلف، مرة واحدة فقط."
+      subtitle="الاعتماد النهائي هو ما يُضيف النقاط والمدة الفعلية إلى رصيد المكلف، مرة واحدة فقط."
       footer={(requestClose) => (
         <div className="flex justify-end gap-3">
           <button
@@ -159,8 +198,8 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
                 <dd className="font-medium text-slate-700" data-testid="completion-scope">{isTaskScope(ticket.task_scope) ? TASK_SCOPE_RULES[ticket.task_scope].label : '—'}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">التقدير الحالي</dt>
-                <dd className="font-bold text-emerald-700" data-testid="completion-amounts">{formatEstimate({ task_points: ticket.task_points, estimated_hours: ticket.estimated_hours ?? 0 })}</dd>
+                <dt className="text-slate-500">النقاط المقدّرة</dt>
+                <dd className="font-bold text-slate-800" data-testid="completion-amounts">{ticket.task_points == null ? '—' : `${ticket.task_points} نقطة`}</dd>
               </div>
             </>
           )}
@@ -168,14 +207,32 @@ export function ApproveCompletionModal({ ticket, onClose, onSuccess, onStale }: 
 
         {missingEstimate ? (
           <p role="note" className="rounded-xl bg-amber-50 p-3 text-[11px] font-bold leading-relaxed text-amber-800" data-testid="completion-legacy-note">
-            لا تحمل هذه التذكرة تقديرًا للنقاط. حدّد الحجم والنقاط ليُضافا إلى رصيد المكلف عند الاعتماد. لا يُضاف رصيد بأثر رجعي للتذاكر التي أُغلقت قبل هذه الميزة.
+            لا تحمل هذه التذكرة تقديرًا للنقاط. حدّد الحجم والنقاط لتُضاف النقاط إلى رصيد المكلف عند الاعتماد، مع المدة الفعلية التي تُدخلها. لا يُضاف رصيد بأثر رجعي للتذاكر التي أُغلقت قبل هذه الميزة.
           </p>
         ) : (
           <p role="note" className="rounded-xl bg-sky-50 p-3 text-[11px] font-bold leading-relaxed text-sky-800" data-testid="completion-correct-note">
-            يمكنك تصحيح التقدير قبل الاعتماد؛ تُضاف القيم النهائية.
+            يمكنك تصحيح الحجم والنقاط والمدة التقريبية للتخطيط؛ المدة التي تُضاف إلى الرصيد هي المدة الفعلية أدناه.
           </p>
         )}
         <TaskEstimateFields value={estimate.draft} onChange={estimate.setDraft} errors={estimate.errors} idPrefix={`${formId}-est`} disabled={submitting} />
+
+        <fieldset className="space-y-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-4" data-testid="actual-duration-section" disabled={submitting}>
+          <legend className="px-1 text-xs font-black text-emerald-800">
+            المدة الفعلية للإنجاز <span className="text-red-500" aria-hidden="true">*</span>
+          </legend>
+          <p className="text-[11px] font-bold leading-relaxed text-slate-600" data-testid="actual-duration-help">
+            تُضاف هذه المدة وحدها إلى رصيد المكلف؛ لا تُستخدم المدة التقريبية.
+          </p>
+          <p className="text-[11px] font-bold text-slate-500" data-testid="completion-estimated-duration">
+            المدة التقريبية: {approximate ?? 'غير محددة'}
+          </p>
+          <ActualDurationFields value={actual} onChange={(next) => { setActual(next); setActualError(null); }} error={actualError} idPrefix={`${formId}-actual`} disabled={submitting} hoursRef={hoursRef} />
+          <p className="rounded-lg bg-white p-2.5 text-xs font-black text-emerald-800" data-testid="completion-preview" aria-live="polite">
+            {entered.ok
+              ? `ستُضاف ${previewPoints == null ? '' : `${previewPoints} نقطة و`}${formatDurationMinutes(entered.minutes)} إلى رصيد ${assigneeName}`
+              : 'أدخل المدة الفعلية لمعرفة ما سيُضاف إلى الرصيد.'}
+          </p>
+        </fieldset>
 
         <div>
           <label htmlFor={`${formId}-note`} className="mb-1.5 block text-xs font-bold text-slate-700">

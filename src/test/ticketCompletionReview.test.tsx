@@ -38,7 +38,7 @@ import { apiErrorCode, fetchTicketStats } from '@/services/ticketOpsService'
 import { categoryLabel } from '@/components/operations/impactPoints/impactPointsUi'
 import { AWARD_CATEGORIES } from '@/api/volunteerPointsApi'
 import { EditEstimateModal } from '@/components/tickets/modals/EditEstimateModal'
-import { TICKET_ESTIMATE_NOTE } from '@/lib/taskEstimate'
+import { TICKET_ESTIMATE_NOTE, formatDurationHours, formatDurationMinutes } from '@/lib/taskEstimate'
 import type { BoardColumn, TicketStats } from '@/types/ticketOps'
 
 beforeAll(() => {
@@ -186,13 +186,20 @@ describe('«مهامي»: a ticket in review and a credited ticket', () => {
   })
 
   it('completed with a credited block: the card shows the credited points and hours', () => {
-    const credit: TicketCredit = { status: 'credited', points: 120, hours: 2.5, credited_at: '2026-11-20T10:00:00Z', credited_by_name: 'المدير' }
+    const credit: TicketCredit = { status: 'credited', points: 120, hours: 1.25, minutes: 75, credited_at: '2026-11-20T10:00:00Z', credited_by_name: 'المدير' }
     const item = ticketToWorkItem(row({ status: 'RESOLVED', credit }), me)
     expect(item.column).toBe('completed')
-    expect(item.credited).toEqual({ points: 120, hours: 2.5 })
+    expect(item.credited).toEqual({ points: 120, minutes: 75, hours: 1.25 })
     renderCard(item)
-    expect(screen.getByTestId('credited')).toHaveTextContent('120 نقطة · 2.5 ساعة')
+    // the approved minutes win over the decimal hours
+    expect(screen.getByTestId('credited')).toHaveTextContent('120 نقطة · ساعة و15 دقيقة')
     expect(screen.queryByTestId('awaiting-approval')).not.toBeInTheDocument()
+  })
+
+  it('an older credit without minutes shows its decimal hours in the same wording', () => {
+    const credit: TicketCredit = { status: 'credited', points: 40, hours: 2.5, credited_at: null, credited_by_name: null }
+    renderCard(ticketToWorkItem(row({ status: 'RESOLVED', credit }), me))
+    expect(screen.getByTestId('credited')).toHaveTextContent('40 نقطة · ساعتان و30 دقيقة')
   })
 
   it('completed WITHOUT a credit block (or not credited): nothing about credit is shown', () => {
@@ -235,7 +242,7 @@ describe('the assignee: «تقديم للمراجعة»', () => {
     expect(screen.queryByRole('button', { name: 'تم الحل' })).not.toBeInTheDocument()
   })
 
-  it('the estimate note now says credit comes once, after the final approval (the old «never credited» copy is gone)', () => {
+  it('the estimate note says the approximate duration is planning only and the credited time is the actual approved one', () => {
     expect(TICKET_ESTIMATE_NOTE).toContain('الاعتماد النهائي')
     expect(TICKET_ESTIMATE_NOTE).not.toContain('فقط ولا تُضاف')
   })
@@ -295,7 +302,8 @@ describe('the review buttons follow the server capabilities', () => {
 
 describe('ApproveCompletionModal', () => {
   const submitName = 'اعتماد الإنجاز وإضافة الرصيد'
-  const mount = (t: Parameters<typeof ApproveCompletionModal>[0]['ticket'] = ticket(), extra: { onSuccess?: () => void; onStale?: () => void } = {}) => {
+  // A ticket whose actual duration (1 h 15 min) is already stored: the reviewer can approve straight away.
+  const mount = (t: Parameters<typeof ApproveCompletionModal>[0]['ticket'] = ticket({ actual_minutes: 75 }), extra: { onSuccess?: () => void; onStale?: () => void } = {}) => {
     const onSuccess = extra.onSuccess ?? vi.fn()
     const onStale = extra.onStale ?? vi.fn()
     render(<ApproveCompletionModal ticket={t} onClose={vi.fn()} onSuccess={onSuccess} onStale={onStale} />)
@@ -309,9 +317,9 @@ describe('ApproveCompletionModal', () => {
     const dialog = await screen.findByRole('dialog', { name: 'اعتماد إنجاز التذكرة' })
     expect(within(dialog).getByTestId('completion-assignee')).toHaveTextContent('سلمى')
     expect(within(dialog).getByTestId('completion-scope')).toHaveTextContent('مهمة متوسطة')
-    expect(within(dialog).getByTestId('completion-amounts')).toHaveTextContent('120 نقطة · 2.5 ساعة')
+    expect(within(dialog).getByTestId('completion-amounts')).toHaveTextContent('120 نقطة')
     // the estimate is editable, prefilled with the stored values (this request is the only place to correct it)
-    expect(within(dialog).getByTestId('completion-correct-note')).toHaveTextContent('يمكنك تصحيح التقدير قبل الاعتماد؛ تُضاف القيم النهائية')
+    expect(within(dialog).getByTestId('completion-correct-note')).toHaveTextContent('يمكنك تصحيح الحجم والنقاط والمدة التقريبية للتخطيط؛ المدة التي تُضاف إلى الرصيد هي المدة الفعلية أدناه.')
     expect(within(dialog).getByTestId('task-estimate-fields')).toBeInTheDocument()
     expect((within(dialog).getByLabelText(/حجم المهمة/) as HTMLSelectElement).value).toBe('medium')
     expect((within(dialog).getByLabelText(/نقاط المهمة/) as HTMLInputElement).value).toBe('120')
@@ -322,7 +330,7 @@ describe('ApproveCompletionModal', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: submitName }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(svc.approveCompletion).toHaveBeenCalledTimes(1)
-    expect(svc.approveCompletion).toHaveBeenCalledWith(31, { note: 'عمل ممتاز' })
+    expect(svc.approveCompletion).toHaveBeenCalledWith(31, { actual_minutes: 75, note: 'عمل ممتاز' })
     expect(toastMock.success).toHaveBeenCalled()
   })
 
@@ -339,7 +347,7 @@ describe('ApproveCompletionModal', () => {
 
   it('a legacy ticket (no size, no points): the estimate fields are required and nothing is sent without them', async () => {
     svc.approveCompletion.mockResolvedValue({ success: true })
-    const { onSuccess } = mount(ticket({ task_scope: null, task_points: null, estimated_hours: null }))
+    const { onSuccess } = mount(ticket({ task_scope: null, task_points: null, estimated_hours: null, actual_minutes: 75 }))
     const dialog = await screen.findByRole('dialog', { name: 'اعتماد إنجاز التذكرة' })
     expect(within(dialog).getByTestId('completion-legacy-note')).toHaveTextContent('لا يُضاف رصيد بأثر رجعي')
     expect(within(dialog).getByTestId('task-estimate-fields')).toBeInTheDocument()
@@ -355,7 +363,7 @@ describe('ApproveCompletionModal', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: submitName }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     const body = svc.approveCompletion.mock.calls[0][1]
-    expect(body).toMatchObject({ task_scope: 'medium', task_points: 100 })
+    expect(body).toMatchObject({ task_scope: 'medium', task_points: 100, actual_minutes: 75 })
     expect('estimated_hours' in body).toBe(false)
   })
 
@@ -368,7 +376,7 @@ describe('ApproveCompletionModal', () => {
     await userEvent.type(points, '100')
     await userEvent.click(within(dialog).getByRole('button', { name: submitName }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.approveCompletion).toHaveBeenCalledWith(31, { task_scope: 'medium', task_points: 100, estimated_hours: 2.5 })
+    expect(svc.approveCompletion).toHaveBeenCalledWith(31, { task_scope: 'medium', task_points: 100, estimated_hours: 2.5, actual_minutes: 75 })
   })
 
   it('a correction outside the size range is refused before the request, under the field', async () => {
@@ -384,7 +392,7 @@ describe('ApproveCompletionModal', () => {
 
   it('the same hours typed in minutes are not a correction (only the note, here nothing, is sent)', async () => {
     svc.approveCompletion.mockResolvedValue({ success: true })
-    const { onSuccess } = mount(ticket({ estimated_hours: 2 }))
+    const { onSuccess } = mount(ticket({ estimated_hours: 2, actual_minutes: 75 }))
     const dialog = await screen.findByRole('dialog', { name: 'اعتماد إنجاز التذكرة' })
     await userEvent.click(within(dialog).getByRole('button', { name: 'دقائق' }))
     const duration = within(dialog).getByLabelText('المدة التقريبية')
@@ -392,7 +400,7 @@ describe('ApproveCompletionModal', () => {
     await userEvent.type(duration, '120')
     await userEvent.click(within(dialog).getByRole('button', { name: submitName }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.approveCompletion).toHaveBeenCalledWith(31, {})
+    expect(svc.approveCompletion).toHaveBeenCalledWith(31, { actual_minutes: 75 })
   })
 
   it('409 ALREADY_CREDITED is recognised by its code, whatever the sentence says', async () => {
@@ -461,7 +469,7 @@ describe('ApproveCompletionModal', () => {
 
   it('422: field errors under the fields (legacy ticket) and under the note', async () => {
     svc.approveCompletion.mockRejectedValueOnce(apiError(422, { message: 'x', errors: { task_points: ['النقاط خارج النطاق.'], estimated_hours: ['المدة غير صالحة.'] } }))
-    mount(ticket({ task_scope: null, task_points: null, estimated_hours: null }))
+    mount(ticket({ task_scope: null, task_points: null, estimated_hours: null, actual_minutes: 75 }))
     const dialog = await screen.findByRole('dialog')
     await userEvent.selectOptions(within(dialog).getByLabelText(/حجم المهمة/), 'medium')
     await userEvent.type(within(dialog).getByLabelText(/نقاط المهمة/), '100')
@@ -489,6 +497,132 @@ describe('ApproveCompletionModal', () => {
     expect(screen.getByRole('button', { name: 'جارٍ الاعتماد...' })).toBeDisabled()
     pending.resolve({ success: true })
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+    expect(svc.approveCompletion).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ApproveCompletionModal: the ACTUAL duration is what is credited', () => {
+  const submitName = 'اعتماد الإنجاز وإضافة الرصيد'
+  const REQUIRED = 'أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد النهائي.'
+  const mount = (t: Parameters<typeof ApproveCompletionModal>[0]['ticket'] = ticket({ estimated_hours: 2 })) => {
+    const onSuccess = vi.fn()
+    render(<ApproveCompletionModal ticket={t} onClose={vi.fn()} onSuccess={onSuccess} onStale={vi.fn()} />)
+
+    return { onSuccess }
+  }
+  const hours = () => screen.getByLabelText('ساعات') as HTMLInputElement
+  const minutes = () => screen.getByLabelText('دقائق', { selector: '[id$="-actual-minutes"]' }) as HTMLInputElement
+
+  it('a clearly separated required section with the helper text, the read-only approximate duration, and EMPTY fields', async () => {
+    mount()
+    const section = await screen.findByTestId('actual-duration-section')
+    expect(within(section).getByText(/المدة الفعلية للإنجاز/)).toBeInTheDocument()
+    expect(within(section).getByTestId('actual-duration-help')).toHaveTextContent('تُضاف هذه المدة وحدها إلى رصيد المكلف؛ لا تُستخدم المدة التقريبية.')
+    expect(within(section).getByTestId('completion-estimated-duration')).toHaveTextContent('المدة التقريبية: ساعتان')
+    // no fallback to the estimate (2 h) and no zero
+    expect(hours().value).toBe('')
+    expect(minutes().value).toBe('')
+    expect(within(section).getByTestId('completion-preview')).toHaveTextContent('أدخل المدة الفعلية')
+  })
+
+  it('empty: blocks the submit with the Arabic message, focuses the field and sends nothing (the estimate is never a fallback)', async () => {
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: submitName }))
+    expect(svc.approveCompletion).not.toHaveBeenCalled()
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+    expect(hours()).toHaveFocus()
+    expect(hours()).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('zero hours and zero minutes is refused like empty', async () => {
+    mount()
+    await userEvent.type(await screen.findByLabelText('ساعات'), '0')
+    await userEvent.type(minutes(), '0')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    expect(svc.approveCompletion).not.toHaveBeenCalled()
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+  })
+
+  it('more than 1000 hours, a fraction and a negative number are refused before the request', async () => {
+    mount()
+    const h = await screen.findByLabelText('ساعات')
+    await userEvent.type(h, '1001')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    expect(await screen.findByText('المدة الفعلية لا تتجاوز 1000 ساعة.')).toBeInTheDocument()
+    await userEvent.clear(h)
+    await userEvent.type(h, '1.5')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    expect(await screen.findByText('أدخل ساعات ودقائق صحيحة (أعدادًا صحيحة).')).toBeInTheDocument()
+    await userEvent.clear(h)
+    await userEvent.type(h, '-1')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    expect(await screen.findByText('أدخل ساعات ودقائق صحيحة (أعدادًا صحيحة).')).toBeInTheDocument()
+    expect(svc.approveCompletion).not.toHaveBeenCalled()
+  })
+
+  it('a 2 h estimate with 1 h 15 min actual sends actual_minutes 75, and the live preview says what will be added', async () => {
+    svc.approveCompletion.mockResolvedValue({ success: true })
+    const { onSuccess } = mount()
+    await userEvent.type(await screen.findByLabelText('ساعات'), '1')
+    await userEvent.type(minutes(), '15')
+    expect(screen.getByTestId('completion-preview')).toHaveTextContent('ستُضاف 120 نقطة وساعة و15 دقيقة إلى رصيد سلمى')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
+    const body = svc.approveCompletion.mock.calls[0][1]
+    expect(body).toEqual({ actual_minutes: 75 })
+    // the planning estimate (2 hours) is not what is credited and is not re-sent
+    expect('estimated_hours' in body).toBe(false)
+  })
+
+  it('minutes alone are enough (45 minutes), and the preview follows a corrected points value', async () => {
+    svc.approveCompletion.mockResolvedValue({ success: true })
+    const { onSuccess } = mount()
+    await userEvent.type(await screen.findByLabelText(/دقائق/, { selector: '[id$="-actual-minutes"]' }), '45')
+    const points = screen.getByLabelText(/نقاط المهمة/)
+    await userEvent.clear(points)
+    await userEvent.type(points, '100')
+    expect(screen.getByTestId('completion-preview')).toHaveTextContent('ستُضاف 100 نقطة و45 دقيقة إلى رصيد سلمى')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
+    expect(svc.approveCompletion.mock.calls[0][1]).toMatchObject({ actual_minutes: 45, task_points: 100 })
+  })
+
+  it('prefills a stored actual duration so it can be corrected, and sends the corrected value', async () => {
+    svc.approveCompletion.mockResolvedValue({ success: true })
+    const { onSuccess } = mount(ticket({ estimated_hours: 2, actual_minutes: 135 }))
+    expect((await screen.findByLabelText('ساعات') as HTMLInputElement).value).toBe('2')
+    expect(minutes().value).toBe('15')
+    expect(screen.getByTestId('completion-preview')).toHaveTextContent('ساعتان و15 دقيقة')
+    await userEvent.clear(minutes())
+    await userEvent.type(minutes(), '30')
+    await userEvent.click(screen.getByRole('button', { name: submitName }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
+    expect(svc.approveCompletion.mock.calls[0][1]).toEqual({ actual_minutes: 150 })
+  })
+
+  it('the server 422 on actual_minutes shows under the field, with its own sentence, and keeps the dialog', async () => {
+    svc.approveCompletion.mockRejectedValue(apiError(422, { message: 'x', code: 'ACTUAL_DURATION_REQUIRED', errors: { actual_minutes: [REQUIRED] } }))
+    const { onSuccess } = mount(ticket({ actual_minutes: 75 }))
+    await userEvent.click(await screen.findByRole('button', { name: submitName }))
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+    expect(hours()).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(onSuccess).not.toHaveBeenCalled()
+  })
+
+  it('ACTUAL_DURATION_REQUIRED without field errors still lands under the field', async () => {
+    svc.approveCompletion.mockRejectedValue(apiError(422, { message: 'x', code: 'ACTUAL_DURATION_REQUIRED' }))
+    mount(ticket({ actual_minutes: 75 }))
+    await userEvent.click(await screen.findByRole('button', { name: submitName }))
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+  })
+
+  it('a replay 409 ALREADY_CREDITED is unchanged: info, refresh, no retry', async () => {
+    svc.approveCompletion.mockRejectedValue(apiError(409, { success: false, code: 'ALREADY_CREDITED', message: 'تم اعتماد هذه التذكرة وإضافة رصيدها مسبقًا.' }))
+    const { onSuccess } = mount(ticket({ actual_minutes: 75 }))
+    await userEvent.click(await screen.findByRole('button', { name: submitName }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+    expect(toastMock.message).toHaveBeenCalledWith('تم اعتماد هذه التذكرة وإضافة رصيدها مسبقًا.')
     expect(svc.approveCompletion).toHaveBeenCalledTimes(1)
   })
 })
@@ -569,28 +703,50 @@ describe('ReturnForReworkModal', () => {
 // ── 7. «الرصيد والتقدير» on the ticket ──────────────────────────────────────────
 
 describe('TicketCreditBlock', () => {
-  const credit = (over: Partial<TicketCredit> = {}): TicketCredit => ({ status: 'none', points: null, hours: null, credited_at: null, credited_by_name: null, ...over })
+  const credit = (over: Partial<TicketCredit> = {}): TicketCredit => ({ status: 'none', points: null, hours: null, minutes: null, credited_at: null, credited_by_name: null, ...over })
 
-  it('none: the estimate and «لم يُسجَّل رصيد»', () => {
+  it('none: the estimate (planning) and «لم يُسجَّل رصيد»', () => {
     render(<TicketCreditBlock ticket={ticket({ status: 'IN_PROGRESS', credit: credit() })} />)
     const block = screen.getByTestId('ticket-credit-block')
     expect(block).toHaveTextContent('الرصيد والتقدير')
-    expect(within(block).getByTestId('credit-estimate')).toHaveTextContent('مهمة متوسطة')
-    expect(within(block).getByTestId('credit-estimate')).toHaveTextContent('120 نقطة · 2.5 ساعة')
+    expect(within(block).getByTestId('credit-scope')).toHaveTextContent('مهمة متوسطة')
+    expect(within(block).getByTestId('credit-points')).toHaveTextContent('120 نقطة')
+    expect(within(block).getByTestId('credit-planned-duration')).toHaveTextContent('المدة التقريبية (تخطيط)')
+    expect(within(block).getByTestId('credit-planned-duration')).toHaveTextContent('ساعتان و30 دقيقة')
+    expect(within(block).queryByTestId('credit-actual')).not.toBeInTheDocument()
     expect(within(block).getByTestId('credit-status')).toHaveTextContent('لم يُسجَّل رصيد')
   })
 
-  it('pending review: «بانتظار الاعتماد النهائي»', () => {
-    render(<TicketCreditBlock ticket={ticket({ credit: credit({ status: 'pending_review' }) })} />)
+  it('pending review without an actual duration: «لم تُدخَل المدة الفعلية بعد»', () => {
+    render(<TicketCreditBlock ticket={ticket({ actual_minutes: null, credit: credit({ status: 'pending_review' }) })} />)
     expect(screen.getByTestId('credit-status')).toHaveTextContent('بانتظار الاعتماد النهائي')
+    expect(screen.getByTestId('credit-actual-missing')).toHaveTextContent('لم تُدخَل المدة الفعلية بعد')
   })
 
-  it('credited: the assignee, the date, the approver and what was credited', () => {
-    render(<TicketCreditBlock ticket={ticket({ status: 'RESOLVED', credit: credit({ status: 'credited', points: 120, hours: 2.5, credited_at: '2026-11-20T10:00:00Z', credited_by_name: 'المدير العام' }) })} />)
+  it('pending review with an entered actual duration shows it as «المدة الفعلية (المعتمدة)»', () => {
+    render(<TicketCreditBlock ticket={ticket({ actual_minutes: 75, credit: credit({ status: 'pending_review' }) })} />)
+    expect(screen.getByTestId('credit-actual-duration')).toHaveTextContent('المدة الفعلية (المعتمدة)')
+    expect(screen.getByTestId('credit-actual-duration')).toHaveTextContent('ساعة و15 دقيقة')
+    expect(screen.queryByTestId('credit-actual-missing')).not.toBeInTheDocument()
+  })
+
+  it('credited with minutes: both durations side by side, the actual one in hours and minutes, the assignee, date and approver', () => {
+    render(<TicketCreditBlock ticket={ticket({ status: 'RESOLVED', actual_minutes: 75, credit: credit({ status: 'credited', points: 120, hours: 1.25, minutes: 75, credited_at: '2026-11-20T10:00:00Z', credited_by_name: 'المدير العام' }) })} />)
+    expect(screen.getByTestId('credit-planned-duration')).toHaveTextContent('ساعتان و30 دقيقة')
+    expect(screen.getByTestId('credit-actual-duration')).toHaveTextContent('ساعة و15 دقيقة')
     const status = screen.getByTestId('credit-status')
     expect(status).toHaveTextContent('أُضيف إلى رصيد سلمى بتاريخ')
     expect(status).toHaveTextContent('اعتمده: المدير العام')
-    expect(screen.getByTestId('credit-amounts')).toHaveTextContent('120 نقطة · 2.5 ساعة')
+    expect(screen.getByTestId('credit-amounts')).toHaveTextContent('120 نقطة · ساعة و15 دقيقة')
+    expect(screen.queryByTestId('credit-legacy-hours')).not.toBeInTheDocument()
+  })
+
+  it('an old credit without minutes: the credited hours under «ساعات مُضافة (قبل تسجيل المدة الفعلية)»', () => {
+    render(<TicketCreditBlock ticket={ticket({ status: 'RESOLVED', actual_minutes: null, credit: credit({ status: 'credited', points: 120, hours: 2.5, minutes: null, credited_at: '2026-11-20T10:00:00Z', credited_by_name: 'المدير' }) })} />)
+    expect(screen.getByTestId('credit-legacy-hours')).toHaveTextContent('ساعات مُضافة (قبل تسجيل المدة الفعلية)')
+    expect(screen.getByTestId('credit-legacy-hours')).toHaveTextContent('ساعتان و30 دقيقة')
+    expect(screen.queryByTestId('credit-actual-duration')).not.toBeInTheDocument()
+    expect(screen.getByTestId('credit-amounts')).toHaveTextContent('120 نقطة · ساعتان و30 دقيقة')
   })
 
   it('a legacy ticket (estimate keys present but empty): the «لا تقدير لهذه التذكرة» hint', () => {
@@ -599,10 +755,39 @@ describe('TicketCreditBlock', () => {
   })
 
   it('absent for a viewer the server hid it from: nothing at all is rendered', () => {
-    const { task_scope: _a, task_points: _b, estimated_hours: _c, credit: _d, ...bare } = ticket()
-    void _a; void _b; void _c; void _d
+    const { task_scope: _a, task_points: _b, estimated_hours: _c, credit: _d, actual_minutes: _e, ...bare } = ticket()
+    void _a; void _b; void _c; void _d; void _e
     const { container } = render(<TicketCreditBlock ticket={bare} />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('formatDurationMinutes: Arabic plural forms', () => {
+  it.each([
+    [75, 'ساعة و15 دقيقة'],
+    [120, 'ساعتان'],
+    [45, '45 دقيقة'],
+    [60, 'ساعة'],
+    [1, 'دقيقة'],
+    [2, 'دقيقتان'],
+    [3, '3 دقائق'],
+    [10, '10 دقائق'],
+    [11, '11 دقيقة'],
+    [180, '3 ساعات'],
+    [600, '10 ساعات'],
+    [660, '11 ساعة'],
+    [122, 'ساعتان ودقيقتان'],
+    [150, 'ساعتان و30 دقيقة'],
+    [183, '3 ساعات و3 دقائق'],
+    [60000, '1000 ساعة'],
+  ])('%i minutes -> %s', (m, text) => {
+    expect(formatDurationMinutes(m)).toBe(text)
+  })
+
+  it('nothing usable is a dash, never «0 دقيقة»', () => {
+    for (const v of [null, undefined, 0, -5, Number.NaN]) expect(formatDurationMinutes(v)).toBe('—')
+    expect(formatDurationHours(2.5)).toBe('ساعتان و30 دقيقة')
+    expect(formatDurationHours(null)).toBe('—')
   })
 })
 
@@ -610,6 +795,15 @@ describe('TicketCreditBlock', () => {
 
 describe('no ticket screen still says points are never credited, or that «تم الحل» closes the ticket from the assignee', () => {
   const sources = import.meta.glob(['/src/components/tickets/**/*.tsx', '/src/components/operations/TaskEstimateFields.tsx', '/src/lib/taskEstimate.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+
+  it('every place that talks about the balance says the credited time is the ACTUAL approved duration', () => {
+    expect(TICKET_ESTIMATE_NOTE).toContain('المدة الفعلية')
+    expect(TICKET_ESTIMATE_NOTE).toContain('المدة التقريبية للتخطيط فقط')
+    expect(sources['/src/components/tickets/modals/CompleteTaskModal.tsx']).toContain('المدة الفعلية التي يعتمدها المراجع')
+    expect(sources['/src/components/tickets/AssigneeWorkspacePage.tsx']).toContain('المدة الفعلية التي يعتمدها المراجع')
+    expect(sources['/src/components/tickets/modals/EditEstimateModal.tsx']).toContain('TICKET_ESTIMATE_NOTE')
+    expect(sources['/src/components/tickets/ops/TicketAssignmentPanel.tsx']).toContain('TICKET_ESTIMATE_NOTE')
+  })
 
   it('scans the ticket sources', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(20)
@@ -622,6 +816,10 @@ describe('no ticket screen still says points are never credited, or that «تم 
     'تأكيد الإغلاق (تم الحل)',
     'تم إغلاق التذكرة — أحسنت',
     'أنهِ وأغلق التذكرة',
+    // the old approval note implied the corrected estimate is what is credited
+    'تُضاف القيم النهائية',
+    // round 3: the approximate duration is never credited
+    'تقدير للتخطيط، ولا تُضاف إلى رصيد المكلّف إلا مرة واحدة',
   ])('«%s» appears nowhere', (phrase) => {
     const hits = Object.entries(sources).filter(([, src]) => src.includes(phrase)).map(([file]) => file)
     expect(hits).toEqual([])

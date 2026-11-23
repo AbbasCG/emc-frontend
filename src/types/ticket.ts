@@ -57,7 +57,10 @@ export interface TicketCredit {
   status: 'none' | 'pending_review' | 'credited';
   /** Credited points / hours; null until credited. */
   points: number | null;
+  /** Decimal hours = minutes / 60 (kept for credits made before the actual duration existed). */
   hours: number | null;
+  /** The ACTUAL approved duration that was credited, in minutes; null for credits made before this existed. */
+  minutes?: number | null;
   credited_at: string | null;
   credited_by_name: string | null;
 }
@@ -157,6 +160,8 @@ export interface Ticket {
   task_scope?: TaskScope | null;
   task_points?: number | null;
   estimated_hours?: number | null;
+  /** The ACTUAL duration, in minutes, entered at the final approval (what the balance receives); null until then. Same viewers as `credit`. */
+  actual_minutes?: number | null;
   /** The credit block (see {@link TicketCredit}); absent when the viewer may not read it. */
   credit?: TicketCredit;
   /** Work-queue rows (`lite=1`) only: newest activity-log time and the attachment count. */

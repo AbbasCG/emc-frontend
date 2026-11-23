@@ -902,7 +902,7 @@ const AssigneeWorkspacePage: React.FC = () => {
             {modal.status === 'RESOLVED' ? (
               <>
                 <p className="rounded-xl bg-indigo-50 p-3 text-xs font-bold leading-relaxed text-indigo-800" data-testid="submit-review-note">
-                  لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.
+                  لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي، والوقت المُضاف هو المدة الفعلية التي يعتمدها المراجع.
                 </p>
                 <div>
                   <label htmlFor="resolve-summary" className="mb-1.5 block text-xs font-bold text-slate-700">

@@ -105,7 +105,7 @@ describe('D3: the wording about points and duration is the truth (credited once,
   })
 
   it('the exact sentence', () => {
-    expect(TICKET_ESTIMATE_NOTE).toBe('النقاط والمدة تقدير للتخطيط، ولا تُضاف إلى رصيد المكلّف إلا مرة واحدة بعد الاعتماد النهائي من معتمِد مخوّل.')
+    expect(TICKET_ESTIMATE_NOTE).toBe('المدة التقريبية للتخطيط فقط. الوقت الذي يُضاف إلى رصيد المكلّف هو المدة الفعلية التي يعتمدها المراجع، ولا تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.')
     expect(TICKET_ESTIMATE_NOTE).not.toContain('فقط ولا تُضاف')
   })
 })

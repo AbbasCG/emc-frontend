@@ -52,10 +52,11 @@ export const TASK_SCOPES: TaskScope[] = ['simple', 'medium', 'large', 'strategic
 export const isTaskScope = (v: unknown): v is TaskScope => typeof v === 'string' && (TASK_SCOPES as string[]).includes(v)
 
 /**
- * What a TICKET's points and duration are: a planning estimate while the work is open. They are credited to the
- * assignee exactly once, at the FINAL approval of the completed ticket by an authorised approver (never the assignee).
+ * What a TICKET's points and approximate duration are: a PLANNING estimate while the work is open. The approximate
+ * duration is never credited; the time added to the balance is the ACTUAL duration the authorised reviewer enters at
+ * the final approval, and points and hours are added only then, once.
  */
-export const TICKET_ESTIMATE_NOTE = 'النقاط والمدة تقدير للتخطيط، ولا تُضاف إلى رصيد المكلّف إلا مرة واحدة بعد الاعتماد النهائي من معتمِد مخوّل.'
+export const TICKET_ESTIMATE_NOTE = 'المدة التقريبية للتخطيط فقط. الوقت الذي يُضاف إلى رصيد المكلّف هو المدة الفعلية التي يعتمدها المراجع، ولا تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.'
 
 export type DurationUnit = 'hours' | 'minutes'
 
@@ -213,4 +214,87 @@ export function formatEstimate(r: { task_points?: number | null; estimated_hours
   if (r.estimated_hours != null && r.estimated_hours !== '' && Number.isFinite(Number(r.estimated_hours))) parts.push(`${fmt(Number(r.estimated_hours))} ساعة`)
 
   return parts.length > 0 ? parts.join(' · ') : '—'
+}
+
+// ── The ACTUAL duration (what the balance receives) ─────────────────────────────
+
+/** Server limits for `actual_minutes`: 1 minute .. 60,000 minutes (1,000 hours). */
+export const MIN_ACTUAL_MINUTES = 1
+export const MAX_ACTUAL_MINUTES = 60000
+
+export const ACTUAL_DURATION_REQUIRED_MESSAGE = 'أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد النهائي.'
+
+/** What the reviewer typed for the actual duration: whole hours and whole minutes, as strings (empty stays empty). */
+export interface ActualDurationDraft {
+  hours: string
+  minutes: string
+}
+
+export const emptyActualDuration = (): ActualDurationDraft => ({ hours: '', minutes: '' })
+
+/** Prefill from a stored `actual_minutes`; nothing (never 0, never the estimate) when there is none. */
+export function actualDraftFromMinutes(minutes: number | null | undefined): ActualDurationDraft {
+  if (minutes == null || !Number.isFinite(Number(minutes)) || Number(minutes) <= 0) return emptyActualDuration()
+  const total = Math.round(Number(minutes))
+
+  return { hours: String(Math.floor(total / 60)), minutes: String(total % 60) }
+}
+
+const WHOLE = /^\d+$/
+
+/**
+ * The entered duration in minutes, or why it cannot be used.
+ * `empty`: nothing typed, or it adds up to 0. `invalid`: not whole non-negative numbers. `too_long`: above the limit.
+ */
+export function actualDraftToMinutes(d: ActualDurationDraft): { ok: true; minutes: number } | { ok: false; reason: 'empty' | 'invalid' | 'too_long' } {
+  const h = d.hours.trim()
+  const m = d.minutes.trim()
+  if (h === '' && m === '') return { ok: false, reason: 'empty' }
+  if ((h !== '' && !WHOLE.test(h)) || (m !== '' && !WHOLE.test(m))) return { ok: false, reason: 'invalid' }
+  const total = Number(h || 0) * 60 + Number(m || 0)
+  if (total < MIN_ACTUAL_MINUTES) return { ok: false, reason: 'empty' }
+  if (total > MAX_ACTUAL_MINUTES) return { ok: false, reason: 'too_long' }
+
+  return { ok: true, minutes: total }
+}
+
+/** The Arabic message for a rejected entry (the server's own sentence for «empty»). */
+export function actualDurationMessage(reason: 'empty' | 'invalid' | 'too_long'): string {
+  if (reason === 'empty') return ACTUAL_DURATION_REQUIRED_MESSAGE
+  if (reason === 'too_long') return `المدة الفعلية لا تتجاوز ${MAX_HOURS} ساعة.`
+
+  return 'أدخل ساعات ودقائق صحيحة (أعدادًا صحيحة).'
+}
+
+const unitText = (n: number, one: string, two: string, few: string): string => {
+  if (n === 1) return one
+  if (n === 2) return two
+  const r = n % 100
+
+  return `${n} ${r >= 3 && r <= 10 ? few : one}`
+}
+
+/**
+ * «ساعة و15 دقيقة» / «ساعتان» / «45 دقيقة» / «3 ساعات» / «11 ساعة». Arabic plural forms: ساعة، ساعتان، 3-10 ساعات،
+ * 11 فأكثر ساعة (the same for دقيقة). Nothing usable (null, NaN, 0 or less) is «—».
+ */
+export function formatDurationMinutes(minutes: number | null | undefined): string {
+  if (minutes == null || !Number.isFinite(Number(minutes)) || Number(minutes) <= 0) return '—'
+  const total = Math.round(Number(minutes))
+  const h = Math.floor(total / 60)
+  const m = total % 60
+  const parts: string[] = []
+  if (h > 0) parts.push(unitText(h, 'ساعة', 'ساعتان', 'ساعات'))
+  if (m > 0) parts.push(unitText(m, 'دقيقة', 'دقيقتان', 'دقائق'))
+
+  return parts.length > 0 ? parts.join(' و') : '—'
+}
+
+/** Decimal hours (the planning estimate, or a credit made before minutes were recorded) as the same text. */
+export const formatDurationHours = (hours: number | string | null | undefined): string =>
+  hours == null || hours === '' ? '—' : formatDurationMinutes(Math.round(Number(hours) * 60))
+
+/** The credited time as text: the approved minutes when they were recorded, else the decimal hours of an older credit. */
+export function creditedDurationText(credit: { minutes?: number | null; hours?: number | null }): string {
+  return credit.minutes != null ? formatDurationMinutes(credit.minutes) : formatDurationHours(credit.hours ?? 0)
 }

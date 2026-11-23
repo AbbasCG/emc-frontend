@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { Building2, CalendarClock, CheckCircle2, Sparkles, Ticket as TicketIcon, User, XCircle, ClipboardList } from 'lucide-react'
 import OpsPriorityBadge from '@/components/operations/OpsPriorityBadge'
 import { formatDue } from '@/lib/dueDate'
-import { formatEstimate, hasEstimate } from '@/lib/taskEstimate'
+import { creditedDurationText, formatEstimate, hasEstimate } from '@/lib/taskEstimate'
 import { MY_WORK_PATH, type WorkItem } from '@/lib/myWork'
 import { cn } from '@/lib/utils'
 
@@ -102,7 +102,7 @@ export default function WorkItemCard({
           <div className="flex items-center gap-1.5" data-testid="credited">
             <CheckCircle2 size={11} className="shrink-0 text-emerald-600" aria-hidden="true" />
             <dt className="sr-only">الرصيد المُضاف</dt>
-            <dd className="text-emerald-700">أُضيف إلى رصيدك: {formatEstimate({ task_points: item.credited.points, estimated_hours: item.credited.hours })}</dd>
+            <dd className="text-emerald-700">أُضيف إلى رصيدك: {item.credited.points} نقطة · {creditedDurationText(item.credited)}</dd>
           </div>
         : null}
       </dl>

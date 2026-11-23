@@ -1,5 +1,7 @@
+import type { Ref } from 'react'
 import { Clock, Info } from 'lucide-react'
 import {
+  type ActualDurationDraft,
   TICKET_ESTIMATE_NOTE,
   TASK_SCOPES,
   TASK_SCOPE_RULES,
@@ -226,5 +228,81 @@ export default function TaskEstimateFields({ legacy = false, ...p }: Common & { 
       <EstimateScopeCard scope={p.value.scope} />
       <EstimatePointsDuration {...p} durationHint={TICKET_ESTIMATE_NOTE} />
     </fieldset>
+  )
+}
+
+/**
+ * «المدة الفعلية» in whole hours and whole minutes: the time the reviewer approves at the final approval, and the ONLY
+ * time added to the member's balance. Styled like «المدة التقريبية»; controlled (the parent owns the draft and the
+ * error, so the server's 422 on `actual_minutes` and the client check show in the same place).
+ */
+export function ActualDurationFields({
+  value,
+  onChange,
+  error,
+  idPrefix,
+  disabled,
+  hoursRef,
+}: {
+  value: ActualDurationDraft
+  onChange: (next: ActualDurationDraft) => void
+  error?: string | null
+  idPrefix: string
+  disabled?: boolean
+  /** Lets the form move focus to the first field when the entry is refused. */
+  hoursRef?: Ref<HTMLInputElement>
+}) {
+  const hoursId = `${idPrefix}-hours`
+  const minutesId = `${idPrefix}-minutes`
+  const errId = `${idPrefix}-err`
+
+  return (
+    <div className="grid grid-cols-2 gap-3" data-testid="actual-duration-fields">
+      <div>
+        <label htmlFor={hoursId} className="mb-1.5 block text-xs font-black text-deepBlue">
+          ساعات
+        </label>
+        <input
+          id={hoursId}
+          ref={hoursRef}
+          type="number"
+          inputMode="numeric"
+          step="1"
+          min="0"
+          max="1000"
+          value={value.hours}
+          disabled={disabled}
+          aria-required="true"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errId : undefined}
+          onChange={(e) => onChange({ ...value, hours: e.target.value })}
+          placeholder="0"
+          className={`${FIELD} ${border(Boolean(error))} font-black`}
+        />
+      </div>
+      <div>
+        <label htmlFor={minutesId} className="mb-1.5 block text-xs font-black text-deepBlue">
+          دقائق
+        </label>
+        <input
+          id={minutesId}
+          type="number"
+          inputMode="numeric"
+          step="1"
+          min="0"
+          value={value.minutes}
+          disabled={disabled}
+          aria-required="true"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errId : undefined}
+          onChange={(e) => onChange({ ...value, minutes: e.target.value })}
+          placeholder="0"
+          className={`${FIELD} ${border(Boolean(error))} font-black`}
+        />
+      </div>
+      <div className="col-span-2">
+        <ErrorText id={errId}>{error ?? undefined}</ErrorText>
+      </div>
+    </div>
   )
 }
