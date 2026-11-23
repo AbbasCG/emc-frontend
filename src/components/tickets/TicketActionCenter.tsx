@@ -146,7 +146,7 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
 
       {ticket.status === 'PENDING_REVIEW' && (caps.approve_completion || caps.return_for_rework) && (
         <p className="text-xs text-slate-500" data-testid="review-hint">
-          قدّم المكلف الإنجاز. راجعه ثم اعتمده نهائيًا لإضافة النقاط والساعات إلى رصيده، أو أعده للتنفيذ.
+          قدّم المكلف الإنجاز. راجعه ثم اعتمده نهائيًا مع إدخال المدة الفعلية لتُضاف النقاط والمدة الفعلية إلى رصيده، أو أعده للتنفيذ.
         </p>
       )}
 

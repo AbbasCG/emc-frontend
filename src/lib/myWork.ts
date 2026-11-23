@@ -47,7 +47,7 @@ export interface WorkItem {
   /** A ticket the assignee has submitted: it waits for the final approval that credits points and hours. */
   awaitingApproval: boolean
   /** What a finished ticket credited to this member; null unless the server sent a `credited` credit block. */
-  credited: { points: number; hours: number } | null
+  credited: { points: number; minutes: number | null; hours: number } | null
   /** Newest-first ordering key. */
   updatedAt: string | null
 }
@@ -93,7 +93,7 @@ export function ticketToWorkItem(t: MyWorkTicket, me: { name: string }, now: num
     canComplete: caps.can_complete === true,
     canOpen: caps.can_open !== false,
     awaitingApproval: t.status === 'PENDING_REVIEW',
-    credited: t.credit?.status === 'credited' ? { points: Number(t.credit.points ?? 0), hours: Number(t.credit.hours ?? 0) } : null,
+    credited: t.credit?.status === 'credited' ? { points: Number(t.credit.points ?? 0), minutes: t.credit.minutes ?? null, hours: Number(t.credit.hours ?? 0) } : null,
     updatedAt: t.updated_at ?? t.created_at ?? null,
   }
 }
