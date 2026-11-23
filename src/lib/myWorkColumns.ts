@@ -72,6 +72,9 @@ const TICKET_STATUS_COLUMN: Record<string, MyWorkColumnKey> = {
   IN_PROGRESS: 'in_progress',
   // Submitted by the assignee, waiting for the final approval: the same column as a task waiting for approval.
   PENDING_REVIEW: 'review',
+  // A deployment ticket after the review: approved for deployment, then deployed and waiting for the assignee's live test.
+  APPROVED_FOR_DEPLOY: 'review',
+  PENDING_VERIFICATION: 'review',
   RESOLVED: 'completed',
   UNRESOLVED: 'closed',
   REJECTED_BY_ASSIGNEE: 'closed',

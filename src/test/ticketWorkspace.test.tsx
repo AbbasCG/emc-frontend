@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import type { Ticket, TicketAttachment, TicketCapabilities } from '@/types/ticket'
 import { attachmentTypeLabel, formatAttachmentDate } from '@/utils/ticketAttachments'
 
@@ -108,7 +109,7 @@ async function renderWorkspace(ticket: Ticket, detail?: Partial<Ticket>) {
   mockGetTicket.mockResolvedValue({ success: true, data: { ...ticket, ...detail } })
 
   const user = userEvent.setup()
-  const view = render(<AssigneeWorkspacePage />)
+  const view = render(<MemoryRouter><AssigneeWorkspacePage /></MemoryRouter>)
 
   await user.click(await screen.findByRole('button', { name: new RegExp(ticket.title) }))
   await screen.findByRole('heading', { level: 2, name: ticket.title })
@@ -477,5 +478,69 @@ describe('attachment display helpers', () => {
     expect(formatAttachmentDate('')).toBe('')
     expect(formatAttachmentDate(null)).toBe('')
     expect(formatAttachmentDate('not-a-date')).toBe('')
+  })
+})
+
+describe('deployment tickets are worked on from their own page', () => {
+  const deployment = (live_url: string | null) => ({ review_approved_by_name: 'المدير', review_approved_at: '2026-11-20T10:00:00Z', deployed_by_name: 'خالد', deployed_at: '2026-11-21T09:30:00Z', live_url, verified_at: null, round: 1 })
+
+  it('waiting for the live test: a «فتح التذكرة» link, the stage and the next step, the live link, and no dead end', async () => {
+    await renderWorkspace(makeTicket({
+      status: 'PENDING_VERIFICATION',
+      requires_deployment: true,
+      deployment: deployment('https://emc.example/page'),
+      capabilities: { ...NO_CAPS, verify_resolved: true, verify_failed: true },
+    }))
+    const section = await screen.findByTestId('workspace-deployment-flow')
+    expect(screen.queryByText(/لا توجد إجراءات متاحة لك/)).not.toBeInTheDocument()
+    expect(within(section).getByTestId('workspace-stage-badge')).toHaveTextContent('بانتظار اختبار المكلّف')
+    expect(within(section).getByTestId('workspace-next-step')).toHaveTextContent('بانتظار اختبار المكلّف')
+    const open = within(section).getByRole('link', { name: 'فتح التذكرة' })
+    expect(open).toHaveAttribute('href', '/dashboard/tickets/42')
+    const live = within(section).getByTestId('workspace-live-link')
+    expect(live).toHaveAttribute('href', 'https://emc.example/page')
+    expect(live).toHaveAttribute('target', '_blank')
+    expect(live.getAttribute('rel')).toContain('noopener')
+  })
+
+  it('a live link that is not https is not rendered as a link', async () => {
+    await renderWorkspace(makeTicket({ status: 'PENDING_VERIFICATION', requires_deployment: true, deployment: deployment('javascript:alert(1)'), capabilities: NO_CAPS }))
+    await screen.findByTestId('workspace-deployment-flow')
+    expect(screen.queryByTestId('workspace-live-link')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['PENDING_REVIEW', 'بانتظار المراجعة', 'بانتظار مراجعة الإنجاز'],
+    ['APPROVED_FOR_DEPLOY', 'معتمدة للنشر', 'بانتظار النشر'],
+  ] as const)('%s shows its stage and the link', async (status, badge, next) => {
+    await renderWorkspace(makeTicket({ status, requires_deployment: true, capabilities: NO_CAPS }))
+    const section = await screen.findByTestId('workspace-deployment-flow')
+    expect(within(section).getByTestId('workspace-stage-badge')).toHaveTextContent(badge)
+    expect(within(section).getByTestId('workspace-next-step')).toHaveTextContent(next)
+    expect(within(section).getByRole('link', { name: 'فتح التذكرة' })).toBeInTheDocument()
+  })
+
+  it('in progress with complete_task: no old resolve modal and no old copy, just the link', async () => {
+    await renderWorkspace(makeTicket({ status: 'IN_PROGRESS', requires_deployment: true, capabilities: { ...NO_CAPS, complete_task: true } }))
+    const section = await screen.findByTestId('workspace-deployment-flow')
+    expect(within(section).getByRole('link', { name: 'فتح التذكرة' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'تعذر الحل' })).not.toBeInTheDocument()
+    expect(document.body.textContent).not.toContain('إلا بعد الاعتماد النهائي')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('a regular ticket in progress keeps the old actions and the old copy', async () => {
+    const { user } = await renderWorkspace(makeTicket({ status: 'IN_PROGRESS', capabilities: { ...NO_CAPS, complete_task: true } }))
+    expect(screen.queryByTestId('workspace-deployment-flow')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'تقديم المهمة للمراجعة' })
+    expect(within(dialog).getByTestId('submit-review-note')).toHaveTextContent('لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي')
+  })
+
+  it('a regular ticket waiting for approval with no actions still gets the plain «no actions» line only if it is not a review stage', async () => {
+    await renderWorkspace(makeTicket({ status: 'IN_PROGRESS', capabilities: NO_CAPS }))
+    expect(screen.getByText(/لا توجد إجراءات متاحة لك/)).toBeInTheDocument()
+    expect(screen.queryByTestId('workspace-deployment-flow')).not.toBeInTheDocument()
   })
 })

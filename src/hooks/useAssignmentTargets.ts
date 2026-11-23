@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ticketService } from '@/services/ticketService'
 import type { DepartmentalUnit, TicketUser } from '@/types/ticket'
+import type { PointsOptions } from '@/lib/taskEstimate'
 
-type DepartmentResult = { key: string; ok: true; units: DepartmentalUnit[]; users: TicketUser[] } | { key: string; ok: false }
+type DepartmentResult = { key: string; ok: true; units: DepartmentalUnit[]; users: TicketUser[]; pointsOptions: PointsOptions | null } | { key: string; ok: false }
 type UnitResult = { key: string; ok: true; users: TicketUser[] } | { key: string; ok: false }
 
 export type AssignmentPhase = 'loading' | 'error' | 'ready'
@@ -40,7 +41,7 @@ export function useAssignmentTargets(departmentId: number, initialUnitId?: numbe
     ticketService
       .getMeta({ department_id: departmentId })
       .then((meta) => {
-        if (!cancelled) setDepartment({ key: departmentKey, ok: true, units: meta.tech_units ?? [], users: meta.users ?? [] })
+        if (!cancelled) setDepartment({ key: departmentKey, ok: true, units: meta.tech_units ?? [], users: meta.users ?? [], pointsOptions: meta.points_options ?? null })
       })
       .catch(() => {
         if (!cancelled) setDepartment({ key: departmentKey, ok: false })
@@ -97,8 +98,12 @@ export function useAssignmentTargets(departmentId: number, initialUnitId?: numbe
   const retry = useCallback(() => setAttempt((n) => n + 1), [])
   const retryUsers = useCallback(() => setUnitAttempt((n) => n + 1), [])
 
+  // The same meta answer carries the points options of the ticket forms: no extra request.
+  const pointsOptions: PointsOptions | null = current && current.ok ? current.pointsOptions : null
+
   return {
     phase,
+    pointsOptions,
     units,
     hasUnits,
     unitId,

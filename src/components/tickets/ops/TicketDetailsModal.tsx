@@ -17,6 +17,7 @@ import { TicketPriorityControl } from './TicketPriorityControl'
 import { ageText, formatDateTime } from './ticketOpsUi'
 import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue'
 import { TicketCreditBlock } from '@/components/tickets/TicketCreditBlock'
+import { TicketLifecyclePanel } from '@/components/tickets/TicketLifecyclePanel'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -138,6 +139,7 @@ function Body({
               </section>
             : null}
 
+            <TicketLifecyclePanel ticket={t} />
             <TicketActionCenter ticket={t} onChanged={changed} />
           </>
         : <BodySkeleton />}

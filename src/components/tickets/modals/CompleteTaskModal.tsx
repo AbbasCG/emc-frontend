@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UploadCloud, X } from 'lucide-react';
 import { ticketService } from '@/services/ticketService';
+import { apiMessage } from '@/services/ticketOpsService';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import toast from '@/lib/toast';
 
@@ -8,6 +9,8 @@ export interface CompleteTaskModalProps {
   ticketId: number;
   onClose: () => void;
   onSuccess: () => void;
+  /** A deployment ticket submits for review in one click elsewhere; this dialog is then only for «تعذر الحل». */
+  unresolvedOnly?: boolean;
 }
 
 /**
@@ -26,8 +29,8 @@ export interface CompleteTaskModalProps {
  * The request field is `resolution_type` — matching TicketController::
  * completeTask()'s actual validator exactly.
  */
-export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTaskModalProps) {
-  const [status, setStatus] = useState<'RESOLVED' | 'UNRESOLVED'>('RESOLVED');
+export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly = false }: CompleteTaskModalProps) {
+  const [status, setStatus] = useState<'RESOLVED' | 'UNRESOLVED'>(unresolvedOnly ? 'UNRESOLVED' : 'RESOLVED');
   const [summary, setSummary] = useState('');
   const [unresolvedReason, setUnresolvedReason] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -56,8 +59,8 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
       await ticketService.completeTask(ticketId, formData);
       toast.success(status === 'RESOLVED' ? 'تم تقديم التذكرة للمراجعة والاعتماد' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       onSuccess();
-    } catch {
-      toast.error('حدث خطأ أثناء حفظ نتيجة المهمة');
+    } catch (e) {
+      toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
     } finally {
       setSubmitting(false);
     }
@@ -73,7 +76,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
       testId="complete-task-modal"
       busy={submitting}
       dirty={summary.trim() !== '' || unresolvedReason.trim() !== '' || files.length > 0}
-      title="تقديم للمراجعة"
+      title={unresolvedOnly ? 'تعذر الحل' : 'تقديم للمراجعة'}
       footer={(requestClose) => (
         <div className="flex gap-3">
           <button
@@ -96,7 +99,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
       )}
     >
       <div className="space-y-5 text-right" dir="rtl">
-        <div className="flex gap-2">
+        {unresolvedOnly ? null : <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setStatus('RESOLVED')}
@@ -119,7 +122,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess }: CompleteTask
           >
             ⚠️ تعذر الحل
           </button>
-        </div>
+        </div>}
 
         {status === 'RESOLVED' ? (
           <>

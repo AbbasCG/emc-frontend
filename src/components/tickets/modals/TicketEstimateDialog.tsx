@@ -2,8 +2,10 @@ import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import { CenteredModal } from '@/components/ui/CenteredModal'
 import TaskEstimateFields from '@/components/operations/TaskEstimateFields'
 import { useEstimateDraft } from '@/hooks/useEstimateDraft'
-import { apiMessage } from '@/services/ticketOpsService'
-import { emptyEstimate, type EstimateDraft, type EstimatePayload } from '@/lib/taskEstimate'
+import { useTicketPointsOptions } from '@/hooks/useTicketPointsOptions'
+import { RequiresDeploymentSwitch } from '@/components/tickets/modals/RequiresDeploymentSwitch'
+import { apiErrorCode, apiMessage } from '@/services/ticketOpsService'
+import { emptyEstimate, isTaskScope, type EstimateDraft, type EstimatePayload } from '@/lib/taskEstimate'
 
 /**
  * A small dialog that collects the ticket's work estimate (size, points, approximate duration) and hands it to
@@ -24,6 +26,7 @@ export function TicketEstimateDialog({
   extra,
   clearable = false,
   testId = 'ticket-estimate-dialog',
+  deployment,
   onSubmit,
   onClose,
 }: {
@@ -40,25 +43,35 @@ export function TicketEstimateDialog({
   /** Only the dedicated edit may CLEAR stored hours (sends an explicit null when the field was emptied). */
   clearable?: boolean
   testId?: string
-  onSubmit: (estimate: EstimatePayload) => Promise<void>
+  /** Show «تتطلب نشرًا على الموقع الحي» (managers' edit only): its current value, and whether the server froze it. */
+  deployment?: { initial: boolean; frozen?: boolean; frozenMessage?: string; locked?: boolean }
+  onSubmit: (estimate: EstimatePayload, requiresDeployment?: boolean) => Promise<void>
   onClose: () => void
 }) {
   const formId = useId()
   const { draft, setDraft, errors, check, fromServer, payload } = useEstimateDraft(initial ?? emptyEstimate())
   const [busy, setBusy] = useState(false)
+  const [requiresDeployment, setRequiresDeployment] = useState(deployment?.initial ?? false)
+  const [deploymentError, setDeploymentError] = useState<string | null>(null)
+  const storedDraft = initial ?? emptyEstimate()
+  const ticketMode = useTicketPointsOptions({ scope: isTaskScope(storedDraft.scope) ? storedDraft.scope : '', points: storedDraft.points })
   const [failure, setFailure] = useState<string | null>(null)
-  const pristine = JSON.stringify(draft) === JSON.stringify(initial ?? emptyEstimate())
+  const pristine = JSON.stringify(draft) === JSON.stringify(initial ?? emptyEstimate()) && requiresDeployment === (deployment?.initial ?? false)
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (busy) return
     setFailure(null)
+    setDeploymentError(null)
     if (!check(true)) return
     setBusy(true)
     try {
-      await onSubmit(payload({ clearHours: clearable && (initial?.duration.trim() ?? '') !== '' }))
+      await onSubmit(payload({ clearHours: clearable && (initial?.duration.trim() ?? '') !== '' }), deployment && !deployment.frozen ? requiresDeployment : undefined)
     } catch (err) {
-      if (!fromServer(err)) setFailure(apiMessage(err, 'تعذّر الحفظ. حاول مرة أخرى.'))
+      if (apiErrorCode(err) === 'DEPLOYMENT_FLAG_LOCKED') {
+        setDeploymentError(apiMessage(err, 'لا يمكن إلغاء شرط النشر على الموقع الحي بعد أول إرسال للمراجعة.'))
+        setRequiresDeployment(true)
+      } else if (!fromServer(err)) setFailure(apiMessage(err, 'تعذّر الحفظ. حاول مرة أخرى.'))
     } finally {
       setBusy(false)
     }
@@ -93,7 +106,8 @@ export function TicketEstimateDialog({
       <form id={formId} onSubmit={submit} noValidate className="space-y-4 text-right">
         {typeof description === 'string' ? null : description}
         {extra}
-        <TaskEstimateFields value={draft} onChange={setDraft} errors={errors} idPrefix={formId} legacy={legacy} disabled={busy} />
+        <TaskEstimateFields value={draft} onChange={setDraft} errors={errors} idPrefix={formId} legacy={legacy} disabled={busy} ticketMode={{ ...ticketMode, requiresDeployment }} />
+        {deployment ? <RequiresDeploymentSwitch checked={requiresDeployment} onChange={(v) => { setRequiresDeployment(v); setDeploymentError(null) }} disabled={busy} frozen={deployment.frozen} frozenMessage={deployment.frozenMessage} locked={deployment.locked} error={deploymentError} /> : null}
         {failure ? (
           <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">
             {failure}

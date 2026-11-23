@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BadgeCheck, CalendarClock, CheckCircle2, PlayCircle, Undo2, RotateCcw, Send, Sparkles, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
+import { BadgeCheck, CalendarClock, CheckCircle2, FlaskConical, PlayCircle, Rocket, Undo2, RotateCcw, Send, Sparkles, ThumbsDown, UserCheck, UserPlus } from 'lucide-react';
 import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
 import { apiMessage } from '@/services/ticketOpsService';
@@ -9,15 +9,20 @@ import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketM
 import { RejectTaskModal } from '@/components/tickets/modals/RejectTaskModal';
 import { CompleteTaskModal } from '@/components/tickets/modals/CompleteTaskModal';
 import { EditEstimateModal } from '@/components/tickets/modals/EditEstimateModal';
-import { ApproveCompletionModal } from '@/components/tickets/modals/ApproveCompletionModal';
+import { ApproveCompletionModal, ApproveForDeployModal } from '@/components/tickets/modals/ApproveCompletionModal';
+import { MarkDeployedModal, VerifyFailedModal, VerifyResolvedModal } from '@/components/tickets/modals/TicketStepModals';
 import { ReturnForReworkModal } from '@/components/tickets/modals/ReturnForReworkModal';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
 import { PriorityPill } from '@/components/tickets/ops/TicketBadges';
 import { formatDateTime } from '@/components/tickets/ops/ticketOpsUi';
 import { cn } from '@/lib/utils';
+import { deploymentFreezeMessage, isDeploymentFlagLocked } from '@/lib/ticketLifecycle';
 import toast from '@/lib/toast';
 
-type ModalKind = 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | 'estimate' | 'approve_completion' | 'return_for_rework' | null;
+type ModalKind =
+  | 'approve' | 'reject' | 'reassign' | 'reject_task' | 'complete_task' | 'unresolved' | 'estimate' | 'approve_completion' | 'return_for_rework'
+  | 'approve_for_deploy' | 'mark_deployed' | 'verify_resolved' | 'verify_failed'
+  | null;
 
 export interface TicketActionCenterProps {
   ticket: Ticket;
@@ -36,6 +41,8 @@ export interface TicketActionCenterProps {
    * viewer to be the actual assignee.
    */
   currentUserId?: number | null;
+  /** Shown in the «تم النشر» dialog ("your name will be recorded"). */
+  currentUserName?: string | null;
 }
 
 /**
@@ -52,10 +59,12 @@ export interface TicketActionCenterProps {
  * table (or, for accept/reject-task/complete-task, the same backend endpoint
  * AssigneeWorkspacePage already calls) uses — no second workflow engine.
  */
-export function TicketActionCenter({ ticket, onChanged, reviewMode = false, currentUserId = null }: TicketActionCenterProps) {
+export function TicketActionCenter({ ticket, onChanged, reviewMode = false, currentUserId = null, currentUserName = null }: TicketActionCenterProps) {
   const [modal, setModal] = useState<ModalKind>(null);
   const [acceptConfirmOpen, setAcceptConfirmOpen] = useState(false);
   const [accepting, setAccepting] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const submitInFlight = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const caps = ticket.capabilities;
@@ -93,9 +102,31 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
     }
   };
 
+  // A deployment ticket is submitted for review in ONE click: the button sends the request at once (empty body: no
+  // summary, link or test steps, and no confirmation dialog), disabled while it is pending.
+  const handleSubmitForReview = async () => {
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
+    setSubmittingReview(true);
+    try {
+      await ticketService.completeTask(ticket.id, new FormData());
+      toast.success('أُرسلت التذكرة للمراجعة');
+      onChanged();
+    } catch (e) {
+      // e.g. the ticket is no longer in progress: the server says why, and the screen shows what it is now.
+      toast.error(apiMessage(e, 'تعذّر إرسال التذكرة للمراجعة'));
+      onChanged();
+    } finally {
+      submitInFlight.current = false;
+      setSubmittingReview(false);
+    }
+  };
+
+  const deployment = ticket.requires_deployment === true;
   const hasAnyActionCapability =
     caps.approve || caps.reject || caps.reassign || caps.accept_task || caps.reject_task || caps.complete_task || caps.can_edit_estimate === true ||
-    caps.approve_completion === true || caps.return_for_rework === true;
+    caps.approve_completion === true || caps.return_for_rework === true ||
+    caps.approve_for_deploy === true || caps.mark_deployed === true || caps.verify_resolved === true || caps.verify_failed === true;
 
   if (!hasAnyActionCapability) return null;
 
@@ -144,9 +175,11 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
         <p className="text-xs text-slate-500">تحتاج هذه التذكرة إلى قرار قبل بدء المعالجة.</p>
       )}
 
-      {ticket.status === 'PENDING_REVIEW' && (caps.approve_completion || caps.return_for_rework) && (
+      {ticket.status === 'PENDING_REVIEW' && (caps.approve_completion || caps.approve_for_deploy || caps.return_for_rework) && (
         <p className="text-xs text-slate-500" data-testid="review-hint">
-          قدّم المكلف الإنجاز. راجعه ثم اعتمده نهائيًا مع إدخال المدة الفعلية لتُضاف النقاط والمدة الفعلية إلى رصيده، أو أعده للتنفيذ.
+          {deployment
+            ? 'قدّم المكلف الإنجاز. راجعه ثم اعتمده للنشر مع تحديد النقاط والمدة الفعلية؛ تُضافان إلى رصيده بعد أن يؤكد الحل في الاختبار الحي، أو أعده للتنفيذ.'
+            : 'قدّم المكلف الإنجاز. راجعه ثم اعتمده نهائيًا مع إدخال المدة الفعلية لتُضاف النقاط والمدة الفعلية إلى رصيده، أو أعده للتنفيذ.'}
         </p>
       )}
 
@@ -176,11 +209,66 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
         {caps.complete_task && (
           <button
             type="button"
-            onClick={() => setModal('complete_task')}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
+            onClick={() => (deployment ? void handleSubmitForReview() : setModal('complete_task'))}
+            disabled={submittingReview}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition disabled:opacity-60"
           >
             <Send className="w-4 h-4" />
-            تقديم للمراجعة
+            {deployment ? (submittingReview ? 'جارٍ الإرسال...' : 'إرسال للمراجعة') : 'تقديم للمراجعة'}
+          </button>
+        )}
+
+        {caps.complete_task && deployment && (
+          <button
+            type="button"
+            onClick={() => setModal('unresolved')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-orange-300 text-orange-700 hover:bg-orange-50 text-xs font-bold transition"
+          >
+            تعذر الحل
+          </button>
+        )}
+
+        {caps.approve_for_deploy === true && (
+          <button
+            type="button"
+            onClick={() => setModal('approve_for_deploy')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition"
+          >
+            <Rocket className="w-4 h-4" />
+            اعتماد للنشر
+          </button>
+        )}
+
+        {caps.mark_deployed === true && (
+          <button
+            type="button"
+            onClick={() => setModal('mark_deployed')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition"
+          >
+            <Rocket className="w-4 h-4" />
+            تم النشر على الموقع الحي
+          </button>
+        )}
+
+        {caps.verify_resolved === true && (
+          <button
+            type="button"
+            onClick={() => setModal('verify_resolved')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
+          >
+            <FlaskConical className="w-4 h-4" />
+            تم التحقق — وضع كمحلولة
+          </button>
+        )}
+
+        {caps.verify_failed === true && (
+          <button
+            type="button"
+            onClick={() => setModal('verify_failed')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs font-bold transition"
+          >
+            <Undo2 className="w-4 h-4" />
+            إعادة للتنفيذ
           </button>
         )}
 
@@ -269,6 +357,10 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
           previousDeclineReason={ticket.assignee_rejection_reason}
           declinedAssigneeId={ticket.status === 'REJECTED_BY_ASSIGNEE' ? (ticket.assigned_to_id ?? ticket.assignee?.id ?? null) : null}
           currentEstimate={{ task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours }}
+          currentRequiresDeployment={ticket.requires_deployment === true}
+          deploymentFrozen={caps.can_edit_estimate === false}
+          deploymentFrozenMessage={deploymentFreezeMessage(ticket, currentUserId)}
+          deploymentLocked={isDeploymentFlagLocked(ticket)}
           onClose={close}
           onSuccess={handleSuccess}
         />
@@ -279,16 +371,41 @@ export function TicketActionCenter({ ticket, onChanged, reviewMode = false, curr
       {modal === 'complete_task' && (
         <CompleteTaskModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} />
       )}
+      {modal === 'unresolved' && (
+        <CompleteTaskModal ticketId={ticket.id} unresolvedOnly onClose={close} onSuccess={handleSuccess} />
+      )}
+      {modal === 'approve_for_deploy' && (
+        <ApproveForDeployModal ticket={ticket} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
+      )}
+      {modal === 'mark_deployed' && (
+        <MarkDeployedModal ticketId={ticket.id} actorName={currentUserName} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
+      )}
+      {modal === 'verify_resolved' && (
+        <VerifyResolvedModal
+          ticketId={ticket.id}
+          approved={ticket.credit ? { points: ticket.credit.points ?? ticket.task_points ?? null, minutes: ticket.credit.minutes ?? ticket.actual_minutes ?? null } : null}
+          onClose={close}
+          onSuccess={handleSuccess}
+          onStale={handleSuccess}
+        />
+      )}
+      {modal === 'verify_failed' && (
+        <VerifyFailedModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
+      )}
       {modal === 'approve_completion' && (
         <ApproveCompletionModal ticket={ticket} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
       )}
       {modal === 'return_for_rework' && (
-        <ReturnForReworkModal ticketId={ticket.id} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
+        <ReturnForReworkModal ticketId={ticket.id} fromDeploy={ticket.status === 'APPROVED_FOR_DEPLOY'} assigneeUnavailable={ticket.status === 'PENDING_VERIFICATION'} onClose={close} onSuccess={handleSuccess} onStale={handleSuccess} />
       )}
       {modal === 'estimate' && (
         <EditEstimateModal
           ticketId={ticket.id}
           current={{ task_scope: ticket.task_scope, task_points: ticket.task_points, estimated_hours: ticket.estimated_hours }}
+          requiresDeployment={ticket.requires_deployment === true}
+          deploymentFrozen={caps.can_edit_estimate === false}
+          deploymentFrozenMessage={deploymentFreezeMessage(ticket, currentUserId)}
+          deploymentLocked={isDeploymentFlagLocked(ticket)}
           onClose={close}
           onSuccess={handleSuccess}
         />

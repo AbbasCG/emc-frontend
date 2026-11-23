@@ -44,12 +44,23 @@ export interface WorkItem {
   canReject: boolean
   canComplete: boolean
   canOpen: boolean
-  /** A ticket the assignee has submitted: it waits for the final approval that credits points and hours. */
+  /** A ticket the assignee has submitted: it waits (for the review, the deployment or the live test) before it closes. */
   awaitingApproval: boolean
+  /** The exact stage of such a ticket as a badge («بانتظار المراجعة» / «معتمدة للنشر» / «بانتظار اختبار المكلّف»), else null. */
+  stageBadge: string | null
+  /** Who moves next, in a short line («بانتظار مراجعة الإنجاز» / «بانتظار النشر» / «بانتظار اختبار المكلّف»), else null. */
+  nextStep: string | null
   /** What a finished ticket credited to this member; null unless the server sent a `credited` credit block. */
   credited: { points: number; minutes: number | null; hours: number } | null
   /** Newest-first ordering key. */
   updatedAt: string | null
+}
+
+/** The stages that keep a ticket in «بانتظار الاعتماد والتقييم»: the badge naming the stage and the line saying who is next. */
+export const TICKET_STAGE_CARD: Record<string, { badge: string; next: string }> = {
+  PENDING_REVIEW: { badge: 'بانتظار المراجعة', next: 'بانتظار مراجعة الإنجاز' },
+  APPROVED_FOR_DEPLOY: { badge: 'معتمدة للنشر', next: 'بانتظار النشر' },
+  PENDING_VERIFICATION: { badge: 'بانتظار اختبار المكلّف', next: 'بانتظار اختبار المكلّف' },
 }
 
 const TICKET_PRIORITY: Record<TicketPriority, WorkPriority> = { LOW: 'low', MEDIUM: 'medium', HIGH: 'high', CRITICAL: 'critical' }
@@ -92,7 +103,9 @@ export function ticketToWorkItem(t: MyWorkTicket, me: { name: string }, now: num
     canReject: caps.can_reject === true,
     canComplete: caps.can_complete === true,
     canOpen: caps.can_open !== false,
-    awaitingApproval: t.status === 'PENDING_REVIEW',
+    awaitingApproval: t.status in TICKET_STAGE_CARD,
+    stageBadge: TICKET_STAGE_CARD[t.status]?.badge ?? null,
+    nextStep: TICKET_STAGE_CARD[t.status]?.next ?? null,
     credited: t.credit?.status === 'credited' ? { points: Number(t.credit.points ?? 0), minutes: t.credit.minutes ?? null, hours: Number(t.credit.hours ?? 0) } : null,
     updatedAt: t.updated_at ?? t.created_at ?? null,
   }
@@ -125,6 +138,8 @@ export function taskToWorkItem(t: OpsTask, me: { name: string }, now: number = D
     canComplete: false,
     canOpen: true,
     awaitingApproval: false,
+    stageBadge: null,
+    nextStep: null,
     credited: null,
     updatedAt: null,
   }

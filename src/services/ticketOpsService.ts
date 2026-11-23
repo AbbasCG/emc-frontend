@@ -92,7 +92,7 @@ export async function fetchTicketStats(params: Query, { signal }: Opts = {}): Pr
 
   return {
     counts: {
-      total: num(c.total), pendingApproval: num(c.pending_approval), assigned: num(c.assigned), inProgress: num(c.in_progress), pendingReview: num(c.pending_review),
+      total: num(c.total), pendingApproval: num(c.pending_approval), assigned: num(c.assigned), inProgress: num(c.in_progress), pendingReview: num(c.pending_review), approvedForDeploy: num(c.approved_for_deploy), pendingVerification: num(c.pending_verification),
       resolved: num(c.resolved), unresolved: num(c.unresolved), rejectedByAdmin: num(c.rejected_by_admin), rejectedByAssignee: num(c.rejected_by_assignee),
       open: num(c.open), closed: num(c.closed), overdue: num(c.overdue), dueSoon: num(c.due_soon), unassigned: num(c.unassigned),
       highPriority: num(c.high_priority), new24h: num(c.new_24h),

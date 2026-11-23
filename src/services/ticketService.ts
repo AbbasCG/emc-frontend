@@ -73,7 +73,7 @@ export const ticketService = {
    */
   approveTicket: async (
     id: number,
-    payload: { unit_id?: number; assigned_to_id?: number; sla_hours: number; internal_notes?: string } & Partial<TicketEstimateInput>
+    payload: { unit_id?: number; assigned_to_id?: number; sla_hours: number; internal_notes?: string; requires_deployment?: boolean } & Partial<TicketEstimateInput>
   ): Promise<TicketDetailResponse> => {
     const res = await apiClient.post(`/v1/tickets/${id}/approve`, payload);
     return res.data;
@@ -113,10 +113,12 @@ export const ticketService = {
    * Assignee Action: Complete task (Resolved vs Unresolved)
    */
   completeTask: async (id: number, formData: FormData): Promise<TicketDetailResponse> => {
+    // The callers show the server's message themselves: one toast, not two.
     const res = await apiClient.post(`/v1/tickets/${id}/complete-task`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      skipErrorToast: true,
     });
     return res.data;
   },
@@ -138,7 +140,7 @@ export const ticketService = {
    */
   reassign: async (
     id: number,
-    payload: { assigned_to_id: number; unit_id?: number; reason?: string } & Partial<TicketEstimateInput>
+    payload: { assigned_to_id: number; unit_id?: number; reason?: string; requires_deployment?: boolean } & Partial<TicketEstimateInput>
   ): Promise<TicketDetailResponse> => {
     const res = await apiClient.post(`/v1/tickets/${id}/reassign`, payload);
     return res.data;
@@ -159,6 +161,38 @@ export const ticketService = {
     return res.data;
   },
 
+  /**
+   * Deployment ticket, reviewer: approve the reviewed work FOR DEPLOYMENT. Body: `task_scope`, `task_points`,
+   * `actual_minutes` (all validated by the server), optional `estimated_hours` and `note`. Approves points and time;
+   * credits nothing (that happens when the assignee confirms the live test). 403 HR_APPROVAL_REQUIRED / SELF_REVIEW,
+   * 409 INVALID_STAGE / NOT_PENDING_REVIEW, 422 field errors.
+   */
+  approveForDeploy: async (
+    id: number,
+    payload: TicketEstimateInput & { actual_minutes: number; note?: string }
+  ): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/approve-for-deploy`, payload, { skipErrorToast: true });
+    return res.data;
+  },
+
+  /** Deployment ticket: record that the work is on the live site. `live_url` (https, max 500) is required. */
+  markDeployed: async (id: number, payload: { live_url: string; note?: string }): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/mark-deployed`, payload, { skipErrorToast: true });
+    return res.data;
+  },
+
+  /** Deployment ticket, assignee: the live test passed (`note` 5..1000). This is what credits; 409 ALREADY_CREDITED on a replay. */
+  verifyResolved: async (id: number, note: string): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/verify-resolved`, { note }, { skipErrorToast: true });
+    return res.data;
+  },
+
+  /** Deployment ticket, assignee: the live test failed (`description` 5..1000); the ticket goes back to work. */
+  verifyFailed: async (id: number, description: string): Promise<TicketDetailResponse> => {
+    const res = await apiClient.post(`/v1/tickets/${id}/verify-failed`, { description }, { skipErrorToast: true });
+    return res.data;
+  },
+
   /** Send a PENDING_REVIEW ticket back to its assignee (back to IN_PROGRESS, nothing credited). `reason`: 5 to 1000 characters. */
   returnForRework: async (id: number, reason: string): Promise<TicketDetailResponse> => {
     const res = await apiClient.post(`/v1/tickets/${id}/return-for-rework`, { reason }, { skipErrorToast: true });
@@ -172,7 +206,7 @@ export const ticketService = {
    */
   updateWorkEstimate: async (
     id: number,
-    payload: { task_scope: TicketEstimateInput['task_scope']; task_points: number; estimated_hours?: number | null }
+    payload: { task_scope: TicketEstimateInput['task_scope']; task_points: number; estimated_hours?: number | null; requires_deployment?: boolean }
   ): Promise<TicketDetailResponse> => {
     const res = await apiClient.patch(`/v1/tickets/${id}/work-estimate`, payload);
     return res.data;

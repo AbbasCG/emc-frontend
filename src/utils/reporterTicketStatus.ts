@@ -58,6 +58,8 @@ export function reporterStatusCopy(status: TicketStatus, category: TicketCategor
     // The server already shows a reporter «قيد التنفيذ» for a ticket in review; PENDING_REVIEW is only the safe fallback.
     case 'IN_PROGRESS':
     case 'PENDING_REVIEW':
+    case 'APPROVED_FOR_DEPLOY':
+    case 'PENDING_VERIFICATION':
       return {
         badge: isSuggestion ? 'المقترح قيد التنفيذ' : 'البلاغ قيد المعالجة',
         statusLabel: isSuggestion ? 'قيد التنفيذ' : 'قيد المعالجة',

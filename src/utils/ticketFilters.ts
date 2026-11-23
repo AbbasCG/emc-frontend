@@ -14,7 +14,7 @@ import type { SavedTicketView, TicketFilters, TicketSortKey, TicketView } from '
  * string when it reset the page).
  */
 
-export const TICKET_STATUSES: TicketStatus[] = ['PENDING_APPROVAL', 'ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW', 'RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ADMIN', 'REJECTED_BY_ASSIGNEE']
+export const TICKET_STATUSES: TicketStatus[] = ['PENDING_APPROVAL', 'ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW', 'APPROVED_FOR_DEPLOY', 'PENDING_VERIFICATION', 'RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ADMIN', 'REJECTED_BY_ASSIGNEE']
 export const TICKET_PRIORITIES: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 export const TICKET_CATEGORIES: TicketCategory[] = ['OLD_ISSUE', 'NEW_SUGGESTION']
 export const SORT_KEYS: TicketSortKey[] = ['created_at', 'updated_at', 'priority', 'status', 'ticket_number', 'title', 'due', 'last_activity']
@@ -197,7 +197,7 @@ export function toApiParams(f: TicketFilters, opts: { scope?: boolean; lite?: bo
   return q
 }
 
-export type KpiKey = 'total' | 'pending' | 'open' | 'inProgress' | 'pendingReview' | 'resolved' | 'closed' | 'overdue' | 'unassigned' | 'highPriority'
+export type KpiKey = 'total' | 'pending' | 'open' | 'inProgress' | 'pendingReview' | 'approvedForDeploy' | 'pendingVerification' | 'resolved' | 'closed' | 'overdue' | 'unassigned' | 'highPriority'
 
 const CLEAR_KPI: Partial<TicketFilters> = { status: [], priority: [], overdue: false, unassigned: false, state: '', sla: '', attention: false, mine: false }
 
@@ -208,6 +208,8 @@ export function kpiPatch(kpi: KpiKey): Partial<TicketFilters> {
     case 'open': return { ...CLEAR_KPI, state: 'open' }
     case 'inProgress': return { ...CLEAR_KPI, status: ['IN_PROGRESS'] }
     case 'pendingReview': return { ...CLEAR_KPI, status: ['PENDING_REVIEW'] }
+    case 'approvedForDeploy': return { ...CLEAR_KPI, status: ['APPROVED_FOR_DEPLOY'] }
+    case 'pendingVerification': return { ...CLEAR_KPI, status: ['PENDING_VERIFICATION'] }
     case 'resolved': return { ...CLEAR_KPI, status: ['RESOLVED'] }
     case 'closed': return { ...CLEAR_KPI, state: 'closed' }
     case 'overdue': return { ...CLEAR_KPI, overdue: true }
@@ -297,6 +299,8 @@ export const TICKET_PRESETS: { id: string; label: string; patch: Partial<TicketF
   { id: 'attention', label: 'تحتاج إجرائي', patch: { attention: true } },
   { id: 'pending', label: 'بانتظار الاعتماد', patch: { status: ['PENDING_APPROVAL'] } },
   { id: 'review', label: 'بانتظار المراجعة والاعتماد', patch: { status: ['PENDING_REVIEW'] } },
+  { id: 'deploy', label: 'معتمدة للنشر', patch: { status: ['APPROVED_FOR_DEPLOY'] } },
+  { id: 'verify', label: 'بانتظار الاختبار الحي', patch: { status: ['PENDING_VERIFICATION'] } },
   { id: 'unassigned', label: 'بلا مكلف', patch: { unassigned: true, state: 'open' } },
   { id: 'high', label: 'أولوية عالية', patch: { priority: ['HIGH', 'CRITICAL'], state: 'open' } },
   { id: 'overdue', label: 'متأخرة', patch: { overdue: true } },

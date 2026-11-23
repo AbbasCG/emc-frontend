@@ -1,6 +1,6 @@
 import React from 'react';
 import type { TicketStatus } from '@/types/ticket';
-import { Clock, CheckCircle2, AlertCircle, XCircle, UserCheck, PlayCircle, Ban, Hourglass } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, XCircle, UserCheck, PlayCircle, Ban, Hourglass, Rocket, FlaskConical } from 'lucide-react';
 
 interface TicketStatusBadgeProps {
   status: TicketStatus;
@@ -35,6 +35,20 @@ export const TicketStatusBadge: React.FC<TicketStatusBadgeProps> = ({ status, cl
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 ${className}`}>
           <Hourglass className="w-3.5 h-3.5 text-indigo-600" />
           <span>بانتظار المراجعة والاعتماد</span>
+        </span>
+      );
+    case 'APPROVED_FOR_DEPLOY':
+      return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200 ${className}`}>
+          <Rocket className="w-3.5 h-3.5 text-teal-600" />
+          <span>معتمدة للنشر</span>
+        </span>
+      );
+    case 'PENDING_VERIFICATION':
+      return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200 ${className}`}>
+          <FlaskConical className="w-3.5 h-3.5 text-cyan-600" />
+          <span>بانتظار الاختبار الحي</span>
         </span>
       );
     case 'RESOLVED':
