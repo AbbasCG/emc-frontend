@@ -16,6 +16,7 @@ import { TicketDuplicateHints } from './TicketDuplicateHints'
 import { TicketPriorityControl } from './TicketPriorityControl'
 import { ageText, formatDateTime } from './ticketOpsUi'
 import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue'
+import { TicketCreditBlock } from '@/components/tickets/TicketCreditBlock'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -168,6 +169,8 @@ function Body({
             </>
           : <div className="space-y-2">{bar('w-full')}{bar('w-5/6')}{bar('w-2/3')}{bar('w-3/4')}</div>}
         </dl>
+
+        {t ? <TicketCreditBlock ticket={t} /> : null}
 
         {head && caps?.change_priority ? <TicketPriorityControl key={`${head.id}:${head.priority}`} ticketId={head.id} current={head.priority} suggestion={insight?.suggestedPriority} onChanged={changed} /> : null}
         {head && caps && (caps.reassign || caps.approve) ? <TicketAssignmentPanel ticket={{ id: head.id, assigned_to_id: head.assigned_to_id ?? null, status: head.status, task_scope: head.task_scope, task_points: head.task_points, estimated_hours: head.estimated_hours }} canAssign={caps.reassign} onChanged={changed} /> : null}

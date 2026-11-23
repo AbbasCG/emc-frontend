@@ -39,6 +39,17 @@ export const isCancelled = (e: unknown): boolean => axios.isCancel(e) || (e inst
 /** HTTP status of a failed request, or null. */
 export const httpStatus = (e: unknown): number | null => (axios.isAxiosError(e) ? (e.response?.status ?? null) : null)
 
+/**
+ * The machine-readable `code` the ticket endpoints put in a refusal (409: ALREADY_CREDITED, NOT_PENDING_REVIEW,
+ * ESTIMATE_FROZEN; 403: SELF_REVIEW, HR_APPROVAL_REQUIRED), or null. The response body reaches here untouched.
+ */
+export function apiErrorCode(e: unknown): string | null {
+  if (!axios.isAxiosError(e)) return null
+  const code = rec(e.response?.data).code
+
+  return typeof code === 'string' && code !== '' ? code : null
+}
+
 /** The server's message for a failed request, when it sent one. */
 export function apiMessage(e: unknown, fallback: string): string {
   if (!axios.isAxiosError(e)) return fallback
@@ -81,7 +92,7 @@ export async function fetchTicketStats(params: Query, { signal }: Opts = {}): Pr
 
   return {
     counts: {
-      total: num(c.total), pendingApproval: num(c.pending_approval), assigned: num(c.assigned), inProgress: num(c.in_progress),
+      total: num(c.total), pendingApproval: num(c.pending_approval), assigned: num(c.assigned), inProgress: num(c.in_progress), pendingReview: num(c.pending_review),
       resolved: num(c.resolved), unresolved: num(c.unresolved), rejectedByAdmin: num(c.rejected_by_admin), rejectedByAssignee: num(c.rejected_by_assignee),
       open: num(c.open), closed: num(c.closed), overdue: num(c.overdue), dueSoon: num(c.due_soon), unassigned: num(c.unassigned),
       highPriority: num(c.high_priority), new24h: num(c.new_24h),

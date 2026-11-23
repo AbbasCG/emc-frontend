@@ -5,6 +5,8 @@ import DashboardPageShell from '@/components/ui/DashboardPageShell'
 import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal'
 import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal'
 import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal'
+import { ApproveCompletionModal } from '@/components/tickets/modals/ApproveCompletionModal'
+import { ReturnForReworkModal } from '@/components/tickets/modals/ReturnForReworkModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAbortableResource } from '@/hooks/useAbortableResource'
 import { useContainerWidth } from '@/hooks/useContainerWidth'
@@ -380,6 +382,8 @@ export default function TechAdminDashboardPage() {
       />
 
       {modal?.type === 'approve' ? <ApproveTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} onClose={closeModal} onSuccess={modalDone} /> : null}
+      {modal?.type === 'approve_completion' ? <ApproveCompletionModal ticket={modal.ticket} onClose={closeModal} onSuccess={modalDone} onStale={modalDone} /> : null}
+      {modal?.type === 'return_for_rework' ? <ReturnForReworkModal ticketId={modal.ticketId} onClose={closeModal} onSuccess={modalDone} onStale={modalDone} /> : null}
       {modal?.type === 'reject' ? <RejectTicketModal ticketId={modal.ticketId} onClose={closeModal} onSuccess={modalDone} /> : null}
       {modal?.type === 'reassign' ? <ReassignTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} currentUnitId={modal.unitId} previousDeclineReason={modal.ticket.assignee_rejection_reason} declinedAssigneeId={modal.ticket.status === 'REJECTED_BY_ASSIGNEE' ? (modal.ticket.assigned_to_id ?? modal.ticket.assignee?.id ?? null) : null} currentEstimate={{ task_scope: modal.ticket.task_scope, task_points: modal.ticket.task_points, estimated_hours: modal.ticket.estimated_hours }} onClose={closeModal} onSuccess={modalDone} /> : null}
     </div>

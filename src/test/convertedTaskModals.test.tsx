@@ -53,7 +53,7 @@ describe('the task dialogs reached from the boards use the shared modal', () => 
 
   it('complete (ticket): one scroll area, pinned footer, still needs the written resolution', async () => {
     render(<CompleteTaskModal ticketId={4} onClose={vi.fn()} onSuccess={vi.fn()} />)
-    expect(await screen.findByRole('dialog', { name: 'إغلاق المهمة' })).toBeInTheDocument()
-    expectPinned('complete-task-modal', /تأكيد الحل والإغلاق/)
+    expect(await screen.findByRole('dialog', { name: 'تقديم للمراجعة' })).toBeInTheDocument()
+    expectPinned('complete-task-modal', /تأكيد التقديم للمراجعة/)
   })
 })

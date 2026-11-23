@@ -54,7 +54,7 @@ const list = (items: Ticket[], over: Partial<TicketListResult> = {}): TicketList
 
 function stats(over: Partial<TicketStats['counts']> = {}): TicketStats {
   return {
-    counts: { total: 120, pendingApproval: 14, assigned: 20, inProgress: 31, resolved: 40, unresolved: 3, rejectedByAdmin: 4, rejectedByAssignee: 8, open: 73, closed: 47, overdue: 9, dueSoon: 6, unassigned: 17, highPriority: 11, new24h: 5, ...over },
+    counts: { total: 120, pendingApproval: 14, assigned: 20, inProgress: 31, pendingReview: 6, resolved: 40, unresolved: 3, rejectedByAdmin: 4, rejectedByAssignee: 8, open: 73, closed: 47, overdue: 9, dueSoon: 6, unassigned: 17, highPriority: 11, new24h: 5, ...over },
     timings: { windowDays: 30, avgResponseHours: 2.5, responseSample: 40, avgResolutionHours: 30, resolutionSample: 25, truncated: false, definitions: { response: 'من الإنشاء إلى أول قرار.', resolution: 'من الإنشاء إلى الحل.' } },
     scopeNote: 'ملاحظة النطاق', dueSoonHours: 24,
   }

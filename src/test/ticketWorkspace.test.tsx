@@ -289,18 +289,18 @@ describe('actions follow server capabilities', () => {
 
     expect(screen.getByRole('button', { name: 'قبول التكليف' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /اعتذار/ })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^\s*تم الحل\s*$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'قبول التكليف' }))
     await waitFor(() => expect(mockAcceptTask).toHaveBeenCalledWith(42))
   })
 
-  it('offers resolved / unresolved only when complete_task is granted', async () => {
+  it('offers submit-for-review / unresolved only when complete_task is granted', async () => {
     await renderWorkspace(
       makeTicket({ status: 'IN_PROGRESS', capabilities: { ...NO_CAPS, complete_task: true } }),
     )
 
-    expect(screen.getByRole('button', { name: /^\s*تم الحل\s*$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'تعذر الحل' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'قبول التكليف' })).not.toBeInTheDocument()
   })
@@ -308,7 +308,7 @@ describe('actions follow server capabilities', () => {
   it('shows no action buttons when the server grants none, even for an in-progress ticket', async () => {
     await renderWorkspace(makeTicket({ status: 'IN_PROGRESS', capabilities: NO_CAPS }))
 
-    expect(screen.queryByRole('button', { name: /^\s*تم الحل\s*$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'قبول التكليف' })).not.toBeInTheDocument()
     expect(screen.getByText(/لا توجد إجراءات متاحة/)).toBeInTheDocument()
   })
@@ -318,15 +318,15 @@ describe('actions follow server capabilities', () => {
       makeTicket({ status: 'IN_PROGRESS', capabilities: { ...NO_CAPS, complete_task: true } }),
     )
 
-    await user.click(screen.getByRole('button', { name: /^\s*تم الحل\s*$/ }))
-    const dialog = await screen.findByRole('dialog', { name: 'إغلاق المهمة' })
+    await user.click(screen.getByRole('button', { name: /^\s*تقديم للمراجعة\s*$/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'تقديم المهمة للمراجعة' })
 
-    await user.click(within(dialog).getByRole('button', { name: /تأكيد الإغلاق/ }))
+    await user.click(within(dialog).getByRole('button', { name: /تأكيد التقديم للمراجعة/ }))
     expect(mockCompleteTask).not.toHaveBeenCalled()
     expect(toastError).toHaveBeenCalled()
 
     await user.type(within(dialog).getByRole('textbox'), 'تم استبدال الخرطوشة')
-    await user.click(within(dialog).getByRole('button', { name: /تأكيد الإغلاق/ }))
+    await user.click(within(dialog).getByRole('button', { name: /تأكيد التقديم للمراجعة/ }))
 
     await waitFor(() => expect(mockCompleteTask).toHaveBeenCalledTimes(1))
     const [id, form] = mockCompleteTask.mock.calls[0] as [number, FormData]

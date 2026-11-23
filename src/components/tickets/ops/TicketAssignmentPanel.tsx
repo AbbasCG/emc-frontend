@@ -4,7 +4,7 @@ import { ticketService } from '@/services/ticketService'
 import { fetchAssignmentSuggestions } from '@/services/ticketOpsService'
 import { useAbortableResource } from '@/hooks/useAbortableResource'
 import { TicketEstimateDialog } from '@/components/tickets/modals/TicketEstimateDialog'
-import { estimateFromRecord, isLegacyRecord } from '@/lib/taskEstimate'
+import { estimateFromRecord, isLegacyRecord, TICKET_ESTIMATE_NOTE } from '@/lib/taskEstimate'
 import toast from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
@@ -71,7 +71,7 @@ export function TicketAssignmentPanel({ ticket, canAssign, onChanged }: { ticket
       {pick ?
         <TicketEstimateDialog
           title="إسناد التذكرة"
-          description={`ستُسند التذكرة إلى ${pick.name} ويُطلب منه قبول المهمة. حدّد النقاط والمدة، وهي تقدير للتخطيط فقط ولا تُضاف إلى رصيد المكلّف.`}
+          description={`ستُسند التذكرة إلى ${pick.name} ويُطلب منه قبول المهمة. حدّد النقاط والمدة. ${TICKET_ESTIMATE_NOTE}`}
           initial={estimateFromRecord(known)}
           legacy={isLegacyRecord(known)}
           submitLabel="إسناد"

@@ -5,6 +5,7 @@ describe('columnForTicket: every ticket status has a column', () => {
   const table: Array<[string, MyWorkColumnKey]> = [
     ['ASSIGNED', 'pending'],
     ['IN_PROGRESS', 'in_progress'],
+    ['PENDING_REVIEW', 'review'],
     ['RESOLVED', 'completed'],
     ['UNRESOLVED', 'closed'],
     ['REJECTED_BY_ASSIGNEE', 'closed'],

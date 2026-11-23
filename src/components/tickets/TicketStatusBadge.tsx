@@ -1,6 +1,6 @@
 import React from 'react';
 import type { TicketStatus } from '@/types/ticket';
-import { Clock, CheckCircle2, AlertCircle, XCircle, UserCheck, PlayCircle, Ban } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, XCircle, UserCheck, PlayCircle, Ban, Hourglass } from 'lucide-react';
 
 interface TicketStatusBadgeProps {
   status: TicketStatus;
@@ -28,6 +28,13 @@ export const TicketStatusBadge: React.FC<TicketStatusBadgeProps> = ({ status, cl
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 ${className}`}>
           <PlayCircle className="w-3.5 h-3.5 text-purple-600 animate-pulse" />
           <span>قيد المعالجة والتنفيذ</span>
+        </span>
+      );
+    case 'PENDING_REVIEW':
+      return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 ${className}`}>
+          <Hourglass className="w-3.5 h-3.5 text-indigo-600" />
+          <span>بانتظار المراجعة والاعتماد</span>
         </span>
       );
     case 'RESOLVED':

@@ -51,8 +51,11 @@ export const TASK_SCOPES: TaskScope[] = ['simple', 'medium', 'large', 'strategic
 
 export const isTaskScope = (v: unknown): v is TaskScope => typeof v === 'string' && (TASK_SCOPES as string[]).includes(v)
 
-/** What a TICKET's points and duration are: a planning estimate. Nothing is credited to the assignee from them. */
-export const TICKET_ESTIMATE_NOTE = 'النقاط والمدة تقدير للتخطيط فقط ولا تُضاف إلى رصيد المكلّف.'
+/**
+ * What a TICKET's points and duration are: a planning estimate while the work is open. They are credited to the
+ * assignee exactly once, at the FINAL approval of the completed ticket by an authorised approver (never the assignee).
+ */
+export const TICKET_ESTIMATE_NOTE = 'النقاط والمدة تقدير للتخطيط، ولا تُضاف إلى رصيد المكلّف إلا مرة واحدة بعد الاعتماد النهائي من معتمِد مخوّل.'
 
 export type DurationUnit = 'hours' | 'minutes'
 

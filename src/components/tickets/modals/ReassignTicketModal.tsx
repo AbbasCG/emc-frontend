@@ -1,8 +1,9 @@
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { ticketService } from '@/services/ticketService';
 import { apiMessage } from '@/services/ticketOpsService';
-import type { DepartmentalUnit, TicketUser } from '@/types/ticket';
-import AssigneeSearchSelect from '@/components/tickets/AssigneeSearchSelect';
+import { getLaravelFieldErrors } from '@/api/apiErrors';
+import { AssignmentTargetFields } from '@/components/tickets/modals/AssignmentTargetFields';
+import { useAssignmentTargets } from '@/hooks/useAssignmentTargets';
 import TaskEstimateFields from '@/components/operations/TaskEstimateFields';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { useEstimateDraft } from '@/hooks/useEstimateDraft';
@@ -43,9 +44,19 @@ export interface ReassignTicketModalProps {
  * A new assignee takes the work on with a size, points and an approximate
  * duration, so those are collected here (points required, duration optional).
  *
+ * The technical unit is required only when the department has units (the ticket's current unit is
+ * preselected); a department without units reassigns straight to its members and sends no `unit_id`.
+ *
  * Shared between TechAdminDashboardPage and TicketDetailPage.
  */
-export function ReassignTicketModal({
+export function ReassignTicketModal(props: ReassignTicketModalProps) {
+  // A fresh state for every ticket/department: nothing (unit, assignee, lists) carries over.
+  return <ReassignTicketModalBody key={`${props.ticketId}:${props.departmentId}`} {...props} />;
+}
+
+type ServerFieldErrors = { unit_id?: string; assigned_to_id?: string };
+
+function ReassignTicketModalBody({
   ticketId,
   departmentId,
   currentUnitId,
@@ -56,51 +67,22 @@ export function ReassignTicketModal({
   onSuccess,
 }: ReassignTicketModalProps) {
   const formId = useId();
-  const [unitId, setUnitId] = useState(currentUnitId ? String(currentUnitId) : '');
-  const [assignedToId, setAssignedToId] = useState('');
+  const targets = useAssignmentTargets(departmentId, currentUnitId);
   const [reason, setReason] = useState('');
   const known = currentEstimate ?? {};
   const estimate = useEstimateDraft(() => estimateFromRecord(known));
   const legacy = isLegacyRecord(known);
 
-  const [units, setUnits] = useState<DepartmentalUnit[]>([]);
-  const [unitsLoading, setUnitsLoading] = useState(false);
-  const [users, setUsers] = useState<TicketUser[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the unit and user lists when the modal inputs change
-    setUnitsLoading(true);
-    ticketService.getMeta({ department_id: departmentId })
-      .then((meta) => { if (!cancelled) setUnits(meta.tech_units ?? []); })
-      .catch(() => { if (!cancelled) toast.error('تعذر تحميل الوحدات التقنية'); })
-      .finally(() => { if (!cancelled) setUnitsLoading(false); });
-    return () => { cancelled = true; };
-  }, [departmentId]);
-
-  useEffect(() => {
-    if (!unitId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the unit and user lists when the modal inputs change
-      setUsers([]);
-      return;
-    }
-    let cancelled = false;
-    setUsersLoading(true);
-    ticketService.getMeta({ department_id: departmentId, unit_id: Number(unitId) })
-      .then((meta) => { if (!cancelled) setUsers(meta.users ?? []); })
-      .catch(() => { if (!cancelled) toast.error('تعذر تحميل قائمة الموظفين'); })
-      .finally(() => { if (!cancelled) setUsersLoading(false); });
-    return () => { cancelled = true; };
-  }, [departmentId, unitId]);
+  const [fieldErrors, setFieldErrors] = useState<ServerFieldErrors>({});
 
   const handleReassign = async () => {
     if (submitting) return;
     setFailure(null);
-    if (!assignedToId) {
-      toast.error('يجب اختيار المكلف الجديد');
+    setFieldErrors({});
+    if (!targets.canSubmit) {
+      toast.error(targets.hasUnits ? 'يجب اختيار الوحدة التقنية والمكلف الجديد' : 'يجب اختيار المكلف الجديد');
       return;
     }
     // An assignee is being chosen: size and points are required (duration stays optional).
@@ -111,20 +93,28 @@ export function ReassignTicketModal({
     setSubmitting(true);
     try {
       await ticketService.reassign(ticketId, {
-        assigned_to_id: Number(assignedToId),
-        unit_id: unitId ? Number(unitId) : undefined,
+        assigned_to_id: Number(targets.assigneeId),
+        // No unit for a department that has none.
+        ...(targets.hasUnits ? { unit_id: Number(targets.unitId) } : {}),
         reason,
         ...estimate.payload(),
       });
       toast.success('تمت إعادة التوجيه وتغيير المكلف');
       onSuccess();
     } catch (e) {
-      if (!estimate.fromServer(e)) {
-        const message = apiMessage(e, 'حدث خطأ أثناء إعادة التوجيه');
-        setFailure(message);
-        toast.error(message);
-      } else {
+      if (estimate.fromServer(e)) {
         toast.error('راجع النقاط والمدة');
+      } else {
+        const server = getLaravelFieldErrors(e);
+        const mapped: ServerFieldErrors = { unit_id: server.unit_id, assigned_to_id: server.assigned_to_id };
+        if (mapped.unit_id || mapped.assigned_to_id) {
+          setFieldErrors(mapped);
+          toast.error(mapped.assigned_to_id ?? mapped.unit_id ?? 'تعذرت إعادة التوجيه');
+        } else {
+          const message = apiMessage(e, 'حدث خطأ أثناء إعادة التوجيه');
+          setFailure(message);
+          toast.error(message);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -138,7 +128,7 @@ export function ReassignTicketModal({
       size="md"
       testId="reassign-ticket-modal"
       busy={submitting}
-      dirty={Boolean(assignedToId || reason.trim())}
+      dirty={Boolean(targets.assigneeId || reason.trim())}
       title="إعادة التوجيه وتغيير المكلف"
       subtitle="ستُعاد التذكرة لحالة (معتمدة) وتُحال للمكلف الجديد."
       footer={(requestClose) => (
@@ -154,7 +144,7 @@ export function ReassignTicketModal({
           <button
             type="submit"
             form={formId}
-            disabled={submitting || !assignedToId}
+            disabled={submitting || !targets.canSubmit}
             className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-60"
           >
             {submitting ? 'جاري الحفظ...' : 'تأكيد إعادة التوجيه'}
@@ -179,40 +169,19 @@ export function ReassignTicketModal({
           </section>
         ) : null}
 
-        <div>
-          <label htmlFor={`${formId}-unit`} className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية</label>
-          <select
-            id={`${formId}-unit`}
-            value={unitId}
-            disabled={unitsLoading}
-            onChange={(e) => { setUnitId(e.target.value); setAssignedToId(''); }}
-            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
-          >
-            <option value="">— إبقاء الوحدة الحالية —</option>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.name_ar}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            المكلف الجديد <span className="text-rose-500">*</span>
-          </label>
-          <AssigneeSearchSelect
-            instanceId="reassign-modal-assignee"
-            ariaLabel="المكلف الجديد"
-            users={users}
-            value={assignedToId}
-            onChange={setAssignedToId}
-            disabledUserIds={declinedAssigneeId ? [declinedAssigneeId] : []}
-            disabledHint="اعتذر عن هذه التذكرة"
-            isDisabled={!unitId || usersLoading}
-            isLoading={usersLoading}
-            placeholder={!unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
-            noOptionsMessage={!unitId ? 'اختر الوحدة التقنية أولاً' : 'لا يوجد موظفون مرتبطون بهذه الوحدة'}
-          />
-        </div>
+        <AssignmentTargetFields
+          formId={formId}
+          targets={targets}
+          unitLabel="الوحدة التقنية"
+          assigneeLabel="المكلف الجديد"
+          assigneeInstanceId="reassign-modal-assignee"
+          disabled={submitting}
+          disabledUserIds={declinedAssigneeId ? [declinedAssigneeId] : []}
+          disabledHint="اعتذر عن هذه التذكرة"
+          errors={fieldErrors}
+          onUnitChange={() => setFieldErrors((f) => ({ ...f, unit_id: undefined }))}
+          onAssigneeChange={() => setFieldErrors((f) => ({ ...f, assigned_to_id: undefined }))}
+        />
 
         <TaskEstimateFields
           value={estimate.draft}

@@ -7,7 +7,8 @@
  *   idea, under_review, planning, waiting_approval, in_progress, needs_evaluation, completed, postponed, cancelled
  *   acceptance: pending (assigned, not yet accepted) · accepted · rejected (the member declined)
  * Ticket states (Ticket::status):
- *   PENDING_APPROVAL, ASSIGNED (assigned, not yet accepted), IN_PROGRESS (accepted), RESOLVED, UNRESOLVED,
+ *   PENDING_APPROVAL, ASSIGNED (assigned, not yet accepted), IN_PROGRESS (accepted), PENDING_REVIEW (submitted, waiting
+ *   for the final approval), RESOLVED, UNRESOLVED,
  *   REJECTED_BY_ADMIN, REJECTED_BY_ASSIGNEE (declined)
  */
 
@@ -69,6 +70,8 @@ const TICKET_STATUS_COLUMN: Record<string, MyWorkColumnKey> = {
   PENDING_APPROVAL: 'pending',
   ASSIGNED: 'pending',
   IN_PROGRESS: 'in_progress',
+  // Submitted by the assignee, waiting for the final approval: the same column as a task waiting for approval.
+  PENDING_REVIEW: 'review',
   RESOLVED: 'completed',
   UNRESOLVED: 'closed',
   REJECTED_BY_ASSIGNEE: 'closed',

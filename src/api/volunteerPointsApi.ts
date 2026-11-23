@@ -150,6 +150,7 @@ export type PointsMemberHistory = {
 export const AWARD_CATEGORIES: Array<{ value: string; label: string }> = [
   { value: 'meetings', label: 'الالتزام والاجتماعات' },
   { value: 'task', label: 'مهمة' },
+  { value: 'ticket', label: 'تذكرة' },
   { value: 'quality_bonus', label: 'جودة الأداء الشهري' },
   { value: 'initiative', label: 'مبادرة' },
   { value: 'workshop', label: 'ورشة' },
