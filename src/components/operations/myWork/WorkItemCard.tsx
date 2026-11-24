@@ -35,7 +35,7 @@ export default function WorkItemCard({
 
   const heading = (
     <>
-      {item.reference ? <span className="block font-mono text-[11px] font-black text-customBlue" dir="ltr">{item.reference}</span> : null}
+      {item.reference ? <span className="block font-mono text-[11px] font-black text-customBlue" >{item.reference}</span> : null}
       <span className="mt-0.5 block text-[13px] font-black leading-snug text-deepBlue">{item.title}</span>
     </>
   )
