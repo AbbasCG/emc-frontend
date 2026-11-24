@@ -33,6 +33,7 @@ import { TicketEstimateValue } from '@/components/tickets/TicketEstimateValue';
 import { TicketCreditBlock } from '@/components/tickets/TicketCreditBlock';
 import { TicketLifecyclePanel } from '@/components/tickets/TicketLifecyclePanel';
 import toast from '@/lib/toast';
+import { formatTime24 } from '@/utils/time24';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function formatArabicDate(dateStr: string) {
@@ -40,7 +41,7 @@ function formatArabicDate(dateStr: string) {
   return (
     d.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) +
     ' — الساعة ' +
-    d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+    formatTime24(d, { locale: 'ar-SA' })
   );
 }
 

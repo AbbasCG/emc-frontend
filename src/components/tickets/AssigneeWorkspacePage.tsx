@@ -35,6 +35,7 @@ import {
 import toast from '@/lib/toast';
 import { fetchMeetings } from '@/api/meetingsApi';
 import type { OpsMeeting } from '@/types/operations';
+import { formatDateTime24 } from '@/utils/time24';
 
 // Brand V2.2 tokens only (raw hex is lint-forbidden):
 //   primary brand-500 · secondary accent-500 (solid; accent-600/800 for text on light)
@@ -81,9 +82,8 @@ const CLOSED_STATUSES: TicketStatus[] = ['RESOLVED', 'UNRESOLVED', 'REJECTED_BY_
 
 function formatDateTime(str?: string | null): string {
   if (!str) return '';
-  const date = new Date(str);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+  const text = formatDateTime24(str, { locale: 'ar-EG' });
+  return text === '—' ? '' : text;
 }
 
 // ── Small presentational pieces ─────────────────────────────────────────────

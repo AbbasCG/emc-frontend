@@ -2,6 +2,7 @@ import { CheckCircle2, CircleDot, Lock, MessageSquare, Send, TriangleAlert, XCir
 import type { TicketActivityLog } from '@/types/ticket'
 import { cn } from '@/lib/utils'
 import { InternalMark } from './TicketBadges'
+import { ReviewLogMeta } from '@/components/tickets/ReviewLogMeta'
 import { STATUS_LABELS, TIMELINE_META, formatDateTime, ticketActionLabel } from './ticketOpsUi'
 
 const TONE = {
@@ -45,6 +46,7 @@ export function TicketActivityTimeline({ logs }: { logs: TicketActivityLog[] }) 
               </div>
               {log.details ? <p className="mt-1 whitespace-pre-wrap break-words text-[12px] font-semibold leading-relaxed text-deepBlue/75">{log.details}</p> : null}
               {log.performed_by_name ? <p className="mt-1 text-[11px] font-bold text-deepBlue/45">{log.performed_by_name}</p> : null}
+              <ReviewLogMeta log={log} className="mt-1 text-[11px] font-semibold text-deepBlue/55" />
             </div>
           </li>
         )

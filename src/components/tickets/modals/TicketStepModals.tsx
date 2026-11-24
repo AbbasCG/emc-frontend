@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { ticketService } from '@/services/ticketService';
-import { apiErrorCode, apiMessage, httpStatus } from '@/services/ticketOpsService';
+import { apiErrorCode, apiMessage, httpStatus, reviewRefusalOf } from '@/services/ticketOpsService';
 import { getLaravelFieldErrors } from '@/api/apiErrors';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { formatDurationMinutes } from '@/lib/taskEstimate';
@@ -90,7 +90,9 @@ function TicketStepModal({ title, subtitle, testId, submitLabel, busyLabel, subm
       const status = httpStatus(e);
       const message = apiMessage(e, 'تعذّر تنفيذ الإجراء');
       const fieldErrors = getLaravelFieldErrors(e);
-      if (status === 409 && (apiErrorCode(e) === 'ALREADY_CREDITED' || message === ALREADY_CREDITED_MESSAGE)) {
+      if (reviewRefusalOf(e)) {
+        setFailure(reviewRefusalOf(e)!.message);
+      } else if (status === 409 && (apiErrorCode(e) === 'ALREADY_CREDITED' || message === ALREADY_CREDITED_MESSAGE)) {
         toast.message(message);
         onSuccess();
       } else if (status === 409) {

@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
-import { apiErrorCode, apiMessage, httpStatus } from '@/services/ticketOpsService';
+import { apiErrorCode, apiMessage, httpStatus, reviewRefusalOf } from '@/services/ticketOpsService';
 import { getLaravelFieldErrors } from '@/api/apiErrors';
 import TaskEstimateFields, { ActualDurationFields } from '@/components/operations/TaskEstimateFields';
 import { CenteredModal } from '@/components/ui/CenteredModal';
@@ -63,8 +63,9 @@ export interface ApproveCompletionModalProps {
  *   ticket is in review). The values are sent only when they differ from the stored ones; unchanged sends just the note.
  * - A legacy ticket without a size/points must supply them (points required, as the server requires).
  * - 409 ALREADY_CREDITED: shown as information, the modal closes and the ticket is re-read. Never resubmitted.
- * - Any other 409 (NOT_PENDING_REVIEW): the server's message and a re-read. 403 (SELF_REVIEW, HR_APPROVAL_REQUIRED
- *   when the size is above «بسيطة») and 422 stay in the dialog.
+ * - Any other 409 (NOT_PENDING_REVIEW): the server's message and a re-read. 403 (REVIEW_PERMISSION_REQUIRED,
+ *   PARTICIPATION_PERMISSION_REQUIRED, HR_APPROVAL_REQUIRED when the size is above «بسيطة») and 422 stay in the dialog
+ *   with the server's Arabic sentence.
  * - «المدة الفعلية» (hours + minutes) is REQUIRED and is the ONLY time credited: it starts empty (or at the stored
  *   `actual_minutes`, so it can be corrected), never from the approximate duration, and is always sent as
  *   `actual_minutes`. The approximate duration is shown read-only for comparison.
@@ -137,6 +138,9 @@ export function ApproveCompletionModal({ ticket, mode = 'completion', onClose, o
         // Already done (a replay or another approver): say so, never submit again, and show the real state.
         toast.message(message);
         onSuccess();
+      } else if (reviewRefusalOf(e)) {
+        // 403 REVIEW_PERMISSION_REQUIRED / PARTICIPATION_PERMISSION_REQUIRED: the server's own sentence says what to ask for.
+        setFailure(reviewRefusalOf(e)!.message);
       } else if (status === 409 && apiErrorCode(e) === 'ASSIGNEE_UNAVAILABLE') {
         // Nothing a refresh would change: the assignee must be restored or the ticket reassigned. Stay and say so.
         setFailure(message);

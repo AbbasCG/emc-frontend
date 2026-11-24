@@ -1,5 +1,5 @@
 import type { TicketCategory, TicketPriority, TicketStatus } from '@/types/ticket'
-import type { SavedTicketView, TicketFilters, TicketSortKey, TicketView } from '@/types/ticketOps'
+import type { SavedTicketView, TicketFilters, TicketSortKey, TicketTab, TicketView } from '@/types/ticketOps'
 
 /**
  * The ticket work queue's filter model: one place that knows the URL vocabulary, validates it,
@@ -19,10 +19,24 @@ export const TICKET_PRIORITIES: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'CR
 export const TICKET_CATEGORIES: TicketCategory[] = ['OLD_ISSUE', 'NEW_SUGGESTION']
 export const SORT_KEYS: TicketSortKey[] = ['created_at', 'updated_at', 'priority', 'status', 'ticket_number', 'title', 'due', 'last_activity']
 export const PAGE_SIZES = [10, 25, 50, 100] as const
+/** The queue's tabs, in the order they are shown. `open` is the tab the page opens on. */
+export const TICKET_TABS: TicketTab[] = ['open', 'all', 'resolved', 'needs_action']
+export const DEFAULT_TAB: TicketTab = 'open'
+/**
+ * What each tab is called. «تحتاج إجراءً منك» is PERSONAL: the tickets on which the signed-in account has a workflow step to take
+ * (the same set as the quick filter `attention=1`), so the label says «منك» and never claims it is the department's queue.
+ */
+export const TAB_LABELS: Record<TicketTab, string> = {
+  open: 'مفتوحة',
+  all: 'جميع التذاكر',
+  resolved: 'تم حلها',
+  needs_action: 'تحتاج إجراءً منك',
+}
 export const VIEWS: TicketView[] = ['table', 'board', 'analytics']
 export const ANALYTICS_WINDOWS = [7, 14, 30, 90] as const
 
 export const DEFAULT_FILTERS: TicketFilters = {
+  tab: DEFAULT_TAB,
   search: '',
   status: [],
   priority: [],
@@ -47,7 +61,7 @@ export const DEFAULT_FILTERS: TicketFilters = {
 
 /** URL parameter names owned by the filters (everything else, such as `view` or `ticket`, is left alone). */
 export const FILTER_PARAM_KEYS = [
-  'search', 'status', 'priority', 'category', 'dept', 'assignee', 'unassigned', 'mine', 'attention', 'overdue', 'delayed',
+  'tab', 'search', 'status', 'priority', 'category', 'dept', 'assignee', 'unassigned', 'mine', 'attention', 'overdue', 'delayed',
   'state', 'sla', 'created_from', 'created_to', 'due_from', 'due_to', 'sort', 'dir', 'per_page', 'page',
 ] as const
 
@@ -78,6 +92,7 @@ export function parseFilters(params: URLSearchParams): TicketFilters {
   const page = Number(params.get('page'))
 
   return {
+    tab: one(params.get('tab'), TICKET_TABS) || DEFAULT_TAB,
     search: (params.get('search') ?? '').slice(0, 100),
     status: list(params.get('status'), TICKET_STATUSES),
     priority: list(params.get('priority'), TICKET_PRIORITIES),
@@ -109,6 +124,8 @@ export function filtersToParams(f: TicketFilters): URLSearchParams {
   const set = (k: string, v: string) => {
     if (v) p.set(k, v)
   }
+  // The default tab is left out of the URL (a clean link opens on «مفتوحة»); any other tab is written.
+  if (f.tab !== DEFAULT_TAB) p.set('tab', f.tab)
   set('search', f.search.trim())
   set('status', f.status.join(','))
   set('priority', f.priority.join(','))
@@ -170,6 +187,8 @@ export function toApiParams(f: TicketFilters, opts: { scope?: boolean; lite?: bo
   }
 
   put('search', f.search.trim())
+  // Always sent explicitly, never left to the server's default. The statistics ignore it (scope requests leave it out).
+  if (!opts.scope) q.tab = f.tab
   put('ticket_category', f.category)
   put('department_id', f.department)
   put('assigned_to_id', f.assignee)
@@ -210,20 +229,36 @@ export function kpiPatch(kpi: KpiKey): Partial<TicketFilters> {
     case 'pendingReview': return { ...CLEAR_KPI, status: ['PENDING_REVIEW'] }
     case 'approvedForDeploy': return { ...CLEAR_KPI, status: ['APPROVED_FOR_DEPLOY'] }
     case 'pendingVerification': return { ...CLEAR_KPI, status: ['PENDING_VERIFICATION'] }
-    case 'resolved': return { ...CLEAR_KPI, status: ['RESOLVED'] }
-    case 'closed': return { ...CLEAR_KPI, state: 'closed' }
+    // The finished-ticket cards live on a tab that can show finished tickets (the default tab hides them).
+    case 'resolved': return { ...CLEAR_KPI, status: ['RESOLVED'], tab: 'resolved' }
+    case 'closed': return { ...CLEAR_KPI, state: 'closed', tab: 'all' }
     case 'overdue': return { ...CLEAR_KPI, overdue: true }
     case 'unassigned': return { ...CLEAR_KPI, state: 'open', unassigned: true }
     case 'highPriority': return { ...CLEAR_KPI, state: 'open', priority: ['HIGH', 'CRITICAL'] }
-    default: return { ...CLEAR_KPI }
+    // «الإجمالي» = every ticket, so it is the «جميع التذاكر» tab (also what a chart drill-down starts from).
+    default: return { ...CLEAR_KPI, tab: 'all' }
   }
+}
+
+/**
+ * The patch a KPI card applies on top of the tab the user is on. Cards for open work keep the current tab (open / all /
+ * needs-action all contain open tickets) except «تم حلها», which holds none of them and would answer with nothing.
+ */
+export function kpiPatchFor(kpi: KpiKey, currentTab: TicketTab): Partial<TicketFilters> {
+  const patch = kpiPatch(kpi)
+  if (!('tab' in patch) && currentTab === 'resolved') return { ...patch, tab: 'open' }
+
+  return patch
 }
 
 /** Is this card the one currently applied? */
 export function isKpiActive(f: TicketFilters, kpi: KpiKey): boolean {
-  const target = withFilters(DEFAULT_FILTERS, kpiPatch(kpi))
+  const patch = kpiPatch(kpi)
+  const target = withFilters(DEFAULT_FILTERS, patch)
+  // The tab takes part only for the cards that choose one (total / closed / resolved): the open-work cards work on any tab.
+  const keys: readonly (keyof TicketFilters)[] = 'tab' in patch ? [...KPI_FILTER_KEYS, 'tab'] : KPI_FILTER_KEYS
 
-  return KPI_FILTER_KEYS.every((k) => JSON.stringify(f[k]) === JSON.stringify(target[k]))
+  return keys.every((k) => JSON.stringify(f[k]) === JSON.stringify(target[k]))
 }
 
 export interface FilterChip {
@@ -256,7 +291,7 @@ export function describeFilters(f: TicketFilters, l: ChipLabels): FilterChip[] {
   if (f.assignee) add('assignee', `المكلف: ${l.assigneeName?.(f.assignee) ?? `#${f.assignee}`}`, { assignee: '' })
   if (f.unassigned) add('unassigned', 'بلا مكلف', { unassigned: false })
   if (f.mine) add('mine', 'المسندة إليّ', { mine: false })
-  if (f.attention) add('attention', 'تحتاج إجرائي', { attention: false })
+  if (f.attention) add('attention', 'تحتاج إجراءً منك', { attention: false })
   if (f.overdue) add('overdue', 'متأخرة', { overdue: false })
   if (f.state) add('state', f.state === 'open' ? 'مفتوحة' : 'مغلقة', { state: '' })
   if (f.sla) add('sla', `الموعد: ${SLA_LABEL[f.sla]}`, { sla: '' })
@@ -271,12 +306,22 @@ export const activeFilterCount = (f: TicketFilters, l: ChipLabels) => describeFi
 
 /** The query string a saved view stores: filters only, with no page, no drawer and no view mode. */
 export function savedQueryOf(f: TicketFilters): string {
-  return filtersToParams({ ...f, page: 1 }).toString()
+  const p = filtersToParams({ ...f, page: 1 })
+  // Nothing but the default tab: nothing worth saving. Otherwise the tab is written EXPLICITLY, so a view saved on «مفتوحة»
+  // is told apart from a view saved before the tabs existed (which has no `tab` and meant every ticket; see filtersFromSaved).
+  if (p.toString() === '') return ''
+  p.set('tab', f.tab)
+
+  return p.toString()
 }
 
 /** Filters from a saved view, revalidated like any URL (a stored view can be stale or tampered with). */
 export function filtersFromSaved(view: Pick<SavedTicketView, 'query'>): TicketFilters {
-  return parseFilters(new URLSearchParams(view.query))
+  const params = new URLSearchParams(view.query)
+  // A view saved before the tabs existed filtered over EVERY ticket: it keeps doing so (the default tab would hide the finished ones).
+  if (!params.has('tab')) params.set('tab', 'all')
+
+  return parseFilters(params)
 }
 
 /** The view mode in the URL, validated. */
@@ -296,7 +341,7 @@ export function parseTicketParam(params: URLSearchParams): number | null {
 /** Ready-made views. They are only filter sets: opening one runs the normal query and the server still scopes it. */
 export const TICKET_PRESETS: { id: string; label: string; patch: Partial<TicketFilters> }[] = [
   { id: 'mine', label: 'مهامي المفتوحة', patch: { mine: true, state: 'open' } },
-  { id: 'attention', label: 'تحتاج إجرائي', patch: { attention: true } },
+  { id: 'attention', label: 'تحتاج إجراءً منك', patch: { tab: 'needs_action', attention: false } },
   { id: 'pending', label: 'بانتظار الاعتماد', patch: { status: ['PENDING_APPROVAL'] } },
   { id: 'review', label: 'بانتظار المراجعة والاعتماد', patch: { status: ['PENDING_REVIEW'] } },
   { id: 'deploy', label: 'معتمدة للنشر', patch: { status: ['APPROVED_FOR_DEPLOY'] } },
@@ -304,6 +349,6 @@ export const TICKET_PRESETS: { id: string; label: string; patch: Partial<TicketF
   { id: 'unassigned', label: 'بلا مكلف', patch: { unassigned: true, state: 'open' } },
   { id: 'high', label: 'أولوية عالية', patch: { priority: ['HIGH', 'CRITICAL'], state: 'open' } },
   { id: 'overdue', label: 'متأخرة', patch: { overdue: true } },
-  { id: 'recent', label: 'حُلّت مؤخرًا', patch: { status: ['RESOLVED'], sort: 'updated_at', dir: 'desc' } },
+  { id: 'recent', label: 'حُلّت مؤخرًا', patch: { tab: 'resolved', status: ['RESOLVED'], sort: 'updated_at', dir: 'desc' } },
 ]
 

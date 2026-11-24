@@ -164,7 +164,7 @@ export const ticketService = {
   /**
    * Deployment ticket, reviewer: approve the reviewed work FOR DEPLOYMENT. Body: `task_scope`, `task_points`,
    * `actual_minutes` (all validated by the server), optional `estimated_hours` and `note`. Approves points and time;
-   * credits nothing (that happens when the assignee confirms the live test). 403 HR_APPROVAL_REQUIRED / SELF_REVIEW,
+   * credits nothing (that happens when the assignee confirms the live test). 403 HR_APPROVAL_REQUIRED / REVIEW_PERMISSION_REQUIRED / PARTICIPATION_PERMISSION_REQUIRED,
    * 409 INVALID_STAGE / NOT_PENDING_REVIEW, 422 field errors.
    */
   approveForDeploy: async (

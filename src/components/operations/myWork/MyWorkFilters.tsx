@@ -26,13 +26,18 @@ export default function MyWorkFilters({
   value,
   onChange,
   counts,
+  searchLabel = 'بحث في مهامي وتذاكري',
+  testId = 'my-work-filters',
 }: {
   value: WorkFilters
   onChange: (next: WorkFilters) => void
   counts: { all: number; tasks: number; tickets: number }
+  /** Accessible name of the search box (the global board searches everyone's work, not «mine»). */
+  searchLabel?: string
+  testId?: string
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-deepBlue/[0.03] p-3 ring-1 ring-deepBlue/[0.06] md:flex-row md:flex-wrap md:items-center md:justify-between" data-testid="my-work-filters">
+    <div className="flex flex-col gap-3 rounded-2xl bg-deepBlue/[0.03] p-3 ring-1 ring-deepBlue/[0.06] md:flex-row md:flex-wrap md:items-center md:justify-between" data-testid={testId}>
       <div role="group" aria-label="نوع العناصر" className="inline-flex max-w-full self-start rounded-xl bg-white p-1 ring-1 ring-deepBlue/[0.08]">
         {KINDS.map((k) => {
           const on = value.kind === k.id
@@ -54,10 +59,11 @@ export default function MyWorkFilters({
 
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 md:justify-end">
         <label className="relative min-w-[12rem] flex-1 md:max-w-xs">
-          <span className="sr-only">بحث في مهامي وتذاكري</span>
+          <span className="sr-only">{searchLabel}</span>
           <Search size={14} className="pointer-events-none absolute right-3 top-2.5 text-slate-400" aria-hidden="true" />
           <input
             type="search"
+            maxLength={100}
             value={value.search}
             onChange={(e) => onChange({ ...value, search: e.target.value })}
             placeholder="بحث بالعنوان أو رقم التذكرة…"

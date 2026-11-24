@@ -7,6 +7,7 @@ import {
   filtersToParams,
   isKpiActive,
   kpiPatch,
+  kpiPatchFor,
   mergeIntoParams,
   parseFilters,
   parseTicketParam,
@@ -136,13 +137,21 @@ describe('the API query', () => {
 
   it('maps filters to the server vocabulary and trims the search', () => {
     expect(toApiParams(f, { lite: true })).toEqual({
-      search: 'شبكة', ticket_category: 'OLD_ISSUE', department_id: '3', assigned_to_id: '8', created_from: '2026-10-01',
+      tab: 'open', search: 'شبكة', ticket_category: 'OLD_ISSUE', department_id: '3', assigned_to_id: '8', created_from: '2026-10-01',
       status: 'ASSIGNED,IN_PROGRESS', priority: 'HIGH', unassigned: 1, overdue: 1, state: 'open', sla: 'overdue', sort: 'priority', dir: 'asc', per_page: 50, page: 3, lite: 1,
     })
   })
 
   it('sends nothing for filters that are not set, and no page 1', () => {
-    expect(toApiParams(DEFAULT_FILTERS)).toEqual({ sort: 'created_at', dir: 'desc', per_page: 25 })
+    // The tab is the one thing always sent explicitly: the server's own default is never relied on.
+    expect(toApiParams(DEFAULT_FILTERS)).toEqual({ tab: 'open', sort: 'created_at', dir: 'desc', per_page: 25 })
+  })
+
+  it('sends the chosen tab, and never sends it with the figures (the statistics ignore it)', () => {
+    for (const tab of ['open', 'all', 'resolved', 'needs_action'] as const) {
+      expect(toApiParams(withFilters(DEFAULT_FILTERS, { tab }))).toMatchObject({ tab })
+      expect(toApiParams(withFilters(DEFAULT_FILTERS, { tab }), { scope: true })).not.toHaveProperty('tab')
+    }
   })
 
   it('the figures see only the scope filters: no card filter, no paging, no sorting', () => {
@@ -151,6 +160,52 @@ describe('the API query', () => {
 
   it('a different page asks for the same figures (no re-request)', () => {
     expect(toApiParams(withFilters(f, { page: 9 }), { scope: true })).toEqual(toApiParams(f, { scope: true }))
+  })
+})
+
+describe('the tabs in the URL', () => {
+  it('opens on «مفتوحة» when the URL names no tab, and keeps the default out of the URL', () => {
+    expect(parse('').tab).toBe('open')
+    expect(filtersToParams(DEFAULT_FILTERS).has('tab')).toBe(false)
+  })
+
+  it('round-trips every other tab through the URL', () => {
+    for (const tab of ['all', 'resolved', 'needs_action'] as const) {
+      const f = withFilters(DEFAULT_FILTERS, { tab })
+      expect(filtersToParams(f).get('tab')).toBe(tab)
+      expect(parseFilters(filtersToParams(f)).tab).toBe(tab)
+    }
+  })
+
+  it('an unknown tab in a hand-edited URL falls back to the default, never reaching the server', () => {
+    expect(parse('tab=hacked').tab).toBe('open')
+    expect(toApiParams(parse('tab=hacked%3BDROP')).tab).toBe('open')
+  })
+
+  it('switching tab is a filter change: the page goes back to 1; changing only the page keeps the tab', () => {
+    const on3 = withFilters(DEFAULT_FILTERS, { page: 3 })
+    expect(withFilters(on3, { tab: 'all' })).toMatchObject({ tab: 'all', page: 1 })
+    expect(withFilters(withFilters(on3, { tab: 'all' }), { page: 2 })).toMatchObject({ tab: 'all', page: 2 })
+  })
+
+  it('the tab is not a removable chip and not an "active filter"', () => {
+    const labels = { status: {}, priority: {}, category: {} }
+    expect(describeFilters(withFilters(DEFAULT_FILTERS, { tab: 'resolved' }), labels)).toEqual([])
+  })
+
+  it('the open-work cards keep the tab, except «تم حلها» (which holds none of their tickets)', () => {
+    expect(kpiPatchFor('overdue', 'all')).not.toHaveProperty('tab')
+    expect(kpiPatchFor('overdue', 'needs_action')).not.toHaveProperty('tab')
+    expect(kpiPatchFor('overdue', 'resolved')).toMatchObject({ tab: 'open' })
+    expect(kpiPatch('resolved')).toMatchObject({ tab: 'resolved' })
+    expect(kpiPatch('closed')).toMatchObject({ tab: 'all' })
+    expect(kpiPatch('total')).toMatchObject({ tab: 'all' })
+  })
+
+  it('the «attention» quick filter still works, and the personal-queue preset is the tab', () => {
+    expect(toApiParams(withFilters(DEFAULT_FILTERS, { attention: true }))).toMatchObject({ attention: 1, tab: 'open' })
+    expect(TICKET_PRESETS.find((p) => p.id === 'attention')?.patch).toMatchObject({ tab: 'needs_action' })
+    expect(TICKET_PRESETS.find((p) => p.id === 'recent')?.patch).toMatchObject({ tab: 'resolved' })
   })
 })
 
@@ -216,7 +271,18 @@ describe('saved views and presets', () => {
   })
 
   it('a stored view is revalidated like any URL', () => {
-    expect(filtersFromSaved({ query: 'status=HACKED&dept=1;DROP&sort=x&per_page=999' })).toEqual(DEFAULT_FILTERS)
+    // A view saved before the tabs existed meant «every ticket», so it opens on «جميع التذاكر», not on the new default.
+    expect(filtersFromSaved({ query: 'status=HACKED&dept=1;DROP&sort=x&per_page=999' })).toEqual({ ...DEFAULT_FILTERS, tab: 'all' })
+  })
+
+  it('a view saved with a tab keeps it, and the saved query always names the tab', () => {
+    const f = withFilters(DEFAULT_FILTERS, { status: ['IN_PROGRESS'] })
+    expect(savedQueryOf(f)).toBe('status=IN_PROGRESS&tab=open')
+    expect(filtersFromSaved({ query: savedQueryOf(f) })).toEqual(f)
+    const resolved = withFilters(DEFAULT_FILTERS, { tab: 'resolved' })
+    expect(filtersFromSaved({ query: savedQueryOf(resolved) })).toEqual(resolved)
+    // Only the default tab and nothing else: nothing to save.
+    expect(savedQueryOf(DEFAULT_FILTERS)).toBe('')
   })
 
   it('every preset is a valid set of filters', () => {

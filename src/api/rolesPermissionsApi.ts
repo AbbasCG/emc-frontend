@@ -52,8 +52,9 @@ function permissionItemFromUnknown(raw: unknown, fallbackKey = ''): AdminPermiss
   if (!key) return null
   return {
     key,
-    label: str(o.label ?? o.label_ar ?? o.title ?? o.name_ar),
-    description: str(o.description ?? o.description_ar ?? o.hint),
+    // The Arabic text wins: the server sends `label` / `description` in English next to `label_ar` / `description_ar`.
+    label: str(o.label_ar ?? o.label ?? o.title ?? o.name_ar),
+    description: str(o.description_ar ?? o.description ?? o.hint),
   }
 }
 

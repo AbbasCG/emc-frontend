@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react';
 import { ticketService } from '@/services/ticketService';
-import { apiMessage, httpStatus } from '@/services/ticketOpsService';
+import { apiMessage, httpStatus, reviewRefusalOf } from '@/services/ticketOpsService';
 import { getLaravelFieldErrors } from '@/api/apiErrors';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import toast from '@/lib/toast';
@@ -54,7 +54,10 @@ export function ReturnForReworkModal({ ticketId, onClose, onSuccess, onStale, fr
     } catch (e) {
       const status = httpStatus(e);
       const message = apiMessage(e, 'تعذّرت إعادة التذكرة للتنفيذ');
-      if (status === 409) {
+      if (reviewRefusalOf(e)) {
+        // 403 REVIEW_PERMISSION_REQUIRED / PARTICIPATION_PERMISSION_REQUIRED: the server's own sentence, kept in the dialog.
+        setFailure(reviewRefusalOf(e)!.message);
+      } else if (status === 409) {
         toast.error(message);
         (onStale ?? onSuccess)();
       } else if (status === 422 && getLaravelFieldErrors(e).reason) {

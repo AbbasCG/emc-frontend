@@ -158,3 +158,47 @@ describe('error helpers', () => {
     expect(isCancelled(new Error('x'))).toBe(false)
   })
 })
+
+describe('the list with a tab', () => {
+  const page = { data: [], total: 0, current_page: 2, last_page: 2, per_page: 25 }
+
+  it('reads the applied tab and the count of every tab from meta', async () => {
+    api.get.mockResolvedValue({ data: { success: true, data: page, meta: { tab: 'needs_action', tab_counts: { open: 12, all: 40, resolved: '25', needs_action: 3 } } } })
+
+    const r = await fetchTicketList({ tab: 'needs_action', page: 5 })
+
+    expect(r.tab).toBe('needs_action')
+    expect(r.tabCounts).toEqual({ open: 12, all: 40, resolved: 25, needs_action: 3 })
+    // What was asked, and what the server answered with, are both kept: the page follows the answer.
+    expect(r.requestedPage).toBe(5)
+    expect(r.currentPage).toBe(2)
+  })
+
+  it('has no tab and no counts when the server sent no meta (a request without tab)', async () => {
+    api.get.mockResolvedValue({ data: { data: page } })
+
+    const r = await fetchTicketList({})
+
+    expect(r.tab).toBeNull()
+    expect(r.tabCounts).toBeNull()
+    expect(r.requestedPage).toBe(1)
+  })
+
+  it('ignores an unknown tab and a garbage count instead of crashing', async () => {
+    api.get.mockResolvedValue({ data: { data: page, meta: { tab: 'weird', tab_counts: { open: 'x' } } } })
+
+    const r = await fetchTicketList({ tab: 'open' })
+
+    expect(r.tab).toBeNull()
+    expect(r.tabCounts).toEqual({ open: 0, all: 0, resolved: 0, needs_action: 0 })
+  })
+
+  it('keeps needs_my_action and awaiting on the rows untouched', async () => {
+    const row = { id: 1, needs_my_action: true, awaiting: { actor: 'assignee', label: 'بانتظار قبول المكلّف', name: 'سلمى' } }
+    api.get.mockResolvedValue({ data: { data: { ...page, data: [row] } } })
+
+    const r = await fetchTicketList({ tab: 'open' })
+
+    expect(r.items[0]).toMatchObject({ needs_my_action: true, awaiting: { actor: 'assignee', name: 'سلمى' } })
+  })
+})

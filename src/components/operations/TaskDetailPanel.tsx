@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { hasNestedLayer, isTopModal, registerOpenModal } from '@/components/ui/modalGuard'
@@ -22,6 +22,8 @@ type Props = {
    * priority (and the other details) belong to management, so they are shown, not offered as controls.
    */
   memberView?: boolean
+  /** Extra controls under the details (the global board puts the management actions here, never on its cards). */
+  extraActions?: ReactNode
 }
 
 export default function TaskDetailPanel({
@@ -32,6 +34,7 @@ export default function TaskDetailPanel({
   onToggleChecklist,
   onComment,
   memberView = false,
+  extraActions,
 }: Props) {
   const panelRef = useRef<HTMLElement>(null)
   const stackId = useRef(Symbol('task-drawer'))
@@ -179,6 +182,8 @@ export default function TaskDetailPanel({
                   </div>
                 </section>
               )}
+
+              {extraActions}
 
               <CommentThread comments={task.comments ?? []} onAdd={onComment} />
             </div>
