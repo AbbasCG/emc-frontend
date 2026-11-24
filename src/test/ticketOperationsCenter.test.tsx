@@ -922,10 +922,14 @@ describe('priority and assignment help', () => {
 
     await userEvent.selectOptions(est.getByLabelText(/حجم المهمة/), 'medium')
     await userEvent.type(est.getByLabelText(/نقاط المهمة/), '100')
+    // the approximate duration is required as well: without it nothing is sent
+    await userEvent.click(est.getByRole('button', { name: 'إسناد' }))
+    expect(await est.findByText('حدّد المدة التقريبية للمهمة.')).toBeInTheDocument()
+    expect(svc.reassign).not.toHaveBeenCalled()
+    await userEvent.selectOptions(est.getByLabelText(/^المدة التقريبية/), '2')
     await userEvent.click(est.getByRole('button', { name: 'إسناد' }))
 
-    // The duration was left empty, so the key is omitted (the server keeps any stored hours).
-    await waitFor(() => expect(svc.reassign).toHaveBeenCalledWith(501, { assigned_to_id: 9, task_scope: 'medium', task_points: 100 }))
+    await waitFor(() => expect(svc.reassign).toHaveBeenCalledWith(501, { assigned_to_id: 9, task_scope: 'medium', task_points: 100, estimated_hours: 2 }))
   })
 
   it('says so when no one qualifies, instead of guessing', async () => {
@@ -1177,7 +1181,7 @@ describe('bulk actions', () => {
     const est = within(await screen.findByTestId('bulk-estimate-dialog'))
     await userEvent.selectOptions(est.getByLabelText(/حجم المهمة/), 'simple')
     await userEvent.type(est.getByLabelText(/نقاط المهمة/), '40')
-    await userEvent.selectOptions(est.getByLabelText('المدة التقريبية'), 'custom')
+    await userEvent.selectOptions(est.getByLabelText(/^المدة التقريبية/), 'custom')
     await userEvent.type(est.getByLabelText('المدة التقريبية (مخصصة)'), '2.5')
     await userEvent.click(est.getByRole('button', { name: 'تنفيذ الإسناد' }))
 

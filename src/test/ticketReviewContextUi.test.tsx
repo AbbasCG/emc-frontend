@@ -6,8 +6,7 @@ import type { Ticket, TicketActivityLog, TicketCapabilities, TicketReviewContext
 
 const svc = vi.hoisted(() => ({
   getMeta: vi.fn(),
-  approveCompletion: vi.fn(),
-  approveForDeploy: vi.fn(),
+  confirmReview: vi.fn(),
   returnForRework: vi.fn(),
   markDeployed: vi.fn(),
 }))
@@ -17,7 +16,7 @@ vi.mock('@/services/ticketService', () => ({ ticketService: svc }))
 vi.mock('@/lib/toast', () => ({ default: toastMock }))
 vi.mock('@/api/axios', () => ({ default: api }))
 
-import { ApproveCompletionModal, ApproveForDeployModal } from '@/components/tickets/modals/ApproveCompletionModal'
+import { ConfirmReviewButton } from '@/components/tickets/ConfirmReviewButton'
 import { ReturnForReworkModal } from '@/components/tickets/modals/ReturnForReworkModal'
 import { TicketLifecyclePanel } from '@/components/tickets/TicketLifecyclePanel'
 import { TicketReviewContextNotice } from '@/components/tickets/TicketReviewContextNotice'
@@ -120,14 +119,14 @@ describe('review_context: why review is not available', () => {
 
 describe('review buttons come only from the server capabilities', () => {
   it('shows exactly the review actions the capabilities allow', () => {
-    const { rerender } = render(<RowActions ticket={ticket({ capabilities: { ...CAPS, approve_completion: true, return_for_rework: true } })} onAction={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /اعتماد إنجاز التذكرة/ })).toBeInTheDocument()
+    const { rerender } = render(<RowActions ticket={ticket({ capabilities: { ...CAPS, confirm_review: true, return_for_rework: true } })} onAction={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /تأكيد مراجعة التذكرة/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /إعادة التذكرة EMC-31 للتنفيذ/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /للنشر/ })).toBeNull()
 
-    rerender(<RowActions ticket={ticket({ status: 'APPROVED_FOR_DEPLOY', capabilities: { ...CAPS, approve_for_deploy: true } })} onAction={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /للنشر/ })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /اعتماد إنجاز/ })).toBeNull()
+    // outside PENDING_REVIEW the confirm button never shows, whatever the capability says
+    rerender(<RowActions ticket={ticket({ status: 'APPROVED_FOR_DEPLOY', capabilities: { ...CAPS, confirm_review: true } })} onAction={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /تأكيد مراجعة/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /إعادة التذكرة/ })).toBeNull()
   })
 })
@@ -198,27 +197,15 @@ describe('403 REVIEW_PERMISSION_REQUIRED / PARTICIPATION_PERMISSION_REQUIRED sho
   it.each([
     ['REVIEW_PERMISSION_REQUIRED', REVIEW_MSG],
     ['PARTICIPATION_PERMISSION_REQUIRED', PART_MSG],
-  ])('approve completion: %s stays inline with the server message (no generic error, no toast, dialog open)', async (code, message) => {
-    svc.approveCompletion.mockRejectedValue(apiError(403, { success: false, message, code }))
-    const onSuccess = vi.fn()
-    const onStale = vi.fn()
-    render(<ApproveCompletionModal ticket={{ ...ticket(), actual_minutes: 90 }} onClose={vi.fn()} onSuccess={onSuccess} onStale={onStale} />)
-    await userEvent.click(await screen.findByRole('button', { name: /اعتماد الإنجاز وإضافة الرصيد/ }))
+  ])('confirm review: %s shows the server sentence (no generic error) and the ticket is re-read', async (code, message) => {
+    svc.confirmReview.mockRejectedValue(apiError(403, { success: false, message, code }))
+    const onDone = vi.fn()
+    render(<ConfirmReviewButton ticket={ticket({ capabilities: { ...CAPS, confirm_review: true } })} onDone={onDone} />)
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد المراجعة' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(message)
-    expect(screen.getByRole('alert')).not.toHaveTextContent('تعذّر اعتماد الإنجاز')
-    expect(toastMock.error).not.toHaveBeenCalled()
-    expect(onSuccess).not.toHaveBeenCalled()
-    expect(onStale).not.toHaveBeenCalled()
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-  })
-
-  it('approve for deployment shows the same sentence', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(403, { success: false, message: REVIEW_MSG, code: 'REVIEW_PERMISSION_REQUIRED' }))
-    render(<ApproveForDeployModal ticket={{ ...ticket({ requires_deployment: true }), actual_minutes: 90 }} onClose={vi.fn()} onSuccess={vi.fn()} />)
-    await userEvent.click(await screen.findByRole('button', { name: /^اعتماد للنشر$/ }))
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(REVIEW_MSG)
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(message))
+    expect(toastMock.error).not.toHaveBeenCalledWith('تعذّر تأكيد المراجعة')
+    expect(onDone).toHaveBeenCalledTimes(1)
   })
 
   it.each([

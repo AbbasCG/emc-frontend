@@ -17,8 +17,7 @@ describe('the ticket actions that show their own error', () => {
   })
 
   it.each([
-    ['approveCompletion', () => ticketService.approveCompletion(5, { actual_minutes: 75 }), '/v1/tickets/5/approve-completion'],
-    ['approveForDeploy', () => ticketService.approveForDeploy(5, { task_scope: 'medium', task_points: 100, actual_minutes: 75 }), '/v1/tickets/5/approve-for-deploy'],
+    ['confirmReview', () => ticketService.confirmReview(5), '/v1/tickets/5/confirm-review'],
     ['markDeployed', () => ticketService.markDeployed(5, { live_url: 'https://emc.example' }), '/v1/tickets/5/mark-deployed'],
     ['verifyResolved', () => ticketService.verifyResolved(5, 'اختبار ناجح'), '/v1/tickets/5/verify-resolved'],
     ['verifyFailed', () => ticketService.verifyFailed(5, 'لا يعمل'), '/v1/tickets/5/verify-failed'],
@@ -26,5 +25,16 @@ describe('the ticket actions that show their own error', () => {
   ])('%s posts to its endpoint with the toast skipped', async (_name, call, path) => {
     await call()
     expect(api.post).toHaveBeenCalledWith(path, expect.anything(), expect.objectContaining({ skipErrorToast: true }))
+  })
+})
+
+describe('confirm-review sends no values, ever', () => {
+  it('posts an EMPTY body (no size, points or durations), or only the note', async () => {
+    await ticketService.confirmReview(5)
+    expect(api.post).toHaveBeenLastCalledWith('/v1/tickets/5/confirm-review', {}, expect.objectContaining({ skipErrorToast: true }))
+    await ticketService.confirmReview(5, undefined, 2)
+    expect(api.post).toHaveBeenLastCalledWith('/v1/tickets/5/confirm-review', { review_round: 2 }, expect.objectContaining({ skipErrorToast: true }))
+    await ticketService.confirmReview(5, '  ملاحظة  ')
+    expect(api.post).toHaveBeenLastCalledWith('/v1/tickets/5/confirm-review', { note: 'ملاحظة' }, expect.objectContaining({ skipErrorToast: true }))
   })
 })

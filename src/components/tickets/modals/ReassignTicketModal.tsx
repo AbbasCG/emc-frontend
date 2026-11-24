@@ -103,8 +103,8 @@ function ReassignTicketModalBody({
       toast.error(targets.hasUnits ? 'يجب اختيار الوحدة التقنية والمكلف الجديد' : 'يجب اختيار المكلف الجديد');
       return;
     }
-    // An assignee is being chosen: size and points are required (duration stays optional).
-    if (!estimate.check(true)) {
+    // An assignee is being chosen: size, points and the approximate duration are all required.
+    if (!estimate.check(true, true)) {
       toast.error('أكمل حجم المهمة ونقاطها');
       return;
     }
@@ -213,7 +213,7 @@ function ReassignTicketModalBody({
           idPrefix={`${formId}-est`}
           legacy={legacy}
           disabled={submitting}
-          ticketMode={{ requiresDeployment, pointsOptions: targets.pointsOptions, pointsLoading: targets.phase === 'loading', stored: { scope: storedScope, points: known.task_points == null ? '' : String(known.task_points) } }}
+          ticketMode={{ requiresDeployment, durationRequired: true, pointsOptions: targets.pointsOptions, pointsLoading: targets.phase === 'loading', stored: { scope: storedScope, points: known.task_points == null ? '' : String(known.task_points) } }}
         />
 
         <RequiresDeploymentSwitch checked={requiresDeployment} onChange={(v) => { setRequiresDeployment(v); setDeploymentError(null); }} disabled={submitting} frozen={deploymentFrozen} frozenMessage={deploymentFrozenMessage} locked={deploymentLocked} error={deploymentError} />

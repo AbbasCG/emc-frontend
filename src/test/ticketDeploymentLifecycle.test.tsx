@@ -10,8 +10,7 @@ const svc = vi.hoisted(() => ({
   approveTicket: vi.fn(),
   reassign: vi.fn(),
   updateWorkEstimate: vi.fn(),
-  approveCompletion: vi.fn(),
-  approveForDeploy: vi.fn(),
+  confirmReview: vi.fn(),
   markDeployed: vi.fn(),
   verifyResolved: vi.fn(),
   verifyFailed: vi.fn(),
@@ -34,7 +33,6 @@ vi.mock('@/components/tickets/AssigneeSearchSelect', () => ({
   ),
 }))
 
-import { ApproveForDeployModal, ApproveCompletionModal } from '@/components/tickets/modals/ApproveCompletionModal'
 import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal'
 import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal'
 import { EditEstimateModal } from '@/components/tickets/modals/EditEstimateModal'
@@ -345,40 +343,42 @@ describe('TicketLifecyclePanel', () => {
 describe('the action buttons follow the capabilities', () => {
   const NAMES = {
     submit: 'إرسال للمراجعة',
-    approveDeploy: 'اعتماد للنشر',
+    confirm: 'تأكيد المراجعة',
     deployed: 'تم النشر على الموقع الحي',
     verified: 'تم التحقق — وضع كمحلولة',
     rework: 'إعادة للتنفيذ',
-    approveCompletion: 'اعتماد الإنجاز',
+    oldApprove: 'اعتماد للنشر',
+    oldCompletion: 'اعتماد الإنجاز',
   }
   const buttons = () => Object.fromEntries(Object.entries(NAMES).map(([k, n]) => [k, screen.queryAllByRole('button', { name: n }).length]))
+  const NONE = { submit: 0, confirm: 0, deployed: 0, verified: 0, rework: 0, oldApprove: 0, oldCompletion: 0 }
 
   it('assignee (in progress): only «إرسال للمراجعة» for a deployment ticket (and «تعذر الحل»)', () => {
     render(<TicketActionCenter ticket={deployTicket({ capabilities: { ...NO_CAPS, complete_task: true } })} onChanged={vi.fn()} currentUserId={9} />)
-    expect(buttons()).toEqual({ submit: 1, approveDeploy: 0, deployed: 0, verified: 0, rework: 0, approveCompletion: 0 })
+    expect(buttons()).toEqual({ ...NONE, submit: 1 })
     expect(screen.getByRole('button', { name: 'تعذر الحل' })).toBeInTheDocument()
   })
 
-  it('reviewer: «اعتماد للنشر» and «إعادة للتنفيذ» only', () => {
-    render(<TicketActionCenter ticket={deployTicket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, approve_for_deploy: true, return_for_rework: true } })} onChanged={vi.fn()} />)
-    expect(buttons()).toEqual({ submit: 0, approveDeploy: 1, deployed: 0, verified: 0, rework: 1, approveCompletion: 0 })
+  it('reviewer: «تأكيد المراجعة» and «إعادة للتنفيذ» only (the old «اعتماد للنشر» wording is gone)', () => {
+    render(<TicketActionCenter ticket={deployTicket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, confirm_review: true, return_for_rework: true } })} onChanged={vi.fn()} />)
+    expect(buttons()).toEqual({ ...NONE, confirm: 1, rework: 1 })
   })
 
   it('deployer: only «تم النشر على الموقع الحي» (the reviewer may also send it back while approved)', () => {
     const { rerender } = render(<TicketActionCenter ticket={deployTicket({ status: 'APPROVED_FOR_DEPLOY', capabilities: { ...NO_CAPS, mark_deployed: true } })} onChanged={vi.fn()} />)
-    expect(buttons()).toEqual({ submit: 0, approveDeploy: 0, deployed: 1, verified: 0, rework: 0, approveCompletion: 0 })
+    expect(buttons()).toEqual({ ...NONE, deployed: 1 })
     rerender(<TicketActionCenter ticket={deployTicket({ status: 'APPROVED_FOR_DEPLOY', capabilities: { ...NO_CAPS, return_for_rework: true } })} onChanged={vi.fn()} />)
-    expect(buttons()).toEqual({ submit: 0, approveDeploy: 0, deployed: 0, verified: 0, rework: 1, approveCompletion: 0 })
+    expect(buttons()).toEqual({ ...NONE, rework: 1 })
   })
 
   it('assignee after the live deployment: «تم التحقق» and «إعادة للتنفيذ»', () => {
     render(<TicketActionCenter ticket={deployTicket({ status: 'PENDING_VERIFICATION', capabilities: { ...NO_CAPS, verify_resolved: true, verify_failed: true } })} onChanged={vi.fn()} currentUserId={9} />)
-    expect(buttons()).toEqual({ submit: 0, approveDeploy: 0, deployed: 0, verified: 1, rework: 1, approveCompletion: 0 })
+    expect(buttons()).toEqual({ ...NONE, verified: 1, rework: 1 })
   })
 
-  it('a regular ticket still offers «اعتماد الإنجاز» and the old «تقديم للمراجعة», never the deployment buttons', () => {
-    render(<TicketActionCenter ticket={ticket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, approve_completion: true, return_for_rework: true } })} onChanged={vi.fn()} />)
-    expect(buttons()).toEqual({ submit: 0, approveDeploy: 0, deployed: 0, verified: 0, rework: 1, approveCompletion: 1 })
+  it('a regular ticket in review offers the same «تأكيد المراجعة», never the deployment buttons or the old «اعتماد الإنجاز»', () => {
+    render(<TicketActionCenter ticket={ticket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, confirm_review: true, return_for_rework: true } })} onChanged={vi.fn()} />)
+    expect(buttons()).toEqual({ ...NONE, confirm: 1, rework: 1 })
     expect(screen.queryByRole('button', { name: 'تعذر الحل' })).not.toBeInTheDocument()
   })
 
@@ -392,60 +392,114 @@ describe('the action buttons follow the capabilities', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('card / row actions: «اعتماد للنشر» only when granted', async () => {
-    const onAction = vi.fn()
-    const t = deployTicket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, approve_for_deploy: true } })
-    const { rerender } = render(<RowActions ticket={t} onAction={onAction} />)
-    await userEvent.click(screen.getByRole('button', { name: /اعتماد التذكرة EMC-41 للنشر/ }))
-    expect(onAction).toHaveBeenCalledWith('approve_for_deploy', t)
-    rerender(<RowActions ticket={deployTicket({ capabilities: NO_CAPS })} onAction={onAction} />)
+  it('card / row actions: «تأكيد المراجعة» only when granted', async () => {
+    svc.confirmReview.mockResolvedValue({ success: true, message: 'ok', data: { status: 'APPROVED_FOR_DEPLOY' } })
+    const onConfirmed = vi.fn()
+    const t = deployTicket({ status: 'PENDING_REVIEW', capabilities: { ...NO_CAPS, confirm_review: true } })
+    const { rerender } = render(<RowActions ticket={t} onAction={vi.fn()} onConfirmed={onConfirmed} />)
+    await userEvent.click(screen.getByRole('button', { name: /تأكيد مراجعة التذكرة EMC-41/ }))
+    await waitFor(() => expect(onConfirmed).toHaveBeenCalled())
+    rerender(<RowActions ticket={deployTicket({ capabilities: NO_CAPS })} onAction={vi.fn()} />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
 
-// ── 4. «إرسال للمراجعة»: one click, no extra fields ─────────────────────────────
+// ── 4. «إرسال للمراجعة»: a small dialog with the ACTUAL duration ────────────────
 
 describe('«إرسال للمراجعة» on a deployment ticket', () => {
-  const mount = (onChanged = vi.fn()) => {
-    render(<TicketActionCenter ticket={deployTicket({ capabilities: { ...NO_CAPS, complete_task: true } })} onChanged={onChanged} currentUserId={9} />)
+  const mount = (onChanged = vi.fn(), over: Partial<Ticket> = {}) => {
+    render(<TicketActionCenter ticket={deployTicket({ capabilities: { ...NO_CAPS, complete_task: true }, ...over })} onChanged={onChanged} currentUserId={9} />)
 
     return onChanged
   }
-
-  it('ONE click: the request goes out at once with an EMPTY body (no confirmation dialog, no GitHub / summary / test fields)', async () => {
-    svc.completeTask.mockResolvedValue({ success: true })
-    const onChanged = mount()
+  const open = async () => {
     await userEvent.click(screen.getByRole('button', { name: 'إرسال للمراجعة' }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    await waitFor(() => expect(onChanged).toHaveBeenCalled())
-    expect(svc.completeTask).toHaveBeenCalledTimes(1)
-    const [id, form] = svc.completeTask.mock.calls[0] as [number, FormData]
-    expect(id).toBe(41)
-    expect(Array.from(form.keys())).toEqual([])
-    expect(toastMock.success).toHaveBeenCalledWith('أُرسلت التذكرة للمراجعة')
-    expect(document.querySelector('input, textarea')).toBeNull()
+
+    return await screen.findByTestId('submit-review-modal')
+  }
+  const submit = () => userEvent.click(within(screen.getByTestId('submit-review-modal')).getByRole('button', { name: 'إرسال للمراجعة' }))
+
+  it('opens a small dialog with hours + minutes that START EMPTY; nothing is sent by opening it', async () => {
+    mount()
+    const dialog = await open()
+    expect(svc.completeTask).not.toHaveBeenCalled()
+    expect((within(dialog).getByLabelText('ساعات') as HTMLSelectElement).value).toBe('')
+    expect((within(dialog).getByLabelText('دقائق') as HTMLSelectElement).value).toBe('')
+    expect(dialog.querySelector('textarea, input[type="text"]')).toBeNull()
   })
 
-  it('while pending the button is disabled and says so; a double click sends one request', async () => {
+  it('empty or 0h 0m is refused before any request, with the Arabic message under the field', async () => {
+    mount()
+    const dialog = await open()
+    await submit()
+    expect(await within(dialog).findByText(/أدخل المدة الفعلية/)).toBeInTheDocument()
+    await userEvent.selectOptions(within(dialog).getByLabelText('ساعات'), '0')
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '0')
+    await submit()
+    expect(svc.completeTask).not.toHaveBeenCalled()
+  })
+
+  it('minutes are exact: 2 h 7 min sends actual_minutes=127 and nothing else, and the preview shows the points and the durations', async () => {
+    svc.completeTask.mockResolvedValue({ success: true })
+    const onChanged = mount()
+    const dialog = await open()
+    await userEvent.selectOptions(within(dialog).getByLabelText('ساعات'), '2')
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '7')
+    const preview = within(dialog).getByTestId('submit-duration-preview')
+    expect(preview).toHaveTextContent('ساعتان و7 دقائق')
+    expect(preview).toHaveTextContent('نقاط 120')
+    expect(preview).toHaveTextContent('المدة التقريبية')
+    await submit()
+    await waitFor(() => expect(onChanged).toHaveBeenCalled())
+    const [id, form] = svc.completeTask.mock.calls[0] as [number, FormData]
+    expect(id).toBe(41)
+    expect(Array.from(form.keys())).toEqual(['actual_minutes'])
+    expect(form.get('actual_minutes')).toBe('127')
+    expect(toastMock.success).toHaveBeenCalledWith('أُرسلت التذكرة للمراجعة')
+    expect(screen.queryByTestId('submit-review-modal')).not.toBeInTheDocument()
+  })
+
+  it('minutes alone are enough (45 min)', async () => {
+    svc.completeTask.mockResolvedValue({ success: true })
+    mount()
+    const dialog = await open()
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '45')
+    await submit()
+    await waitFor(() => expect(svc.completeTask).toHaveBeenCalledTimes(1))
+    expect((svc.completeTask.mock.calls[0][1] as FormData).get('actual_minutes')).toBe('45')
+  })
+
+  it('a double click on the dialog button sends one request', async () => {
     const pending = deferred<{ success: boolean }>()
     svc.completeTask.mockReturnValue(pending.promise)
     const onChanged = mount()
-    await userEvent.dblClick(screen.getByRole('button', { name: 'إرسال للمراجعة' }))
+    const dialog = await open()
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '30')
+    await userEvent.dblClick(within(dialog).getByRole('button', { name: 'إرسال للمراجعة' }))
     expect(svc.completeTask).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('button', { name: 'جارٍ الإرسال...' })).toBeDisabled()
     pending.resolve({ success: true })
     await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1))
-    expect(screen.getByRole('button', { name: 'إرسال للمراجعة' })).toBeEnabled()
   })
 
   it('a refusal (INVALID_STAGE: the ticket moved on) shows the server message once and re-reads the ticket', async () => {
     svc.completeTask.mockRejectedValue(apiError(409, { code: 'INVALID_STAGE', message: 'لا يمكن إغلاق تذكرة ليست بحالة (قيد المعالجة).' }))
     const onChanged = mount()
-    await userEvent.click(screen.getByRole('button', { name: 'إرسال للمراجعة' }))
+    const dialog = await open()
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '30')
+    await submit()
     await waitFor(() => expect(onChanged).toHaveBeenCalled())
     expect(toastMock.error).toHaveBeenCalledTimes(1)
     expect(toastMock.error).toHaveBeenCalledWith('لا يمكن إغلاق تذكرة ليست بحالة (قيد المعالجة).')
-    expect(screen.getByRole('button', { name: 'إرسال للمراجعة' })).toBeEnabled()
+  })
+
+  it('the server 422 ACTUAL_DURATION_INVALID shows under the field and keeps the dialog open', async () => {
+    svc.completeTask.mockRejectedValue(apiError(422, { success: false, code: 'ACTUAL_DURATION_INVALID', message: 'المدة الفعلية غير صالحة.' }))
+    mount()
+    const dialog = await open()
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '30')
+    await submit()
+    expect(await within(dialog).findByText('المدة الفعلية غير صالحة.')).toBeInTheDocument()
+    expect(screen.getByTestId('submit-review-modal')).toBeInTheDocument()
   })
 
   it('a regular ticket keeps its modal with the written resolution', async () => {
@@ -461,217 +515,6 @@ describe('«إرسال للمراجعة» on a deployment ticket', () => {
     const dialog = await screen.findByTestId('complete-task-modal')
     expect(within(dialog).getByPlaceholderText(/وضح العوائق الفنية/)).toBeInTheDocument()
     expect(within(dialog).queryByText('تقديم للمراجعة')).not.toBeInTheDocument()
-  })
-})
-
-// ── 5. «اعتماد للنشر»: the review modal ─────────────────────────────────────────
-
-describe('ApproveForDeployModal (the review of a deployment ticket)', () => {
-  const submitName = 'اعتماد للنشر'
-  const REQUIRED = 'أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد للنشر.'
-  const mount = (t: Parameters<typeof ApproveForDeployModal>[0]['ticket'] = deployTicket({ status: 'PENDING_REVIEW' })) => {
-    const onSuccess = vi.fn()
-    const onStale = vi.fn()
-    render(<ApproveForDeployModal ticket={t} onClose={vi.fn()} onSuccess={onSuccess} onStale={onStale} />)
-
-    return { onSuccess, onStale }
-  }
-  const scope = () => screen.getByLabelText(/حجم المهمة/) as HTMLSelectElement
-  const points = () => screen.getByLabelText(/نقاط المهمة/) as HTMLSelectElement
-  const hours = () => screen.getByLabelText('ساعات') as HTMLSelectElement
-  const minutes = () => screen.getByLabelText('دقائق', { selector: 'select' }) as HTMLSelectElement
-  const optionValues = (el: HTMLElement) => within(el).getAllByRole('option').map((o) => (o as HTMLOptionElement).value).filter((v) => v !== '')
-
-  it('the regular approval keeps its own wording («قبل الاعتماد النهائي»)', async () => {
-    render(<ApproveCompletionModal ticket={ticket({ status: 'PENDING_REVIEW' })} onClose={vi.fn()} onSuccess={vi.fn()} />)
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: 'اعتماد الإنجاز وإضافة الرصيد' }))
-    expect(await screen.findByText('أدخل المدة الفعلية للإنجاز (بالساعات والدقائق) قبل الاعتماد النهائي.')).toBeInTheDocument()
-    expect(screen.queryByText(/قبل الاعتماد للنشر/)).not.toBeInTheDocument()
-  })
-
-  it('the per-endpoint sentence from the server is shown as it is', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(422, { message: 'x', code: 'ACTUAL_DURATION_REQUIRED', errors: { actual_minutes: [REQUIRED] } }))
-    mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
-  })
-
-  it('says it approves for deployment and that nothing is credited yet', async () => {
-    mount()
-    const dialog = await screen.findByRole('dialog', { name: 'اعتماد للنشر' })
-    expect(dialog).toHaveTextContent('لا يُضاف شيء إلى الرصيد الآن')
-    expect(dialog).toHaveTextContent('عندما يؤكد المكلّف الحل بعد الاختبار الحي')
-    expect(within(dialog).getByRole('button', { name: submitName })).toBeInTheDocument()
-    expect(screen.getByTestId('approve-for-deploy-modal')).toBeInTheDocument()
-  })
-
-  it('«نقاط المهمة» is a dropdown of the server options for the size, with the current value selected', async () => {
-    mount()
-    await screen.findByRole('option', { name: '150' })
-    expect(points().tagName).toBe('SELECT')
-    expect(optionValues(points())).toEqual(['75', '100', '120', '150'])
-    expect(points().value).toBe('120')
-    expect(scope().value).toBe('medium')
-  })
-
-  it('the current stored value is always offered, even when it is not in the list', async () => {
-    mount(deployTicket({ status: 'PENDING_REVIEW', task_points: 130 }))
-    await screen.findByRole('option', { name: '150' })
-    expect(optionValues(points())).toEqual(['75', '100', '120', '130', '150'])
-    expect(points().value).toBe('130')
-  })
-
-  it('changing the size resets the options (and the points that no longer fit)', async () => {
-    mount(deployTicket({ status: 'PENDING_REVIEW', task_points: 130 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.selectOptions(scope(), 'simple')
-    expect(optionValues(points())).toEqual(['25', '30', '40', '50'])
-    expect(points().value).toBe('')
-    // back to the stored size: its stored value is offered again
-    await userEvent.selectOptions(scope(), 'medium')
-    expect(optionValues(points())).toEqual(['75', '100', '120', '130', '150'])
-    expect(points().value).toBe('')
-  })
-
-  it('«المدة الفعلية» is two dropdowns that start empty (no zero, no estimate fallback)', async () => {
-    mount()
-    await screen.findByRole('option', { name: '150' })
-    expect(hours().value).toBe('')
-    expect(minutes().value).toBe('')
-    expect(within(hours()).getByRole('option', { name: 'ساعات' })).toBeInTheDocument()
-    expect(within(minutes()).getByRole('option', { name: 'دقائق' })).toBeInTheDocument()
-    expect(optionValues(minutes())).toHaveLength(60)
-    // 0..48 with no gaps (26 h and 36 h included), then the long ones
-    expect(optionValues(hours()).slice(0, 49)).toEqual(Array.from({ length: 49 }, (_, i) => String(i)))
-    expect(optionValues(hours()).slice(49)).toEqual(['56', '60', '72', '80', '100', '120', '160', '200'])
-  })
-
-  it('empty or zero actual time is blocked with the Arabic message and sends nothing', async () => {
-    mount()
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
-    await userEvent.selectOptions(hours(), '0')
-    await userEvent.selectOptions(minutes(), '0')
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
-    expect(svc.approveForDeploy).not.toHaveBeenCalled()
-  })
-
-  it('a 2 h estimate with 1 h 15 min actual sends actual_minutes 75 with the size and points; the preview says when it is added', async () => {
-    svc.approveForDeploy.mockResolvedValue({ success: true })
-    const { onSuccess } = mount()
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.selectOptions(hours(), '1')
-    await userEvent.selectOptions(minutes(), '15')
-    expect(screen.getByTestId('completion-preview')).toHaveTextContent('ستُعتمد 120 نقطة ومدة فعلية ساعة و15 دقيقة، وتُضافان إلى رصيد سلمى عند تأكيد الحل بعد الاختبار الحي')
-    await userEvent.type(screen.getByLabelText(/ملاحظة الاعتماد/), 'جاهز للنشر')
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.approveCompletion).not.toHaveBeenCalled()
-    expect(svc.approveForDeploy).toHaveBeenCalledTimes(1)
-    expect(svc.approveForDeploy).toHaveBeenCalledWith(41, { task_scope: 'medium', task_points: 120, estimated_hours: 2, actual_minutes: 75, note: 'جاهز للنشر' })
-  })
-
-  it('a corrected size and points are what is sent', async () => {
-    svc.approveForDeploy.mockResolvedValue({ success: true })
-    const { onSuccess } = mount()
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.selectOptions(scope(), 'large')
-    await userEvent.selectOptions(points(), '250')
-    await userEvent.selectOptions(minutes(), '30')
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.approveForDeploy.mock.calls[0][1]).toMatchObject({ task_scope: 'large', task_points: 250, actual_minutes: 30 })
-  })
-
-  it('the same dialog for a regular ticket says «عند الاعتماد» and keeps the approve-completion request', async () => {
-    svc.approveCompletion.mockResolvedValue({ success: true })
-    const onSuccess = vi.fn()
-    render(<ApproveCompletionModal ticket={ticket({ status: 'PENDING_REVIEW' })} onClose={vi.fn()} onSuccess={onSuccess} />)
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.selectOptions(hours(), '1')
-    await userEvent.selectOptions(minutes(), '15')
-    expect(screen.getByTestId('completion-preview')).toHaveTextContent('وتُضافان إلى رصيد سلمى عند الاعتماد')
-    expect(screen.getByTestId('completion-preview').textContent).not.toContain('الاختبار الحي')
-    await userEvent.click(screen.getByRole('button', { name: 'اعتماد الإنجاز وإضافة الرصيد' }))
-    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    expect(svc.approveCompletion).toHaveBeenCalledWith(41, { actual_minutes: 75 })
-    expect(svc.approveForDeploy).not.toHaveBeenCalled()
-  })
-
-  it('409 INVALID_STAGE: the message, then a refresh (stale)', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(409, { code: 'INVALID_STAGE', message: 'التذكرة ليست في مرحلة المراجعة.' }))
-    const { onSuccess, onStale } = mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    await waitFor(() => expect(onStale).toHaveBeenCalledTimes(1))
-    expect(toastMock.error).toHaveBeenCalledWith('التذكرة ليست في مرحلة المراجعة.')
-    expect(onSuccess).not.toHaveBeenCalled()
-  })
-
-  it('409 ALREADY_CREDITED is information plus a refresh', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(409, { code: 'ALREADY_CREDITED', message: 'تم اعتماد هذه التذكرة وإضافة رصيدها مسبقًا.' }))
-    const { onSuccess, onStale } = mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
-    expect(toastMock.message).toHaveBeenCalled()
-    expect(onStale).not.toHaveBeenCalled()
-  })
-
-  it.each([
-    ['SELF_REVIEW', 'لا يمكنك اعتماد عمل قدّمته بنفسك.'],
-    ['HR_APPROVAL_REQUIRED', 'الأعمال التي تفوق الحجم البسيط تحتاج اعتماد الموارد البشرية.'],
-  ])('403 %s stays inline in the open dialog', async (code, message) => {
-    svc.approveForDeploy.mockRejectedValue(apiError(403, { code, message }))
-    const { onSuccess, onStale } = mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(message)
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(onSuccess).not.toHaveBeenCalled()
-    expect(onStale).not.toHaveBeenCalled()
-  })
-
-  it('422: the points error under the field and the actual-time error under its fields', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(422, { message: 'x', errors: { task_points: ['النقاط خارج النطاق.'], actual_minutes: ['المدة الفعلية غير صالحة.'] } }))
-    mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: submitName }))
-    expect(await screen.findByText('النقاط خارج النطاق.')).toBeInTheDocument()
-    expect(screen.getByText('المدة الفعلية غير صالحة.')).toBeInTheDocument()
-    expect(points()).toHaveAttribute('aria-invalid', 'true')
-  })
-
-  it('a double click sends one request', async () => {
-    const pending = deferred<{ success: boolean }>()
-    svc.approveForDeploy.mockReturnValue(pending.promise)
-    const { onSuccess } = mount(deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 }))
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.dblClick(screen.getByRole('button', { name: submitName }))
-    expect(svc.approveForDeploy).toHaveBeenCalledTimes(1)
-    pending.resolve({ success: true })
-    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
-  })
-
-  it('one scroll area, pinned footer', async () => {
-    mount()
-    const dialog = await screen.findByTestId('approve-for-deploy-modal')
-    const scrollers = dialog.querySelectorAll('.overflow-y-auto')
-    expect(scrollers).toHaveLength(1)
-    const footer = within(dialog).getByRole('button', { name: submitName }).closest('footer')
-    expect(footer).not.toBeNull()
-    expect(scrollers[0].contains(footer)).toBe(false)
-  })
-
-  it('without options from the server, the points fall back to the free number input (nothing is blocked)', async () => {
-    svc.getMeta.mockResolvedValue({ tech_units: [], users: [] })
-    mount()
-    await waitFor(() => expect(screen.getByLabelText(/نقاط المهمة/).tagName).toBe('INPUT'))
-    expect((screen.getByLabelText(/نقاط المهمة/) as HTMLInputElement).value).toBe('120')
   })
 })
 
@@ -897,7 +740,6 @@ describe('«إعادة للتنفيذ» by the reviewer (from review and from ap
 
 describe('each action button opens its own dialog', () => {
   it.each([
-    [{ approve_for_deploy: true }, 'اعتماد للنشر', 'approve-for-deploy-modal', 'PENDING_REVIEW'],
     [{ mark_deployed: true }, 'تم النشر على الموقع الحي', 'mark-deployed-modal', 'APPROVED_FOR_DEPLOY'],
     [{ verify_resolved: true }, 'تم التحقق — وضع كمحلولة', 'verify-resolved-modal', 'PENDING_VERIFICATION'],
     [{ verify_failed: true }, 'إعادة للتنفيذ', 'verify-failed-modal', 'PENDING_VERIFICATION'],
@@ -915,6 +757,7 @@ describe('requires_deployment switch', () => {
     await userEvent.selectOptions(await screen.findByLabelText('الموظف المكلف بالإنجاز'), '9')
     await userEvent.selectOptions(screen.getByLabelText(/حجم المهمة/), 'medium')
     await userEvent.selectOptions(screen.getByLabelText(/نقاط المهمة/), '100')
+    await userEvent.selectOptions(screen.getByLabelText(/^المدة التقريبية/), '2')
   }
 
   beforeEach(() => {
@@ -1013,16 +856,36 @@ describe('ticket estimate controls: the points dropdown and the approximate-dura
     expect((screen.getByLabelText('المدة التقريبية') as HTMLSelectElement).value).toBe('custom')
   })
 
-  it('the duration stays optional: an empty preset is a valid estimate', async () => {
+  it('assigning a ticket REQUIRES the approximate duration: without it nothing is sent and the message shows under the field', async () => {
     svc.approveTicket.mockResolvedValue({ success: true })
     svc.getMeta.mockResolvedValue({ tech_units: [], users: [{ id: 9, name: 'سلمى', email: '' }], points_options: POINTS })
     render(<ApproveTicketModal ticketId={77} departmentId={2} onClose={vi.fn()} onSuccess={vi.fn()} />)
     await userEvent.selectOptions(await screen.findByLabelText('الموظف المكلف بالإنجاز'), '9')
     await userEvent.selectOptions(screen.getByLabelText(/حجم المهمة/), 'simple')
     await userEvent.selectOptions(screen.getByLabelText(/نقاط المهمة/), '30')
+    expect(screen.queryByRole('option', { name: 'بدون مدة تقريبية' })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
-    await waitFor(() => expect(svc.approveTicket).toHaveBeenCalled())
-    expect('estimated_hours' in svc.approveTicket.mock.calls[0][1]).toBe(false)
+    expect(await screen.findByText('حدّد المدة التقريبية للمهمة.')).toBeInTheDocument()
+    expect(svc.approveTicket).not.toHaveBeenCalled()
+  })
+
+  it('assigning requires the size and the points too (no request without them)', async () => {
+    svc.getMeta.mockResolvedValue({ tech_units: [], users: [{ id: 9, name: 'سلمى', email: '' }], points_options: POINTS })
+    render(<ApproveTicketModal ticketId={77} departmentId={2} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await userEvent.selectOptions(await screen.findByLabelText('الموظف المكلف بالإنجاز'), '9')
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
+    expect(await screen.findByText('اختر حجم المهمة.')).toBeInTheDocument()
+    expect(screen.getByText('نقاط المهمة مطلوبة.')).toBeInTheDocument()
+    expect(svc.approveTicket).not.toHaveBeenCalled()
+  })
+
+  it('reassigning requires the approximate duration as well (a ticket without one cannot be assigned blank)', async () => {
+    svc.getMeta.mockResolvedValue({ tech_units: [], users: [{ id: 9, name: 'سلمى', email: '' }], points_options: POINTS })
+    render(<ReassignTicketModal ticketId={5} departmentId={2} currentEstimate={{ task_scope: 'medium', task_points: 100, estimated_hours: null }} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await userEvent.selectOptions(await screen.findByLabelText('المكلف الجديد'), '9')
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد إعادة التوجيه' }))
+    expect(await screen.findByText('حدّد المدة التقريبية للمهمة.')).toBeInTheDocument()
+    expect(svc.reassign).not.toHaveBeenCalled()
   })
 
   it('a preset sends its hours', async () => {
@@ -1032,7 +895,7 @@ describe('ticket estimate controls: the points dropdown and the approximate-dura
     await userEvent.selectOptions(await screen.findByLabelText('الموظف المكلف بالإنجاز'), '9')
     await userEvent.selectOptions(screen.getByLabelText(/حجم المهمة/), 'simple')
     await userEvent.selectOptions(screen.getByLabelText(/نقاط المهمة/), '30')
-    await userEvent.selectOptions(screen.getByLabelText('المدة التقريبية'), '1.5')
+    await userEvent.selectOptions(screen.getByLabelText(/^المدة التقريبية/), '1.5')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
     await waitFor(() => expect(svc.approveTicket).toHaveBeenCalled())
     expect(svc.approveTicket.mock.calls[0][1]).toMatchObject({ task_scope: 'simple', task_points: 30, estimated_hours: 1.5 })
@@ -1163,10 +1026,10 @@ describe('round 2: stale points, copy, freeze and lock', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ scope: 'large', points: '' }))
   })
 
-  it('the credit block says «بانتظار المراجعة والاعتماد للنشر» for a deployment ticket in review, and keeps the old words for a regular one', () => {
+  it('the credit block says «بانتظار تأكيد المراجعة» for a deployment ticket in review, and keeps the old words for a regular one', () => {
     const credit: TicketCredit = { status: 'pending_review', points: null, hours: null, minutes: null, credited_at: null, credited_by_name: null }
     const { rerender } = render(<TicketCreditBlock ticket={deployTicket({ status: 'PENDING_REVIEW', credit })} />)
-    expect(screen.getByTestId('credit-pending-text')).toHaveTextContent('بانتظار المراجعة والاعتماد للنشر')
+    expect(screen.getByTestId('credit-pending-text')).toHaveTextContent('بانتظار تأكيد المراجعة')
     expect(screen.getByTestId('credit-pending-text').textContent).not.toContain('الاعتماد النهائي')
     rerender(<TicketCreditBlock ticket={ticket({ status: 'PENDING_REVIEW', credit })} />)
     expect(screen.getByTestId('credit-pending-text')).toHaveTextContent('بانتظار الاعتماد النهائي')
@@ -1224,17 +1087,6 @@ describe('round 2: stale points, copy, freeze and lock', () => {
     expect(dialog).toHaveTextContent('ولا يُضاف أي رصيد')
   })
 
-  it('409 ASSIGNEE_UNAVAILABLE on «اعتماد للنشر» stays in the dialog (a refresh would change nothing)', async () => {
-    svc.approveForDeploy.mockRejectedValue(apiError(409, { code: 'ASSIGNEE_UNAVAILABLE', message: 'المكلّف غير متاح؛ أعد إسناد التذكرة أولًا.' }))
-    const onStale = vi.fn()
-    render(<ApproveForDeployModal ticket={deployTicket({ status: 'PENDING_REVIEW', actual_minutes: 75 })} onClose={vi.fn()} onSuccess={vi.fn()} onStale={onStale} />)
-    await screen.findByRole('option', { name: '150' })
-    await userEvent.click(screen.getByRole('button', { name: 'اعتماد للنشر' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('المكلّف غير متاح؛ أعد إسناد التذكرة أولًا.')
-    expect(onStale).not.toHaveBeenCalled()
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-  })
-
   it('a stricter live-URL policy on the server: its 422 message shows under the field', async () => {
     svc.markDeployed.mockRejectedValue(apiError(422, { message: 'x', errors: { live_url: ['هذا النطاق غير مسموح به للنشر.'] } }))
     render(<MarkDeployedModal ticketId={41} onClose={vi.fn()} onSuccess={vi.fn()} />)
@@ -1253,6 +1105,9 @@ describe('round 2: stale points, copy, freeze and lock', () => {
     svc.completeTask.mockRejectedValue(apiError(409, { message: 'لا يمكن إغلاق تذكرة ليست بحالة (قيد المعالجة).' }))
     render(<TicketActionCenter ticket={deployTicket({ capabilities: { ...NO_CAPS, complete_task: true } })} onChanged={vi.fn()} currentUserId={9} />)
     await userEvent.click(screen.getByRole('button', { name: 'إرسال للمراجعة' }))
+    const dialog = await screen.findByTestId('submit-review-modal')
+    await userEvent.selectOptions(within(dialog).getByLabelText('دقائق'), '30')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'إرسال للمراجعة' }))
     await waitFor(() => expect(toastMock.error).toHaveBeenCalled())
     expect(toastMock.error).toHaveBeenCalledTimes(1)
   })

@@ -63,7 +63,7 @@ export function TicketEstimateDialog({
     if (busy) return
     setFailure(null)
     setDeploymentError(null)
-    if (!check(true)) return
+    if (!check(true, !clearable)) return
     setBusy(true)
     try {
       await onSubmit(payload({ clearHours: clearable && (initial?.duration.trim() ?? '') !== '' }), deployment && !deployment.frozen ? requiresDeployment : undefined)
@@ -106,7 +106,7 @@ export function TicketEstimateDialog({
       <form id={formId} onSubmit={submit} noValidate className="space-y-4 text-right">
         {typeof description === 'string' ? null : description}
         {extra}
-        <TaskEstimateFields value={draft} onChange={setDraft} errors={errors} idPrefix={formId} legacy={legacy} disabled={busy} ticketMode={{ ...ticketMode, requiresDeployment }} />
+        <TaskEstimateFields value={draft} onChange={setDraft} errors={errors} idPrefix={formId} legacy={legacy} disabled={busy} ticketMode={{ ...ticketMode, requiresDeployment, durationRequired: !clearable }} />
         {deployment ? <RequiresDeploymentSwitch checked={requiresDeployment} onChange={(v) => { setRequiresDeployment(v); setDeploymentError(null) }} disabled={busy} frozen={deployment.frozen} frozenMessage={deployment.frozenMessage} locked={deployment.locked} error={deploymentError} /> : null}
         {failure ? (
           <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">

@@ -47,12 +47,13 @@ export interface TicketCapabilities {
   change_priority?: boolean;
   /** May edit the ticket's points and approximate duration («تعديل النقاط والمدة»). Absent on older payloads. */
   can_edit_estimate?: boolean;
-  /** May give the FINAL approval of a PENDING_REVIEW ticket (this is what credits points and hours). Trust it; never recompute. */
-  approve_completion?: boolean;
+  /**
+   * May confirm the review of a PENDING_REVIEW ticket in one press («تأكيد المراجعة»): the server moves it to its next stage
+   * (waiting for deployment, or closed with the credit). Trust it; never recompute. Absent for reporters and plain members.
+   */
+  confirm_review?: boolean;
   /** May send a PENDING_REVIEW / APPROVED_FOR_DEPLOY ticket back to the assignee. */
   return_for_rework?: boolean;
-  /** Deployment tickets: may approve the reviewed work for deployment (approves points and time; credits nothing). */
-  approve_for_deploy?: boolean;
   /** Deployment tickets: may record that the work is deployed on the live site. */
   mark_deployed?: boolean;
   /** Deployment tickets: the assignee may confirm the live test passed (this credits the balance). */
@@ -185,6 +186,27 @@ export interface TicketActivityLog {
  * detail payload). ABSENT for everyone who is not a potential reviewer of the ticket's department, for tickets outside a
  * review stage, and for reporters and plain members: never invent it. The review BUTTONS still come only from `capabilities`.
  */
+export interface TicketReviewBlocker {
+  code: string;
+  /** The reason, in Arabic, ready to show («أكمل حجم المهمة…»). */
+  message_ar: string;
+}
+
+/** Codes of `confirm-review` refusals (`{ success: false, message, code }`). */
+export type ConfirmReviewErrorCode =
+  | 'REVIEW_PERMISSION_REQUIRED'
+  | 'PARTICIPATION_PERMISSION_REQUIRED'
+  | 'HR_APPROVAL_REQUIRED'
+  | 'INVALID_STAGE'
+  | 'NOT_PENDING_REVIEW'
+  | 'ALREADY_CREDITED'
+  | 'REVIEW_DATA_INCOMPLETE'
+  | 'REVIEW_VALUES_LOCKED'
+  | 'STALE_REVIEW';
+
+/** What a 422 REVIEW_DATA_INCOMPLETE says is still missing. */
+export type ReviewMissingField = 'task_scope' | 'task_points' | 'estimated_hours' | 'actual_minutes';
+
 export interface TicketReviewContext {
   stage: TicketStatus;
   can_review: boolean;
@@ -254,6 +276,13 @@ export interface Ticket {
   viewer_role?: 'staff';
   /** Detail payload, review stages, potential reviewers only: why review is (not) available to this viewer. */
   review_context?: TicketReviewContext;
+  /**
+   * Detail payload, PENDING_REVIEW, internal viewers who pass permission and scope but are blocked (missing size, points,
+   * approximate or actual duration; the HR gate): the reasons the review cannot be confirmed yet. Absent otherwise.
+   */
+  review_blockers?: TicketReviewBlocker[];
+  /** Internal viewers only: which review round the ticket is in. Sent back with «تأكيد المراجعة» so a press on a stale screen is refused (409 STALE_REVIEW). Absent on list rows. */
+  review_round?: number;
   /** List rows requested with a `tab`: does THIS viewer have a workflow step to take on this ticket now? */
   needs_my_action?: boolean;
   /** List rows requested with a `tab`: who must act next (null when finished or when the viewer may not see it). */

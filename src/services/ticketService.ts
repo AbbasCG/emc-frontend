@@ -147,31 +147,16 @@ export const ticketService = {
   },
 
   /**
-   * FINAL approval of a PENDING_REVIEW ticket: the one call that credits points and hours to the assignee (once).
-   * `actual_minutes` (1..60000) is REQUIRED: it is the time credited. The estimate is optional (it may correct the
-   * stored one) and REQUIRED when the ticket has none. Errors:
-   * 409 (already credited / not in review), 403 (not allowed, or the HR gate), 404, 422 (`task_scope`, `task_points`,
-   * `estimated_hours`, `actual_minutes`, `note`).
+   * «تأكيد المراجعة»: one press, no values. POST /v1/tickets/{id}/confirm-review (the optional `note` is the only field).
+   * The server moves the ticket to its next stage (APPROVED_FOR_DEPLOY for a deployment ticket; RESOLVED + credit otherwise):
+   * read `data.status` from the answer. Errors `{ success: false, message, code }`: 403 REVIEW_PERMISSION_REQUIRED /
+   * PARTICIPATION_PERMISSION_REQUIRED / HR_APPROVAL_REQUIRED, 409 INVALID_STAGE / NOT_PENDING_REVIEW / ALREADY_CREDITED,
+   * 409 STALE_REVIEW, 422 REVIEW_DATA_INCOMPLETE (+ `missing`) / REVIEW_VALUES_LOCKED.
    */
-  approveCompletion: async (
-    id: number,
-    payload: Partial<TicketEstimateInput> & { note?: string; actual_minutes?: number } = {}
-  ): Promise<TicketDetailResponse> => {
-    const res = await apiClient.post(`/v1/tickets/${id}/approve-completion`, payload, { skipErrorToast: true });
-    return res.data;
-  },
-
-  /**
-   * Deployment ticket, reviewer: approve the reviewed work FOR DEPLOYMENT. Body: `task_scope`, `task_points`,
-   * `actual_minutes` (all validated by the server), optional `estimated_hours` and `note`. Approves points and time;
-   * credits nothing (that happens when the assignee confirms the live test). 403 HR_APPROVAL_REQUIRED / REVIEW_PERMISSION_REQUIRED / PARTICIPATION_PERMISSION_REQUIRED,
-   * 409 INVALID_STAGE / NOT_PENDING_REVIEW, 422 field errors.
-   */
-  approveForDeploy: async (
-    id: number,
-    payload: TicketEstimateInput & { actual_minutes: number; note?: string }
-  ): Promise<TicketDetailResponse> => {
-    const res = await apiClient.post(`/v1/tickets/${id}/approve-for-deploy`, payload, { skipErrorToast: true });
+  confirmReview: async (id: number, note?: string, reviewRound?: number): Promise<TicketDetailResponse> => {
+    // `review_round` is the round of the ticket the user is looking at; the server answers 409 STALE_REVIEW when it moved on.
+    const body = { ...(note && note.trim() !== '' ? { note: note.trim() } : {}), ...(typeof reviewRound === 'number' ? { review_round: reviewRound } : {}) };
+    const res = await apiClient.post(`/v1/tickets/${id}/confirm-review`, body, { skipErrorToast: true });
     return res.data;
   },
 

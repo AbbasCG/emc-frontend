@@ -327,6 +327,12 @@ describe('actions follow server capabilities', () => {
     expect(toastError).toHaveBeenCalled()
 
     await user.type(within(dialog).getByRole('textbox'), 'تم استبدال الخرطوشة')
+    // the ACTUAL duration is required too: hours and minutes start empty
+    await user.click(within(dialog).getByRole('button', { name: /تأكيد التقديم للمراجعة/ }))
+    expect(mockCompleteTask).not.toHaveBeenCalled()
+    expect(await within(dialog).findByText(/أدخل المدة الفعلية/)).toBeInTheDocument()
+    await user.selectOptions(within(dialog).getByLabelText('ساعات'), '1')
+    await user.selectOptions(within(dialog).getByLabelText('دقائق'), '10')
     await user.click(within(dialog).getByRole('button', { name: /تأكيد التقديم للمراجعة/ }))
 
     await waitFor(() => expect(mockCompleteTask).toHaveBeenCalledTimes(1))
@@ -334,6 +340,7 @@ describe('actions follow server capabilities', () => {
     expect(id).toBe(42)
     expect(form.get('resolution_type')).toBe('RESOLVED')
     expect(form.get('resolution_summary')).toBe('تم استبدال الخرطوشة')
+    expect(form.get('actual_minutes')).toBe('70')
   })
 
   it('requires an apology reason before rejecting a task', async () => {

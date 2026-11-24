@@ -34,6 +34,7 @@ describe('CompleteTaskModal — sends the field the backend actually validates',
       screen.getByPlaceholderText('اشرح الإجراءات التقنية المتخذة والنتيجة التي تحققت...'),
       'تم استبدال الكابل وإعادة تشغيل الجهاز',
     )
+    await userEvent.selectOptions(screen.getByLabelText('دقائق'), '30')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد التقديم للمراجعة' }))
 
     expect(mockCompleteTask).toHaveBeenCalledTimes(1)

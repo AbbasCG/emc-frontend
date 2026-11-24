@@ -1,16 +1,22 @@
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { UploadCloud, X } from 'lucide-react';
+import type { Ticket } from '@/types/ticket';
 import { ticketService } from '@/services/ticketService';
-import { apiMessage } from '@/services/ticketOpsService';
+import { apiErrorCode, apiMessage, httpStatus } from '@/services/ticketOpsService';
+import { getLaravelFieldErrors } from '@/api/apiErrors';
 import { CenteredModal } from '@/components/ui/CenteredModal';
+import { SUBMIT_DURATION_REQUIRED_MESSAGE, SubmitDurationSection } from '@/components/tickets/modals/SubmitDurationSection';
+import { actualDraftFromMinutes, actualDraftToMinutes, actualDurationMessage, type ActualDurationDraft } from '@/lib/taskEstimate';
 import toast from '@/lib/toast';
 
 export interface CompleteTaskModalProps {
   ticketId: number;
   onClose: () => void;
   onSuccess: () => void;
-  /** A deployment ticket submits for review in one click elsewhere; this dialog is then only for «تعذر الحل». */
+  /** A deployment ticket submits for review through its own small dialog (SubmitForReviewModal); this one is then only for «تعذر الحل». */
   unresolvedOnly?: boolean;
+  /** The ticket's approved size/points/duration, only for the preview under «المدة الفعلية». */
+  estimate?: Partial<Pick<Ticket, 'task_points' | 'estimated_hours' | 'actual_minutes'>>;
 }
 
 /**
@@ -29,7 +35,12 @@ export interface CompleteTaskModalProps {
  * The request field is `resolution_type` — matching TicketController::
  * completeTask()'s actual validator exactly.
  */
-export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly = false }: CompleteTaskModalProps) {
+export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly = false, estimate }: CompleteTaskModalProps) {
+  const formId = useId();
+  const submitInFlight = useRef(false);
+  const hoursRef = useRef<HTMLSelectElement>(null);
+  const [actual, setActual] = useState<ActualDurationDraft>(() => actualDraftFromMinutes(estimate?.actual_minutes));
+  const [actualError, setActualError] = useState<string | null>(null);
   const [status, setStatus] = useState<'RESOLVED' | 'UNRESOLVED'>(unresolvedOnly ? 'UNRESOLVED' : 'RESOLVED');
   const [summary, setSummary] = useState('');
   const [unresolvedReason, setUnresolvedReason] = useState('');
@@ -37,8 +48,17 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly
   const [submitting, setSubmitting] = useState(false);
 
   const handleComplete = async () => {
+    if (submitInFlight.current) return;
+    setActualError(null);
     if (status === 'RESOLVED' && !summary.trim()) {
       toast.error('يجب توضيح ما تم بالتفصيل لتقديم التذكرة للمراجعة');
+      return;
+    }
+    // The ACTUAL duration is recorded now, by the assignee, before the review (hours + minutes, exact, above 0).
+    const minutes = actualDraftToMinutes(actual);
+    if (status === 'RESOLVED' && !minutes.ok) {
+      setActualError(minutes.reason === 'empty' ? SUBMIT_DURATION_REQUIRED_MESSAGE : actualDurationMessage(minutes.reason));
+      hoursRef.current?.focus();
       return;
     }
     if (status === 'UNRESOLVED' && !unresolvedReason.trim()) {
@@ -46,12 +66,14 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly
       return;
     }
 
+    submitInFlight.current = true;
     setSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('resolution_type', status);
       if (status === 'RESOLVED') {
         formData.append('resolution_summary', summary.trim());
+        if (minutes.ok) formData.append('actual_minutes', String(minutes.minutes));
         files.forEach((f) => formData.append('proof_files[]', f));
       } else {
         formData.append('unresolved_reason', unresolvedReason.trim());
@@ -60,8 +82,15 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly
       toast.success(status === 'RESOLVED' ? 'تم تقديم التذكرة للمراجعة والاعتماد' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       onSuccess();
     } catch (e) {
-      toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
+      const code = apiErrorCode(e);
+      if (httpStatus(e) === 422 && (getLaravelFieldErrors(e).actual_minutes || code === 'ACTUAL_DURATION_REQUIRED' || code === 'ACTUAL_DURATION_INVALID')) {
+        setActualError(getLaravelFieldErrors(e).actual_minutes ?? apiMessage(e, SUBMIT_DURATION_REQUIRED_MESSAGE));
+        hoursRef.current?.focus();
+      } else {
+        toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
+      }
     } finally {
+      submitInFlight.current = false;
       setSubmitting(false);
     }
   };
@@ -75,7 +104,7 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly
       size="md"
       testId="complete-task-modal"
       busy={submitting}
-      dirty={summary.trim() !== '' || unresolvedReason.trim() !== '' || files.length > 0}
+      dirty={summary.trim() !== '' || unresolvedReason.trim() !== '' || files.length > 0 || JSON.stringify(actual) !== JSON.stringify(actualDraftFromMinutes(estimate?.actual_minutes))}
       title={unresolvedOnly ? 'تعذر الحل' : 'تقديم للمراجعة'}
       footer={(requestClose) => (
         <div className="flex gap-3">
@@ -127,8 +156,18 @@ export function CompleteTaskModal({ ticketId, onClose, onSuccess, unresolvedOnly
         {status === 'RESOLVED' ? (
           <>
             <p className="rounded-xl bg-indigo-50 p-3 text-xs font-bold leading-relaxed text-indigo-800" data-testid="submit-review-note">
-              لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي، والوقت المُضاف هو المدة الفعلية التي يعتمدها المراجع.
+              لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي، والوقت المُضاف هو المدة الفعلية التي تسجّلها الآن.
             </p>
+            <SubmitDurationSection
+              value={actual}
+              onChange={(next) => { setActual(next); setActualError(null); }}
+              error={actualError}
+              idPrefix={`${formId}-actual`}
+              disabled={submitting}
+              hoursRef={hoursRef}
+              points={estimate?.task_points}
+              estimatedHours={estimate?.estimated_hours}
+            />
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 ما الذي تم بالتفصيل لحل المشكلة؟ <span className="text-rose-500">*</span>

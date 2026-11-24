@@ -60,6 +60,8 @@ beforeEach(() => {
 const fillEstimate = async () => {
   await userEvent.selectOptions(screen.getByLabelText(/حجم المهمة/), 'medium')
   await userEvent.type(screen.getByLabelText(/نقاط المهمة/), '120')
+  // the approximate duration is required when work is assigned
+  await userEvent.selectOptions(screen.getByLabelText(/^المدة التقريبية/), '2')
 }
 
 const approveButton = () => screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' })
