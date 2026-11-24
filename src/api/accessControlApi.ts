@@ -1,6 +1,7 @@
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
 import type { PageAccessCategoryKey, PageAccessRiskLevel } from './pageAccessCatalogApi'
+import { effectiveActionPermissionsFromUnknown, type EffectiveActionPermission } from './actionPermissionsApi'
 
 /**
  * EMC Access Control — typed clients for the Phase 2A–2D backend.
@@ -320,6 +321,8 @@ export type EffectivePageAccess = {
   user: { id: number; name: string; email: string; role: string }
   allowedKeys: string[]
   pages: EffectivePageAccessRow[]
+  /** The server's action-permission decision (absent on older servers → empty). */
+  actionPermissions: EffectiveActionPermission[]
 }
 
 const SOURCES: readonly PageAccessSource[] = [
@@ -387,6 +390,7 @@ function normalizeEffective(payload: unknown): EffectivePageAccess {
     },
     allowedKeys: asStringList(d.allowed_keys),
     pages: list.map(effectiveRowFromUnknown).filter((r): r is EffectivePageAccessRow => r != null),
+    actionPermissions: effectiveActionPermissionsFromUnknown(d.action_permissions),
   }
 }
 

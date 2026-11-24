@@ -193,6 +193,13 @@ vi.mock('@/components/access-control/EffectiveAccessPreview', () => ({
   EffectiveAccessPreview: ({ userName }: { userName: string }) => <p>{`الوصول الفعلي: ${userName}`}</p>,
 }))
 
+vi.mock('@/components/access-control/UserActionPermissionsPanel', () => ({
+  UserActionPermissionsPanel: ({ userName }: { userName: string }) => <p>{`صلاحيات الإجراءات: ${userName}`}</p>,
+}))
+vi.mock('@/components/access-control/RoleMembersPanel', () => ({
+  RoleMembersPanel: ({ roleLabelAr }: { roleLabelAr: string }) => <p>{`مستخدمو الدور: ${roleLabelAr}`}</p>,
+}))
+
 const { default: AccessControlCenterPage } = await import('@/pages/super-admin/AccessControlCenterPage')
 
 function renderPage(entry = ROUTE) {
@@ -282,6 +289,7 @@ describe('roles tab', () => {
     await user.click(options[0])
 
     expect(await screen.findByText(/^لوحة الدور: /)).toBeInTheDocument()
+    expect(await screen.findByText(/^مستخدمو الدور: /)).toBeInTheDocument()
   })
 })
 
@@ -306,6 +314,8 @@ describe('users tab', () => {
 
     await user.click(option)
     expect(await screen.findByText('لوحة المستخدم: مستخدم تجريبي')).toBeInTheDocument()
+    // «صلاحيات الإجراءات» sits next to the page-access editor once a user is chosen.
+    expect(await screen.findByText('صلاحيات الإجراءات: مستخدم تجريبي')).toBeInTheDocument()
   })
 })
 

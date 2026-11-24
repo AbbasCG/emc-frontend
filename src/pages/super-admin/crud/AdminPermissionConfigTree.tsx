@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import apiClient from '../../../api/axios';
-import { Shield, ShieldOff, Check, X, Users, ChevronRight, Settings2 } from 'lucide-react';
+import { Shield, ShieldOff, Check, X, Users, ChevronRight, Settings2, UserSearch } from 'lucide-react';
+import { CenteredModal } from '@/components/ui/CenteredModal';
+import { PermissionHoldersPanel } from '@/components/access-control/PermissionHoldersPanel';
 import { permissionNoteAr } from '@/utils/permissionLabels';
 
 interface Role {
@@ -27,6 +30,7 @@ export default function AdminPermissionConfigTree() {
   const [tree, setTree] = useState<PermissionNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [holdersFor, setHoldersFor] = useState<PermissionNode | null>(null);
 
   const fetchRoles = async () => {
     try {
@@ -94,6 +98,15 @@ export default function AdminPermissionConfigTree() {
         </div>
         
         {node.permission_name && (
+          <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setHoldersFor(node)}
+            className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            <UserSearch className="h-4 w-4" aria-hidden />
+            من يملك هذه الصلاحية
+          </button>
           <button
             onClick={() => toggleDelegatable(node)}
             disabled={node.is_system}
@@ -108,6 +121,7 @@ export default function AdminPermissionConfigTree() {
             {node.is_delegatable ? <Check className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
             {node.is_delegatable ? 'قابل للتفويض' : 'غير قابل للتفويض'}
           </button>
+          </div>
         )}
       </div>
     );
@@ -121,6 +135,18 @@ export default function AdminPermissionConfigTree() {
           إعدادات تفويض الصلاحيات
         </h1>
         <p className="text-gray-600 mt-2">حدد الصلاحيات التي يمكن لكل دور (مثل مدير الإدارة) تفويضها للموظفين التابعين له.</p>
+        <div role="note" data-testid="delegation-page-purpose" className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-4 text-sm leading-relaxed text-gray-700">
+          <p className="font-semibold text-gray-900">ما وظيفة هذه الصفحة؟</p>
+          <p className="mt-1">
+            هذه الصفحة تحدد فقط ما يحق لقائد الإدارة أن يفوّضه لأعضاء إدارته (شجرة التفويض). وهي لا تمنح صلاحية لأي شخص.
+          </p>
+          <p className="mt-1">
+            لمنح الصلاحية لشخص بعينه:{' '}
+            <Link to="/dashboard/super-admin/access-control?tab=users" className="font-bold text-purple-700 underline underline-offset-2">
+              إدارة الوصول والصلاحيات ← المستخدمون ← صلاحيات الإجراءات
+            </Link>
+          </p>
+        </div>
       </div>
 
       {error && (
@@ -185,6 +211,16 @@ export default function AdminPermissionConfigTree() {
           )}
         </div>
       </div>
+
+      <CenteredModal
+        open={holdersFor != null}
+        onClose={() => setHoldersFor(null)}
+        title="من يملك هذه الصلاحية"
+        subtitle={holdersFor?.label_ar}
+        size="lg"
+      >
+        {holdersFor?.permission_name ? <PermissionHoldersPanel permissionKey={holdersFor.permission_name} /> : null}
+      </CenteredModal>
     </div>
   );
 }

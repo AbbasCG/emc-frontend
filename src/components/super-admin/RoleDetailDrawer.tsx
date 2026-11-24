@@ -11,12 +11,11 @@ import {
   Users,
   Users2,
 } from 'lucide-react'
-import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
 import { fetchRolePermissions } from '@/api/rolesPermissionsApi'
 import { RolePageAccessPanel } from '@/components/access-control/RolePageAccessPanel'
+import { RoleMembersPanel } from '@/components/access-control/RoleMembersPanel'
 import { RolePermissionsMatrix } from '@/components/super-admin/RolePermissionsMatrix'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
-import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import {
   CAPABILITIES,
   ROLE_CAPABILITY_HINTS_AR,
@@ -100,10 +99,6 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
   const { user } = useAuth()
   const [tab, setTab] = useState<TabId>('overview')
   const [grantedCount, setGrantedCount] = useState(0)
-  const [roleUsers, setRoleUsers] = useState<AdminManagedUser[]>([])
-  // Starts loading when the drawer mounts already open — the effect below no longer
-  // flips it synchronously.
-  const [usersLoading, setUsersLoading] = useState(open)
 
   const type = classifyRole(slug)
   const risk = riskLevel(slug)
@@ -124,23 +119,12 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
     setSeenRole({ open, slug })
     if (open) {
       setTab('overview')
-      setUsersLoading(true)
     }
   }
 
   useEffect(() => {
     if (!open) return
     let alive = true
-    void (async () => {
-      try {
-        const rows = await fetchAdminUsers()
-        if (alive) setRoleUsers(rows.filter((u) => normalizeRole(u.role ?? null) === slug))
-      } catch {
-        if (alive) setRoleUsers([])
-      } finally {
-        if (alive) setUsersLoading(false)
-      }
-    })()
     fetchRolePermissions(slug)
       .then((keys) => { if (alive) setGrantedCount(keys.length) })
       .catch(() => { if (alive) setGrantedCount(0) })
@@ -275,36 +259,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
 
       {tab === 'page-access' && <RolePageAccessPanel roleId={slug} roleLabelAr={labelAr} />}
 
-      {tab === 'users' && (
-        <div className="space-y-3">
-          {usersLoading ? (
-            <p className="py-8 text-center text-[13px] font-semibold text-slate-400">جارٍ تحميل المستخدمين…</p>
-          ) : roleUsers.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-200 py-10 text-center text-[13px] font-semibold text-slate-400">
-              لا يوجد مستخدمون مرتبطون بهذا الدور حالياً
-            </p>
-          ) : (
-            <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-              {roleUsers.map((u) => (
-                <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[12px] font-black text-[#0077B6]">
-                    {initialsFromName(u.name)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
-                    <p className="truncate text-[11px] font-semibold text-slate-500" dir="ltr">{u.email}</p>
-                  </div>
-                  {u.is_active === false || u.status === 'inactive' ? (
-                    <Badge cls="bg-slate-100 text-slate-500 ring-slate-200">غير نشط</Badge>
-                  ) : (
-                    <Badge cls="bg-emerald-50 text-emerald-700 ring-emerald-200">نشط</Badge>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {tab === 'users' && <RoleMembersPanel roleSlug={slug} roleLabelAr={labelAr} />}
     </CrudDrawer>
   )
 }
