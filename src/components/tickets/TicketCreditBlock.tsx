@@ -95,7 +95,7 @@ export function TicketCreditBlock({ ticket, className = '' }: { ticket: CreditSu
             </p>
           ) : credit.status === 'pending_review' ? (
             <p className="text-sm font-bold text-indigo-700" data-testid="credit-pending-text">
-              {ticket.requires_deployment === true ? 'بانتظار المراجعة والاعتماد للنشر' : 'بانتظار الاعتماد النهائي'}
+              {ticket.requires_deployment === true ? 'بانتظار تأكيد المراجعة' : 'بانتظار الاعتماد النهائي'}
             </p>
           ) : (
             <p className="text-sm font-bold text-slate-500">لم يُسجَّل رصيد</p>

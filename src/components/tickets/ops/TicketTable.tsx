@@ -1,20 +1,22 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, ArrowUpDown, BadgeCheck, CheckCircle2, Columns3, Paperclip, RotateCcw, Rocket, Undo2, UserPlus, XCircle } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, CheckCircle2, Columns3, Paperclip, RotateCcw, Undo2, UserPlus, XCircle } from 'lucide-react'
 import type { Ticket } from '@/types/ticket'
 import type { TicketFilters, TicketSortKey } from '@/types/ticketOps'
 import { cn } from '@/lib/utils'
+import { ConfirmReviewButton } from '@/components/tickets/ConfirmReviewButton'
 import { AwaitingLine, CategoryPill, DeadlineText, PriorityPill, StatusPill } from './TicketBadges'
 import { COLUMNS, DEFAULT_COLUMNS, saveColumns, type ColumnKey } from './ticketColumns'
 import { ageText, formatDateTime } from './ticketOpsUi'
 
-export type RowAction = 'approve' | 'reject' | 'reassign' | 'approve_completion' | 'approve_for_deploy' | 'return_for_rework'
+export type RowAction = 'approve' | 'reject' | 'reassign' | 'return_for_rework'
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation()
 
 /** Quick actions allowed by the server's capabilities for THIS user and ticket. Pressing one never opens the ticket. */
-export function RowActions({ ticket, onAction }: { ticket: Ticket; onAction: (a: RowAction, t: Ticket) => void }) {
+export function RowActions({ ticket, onAction, onConfirmed }: { ticket: Ticket; onAction: (a: RowAction, t: Ticket) => void; onConfirmed?: () => void }) {
   const c = ticket.capabilities
-  if (!c || (!c.approve && !c.reject && !c.reassign && !c.approve_completion && !c.approve_for_deploy && !c.return_for_rework)) return null
+  const canConfirm = c?.confirm_review === true && ticket.status === 'PENDING_REVIEW'
+  if (!c || (!c.approve && !c.reject && !c.reassign && !canConfirm && !c.return_for_rework)) return null
   const btn = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40'
 
   return (
@@ -24,16 +26,7 @@ export function RowActions({ ticket, onAction }: { ticket: Ticket; onAction: (a:
           <CheckCircle2 size={12} aria-hidden="true" /> اعتماد
         </button>
       : null}
-      {c.approve_completion === true ?
-        <button type="button" onClick={() => onAction('approve_completion', ticket)} className={cn(btn, 'bg-emerald-600 text-white hover:bg-emerald-700')} aria-label={`اعتماد إنجاز التذكرة ${ticket.ticket_number}`}>
-          <BadgeCheck size={12} aria-hidden="true" /> اعتماد الإنجاز
-        </button>
-      : null}
-      {c.approve_for_deploy === true ?
-        <button type="button" onClick={() => onAction('approve_for_deploy', ticket)} className={cn(btn, 'bg-teal-600 text-white hover:bg-teal-700')} aria-label={`اعتماد التذكرة ${ticket.ticket_number} للنشر`}>
-          <Rocket size={12} aria-hidden="true" /> اعتماد للنشر
-        </button>
-      : null}
+      <ConfirmReviewButton ticket={ticket} variant="row" onDone={() => onConfirmed?.()} />
       {c.return_for_rework === true ?
         <button type="button" onClick={() => onAction('return_for_rework', ticket)} className={cn(btn, 'border border-amber-300 text-amber-700 hover:bg-amber-50')} aria-label={`إعادة التذكرة ${ticket.ticket_number} للتنفيذ`}>
           <Undo2 size={12} aria-hidden="true" /> إعادة للتنفيذ
@@ -95,6 +88,8 @@ interface Props {
   activeId: number | null
   onOpen: (id: number) => void
   onAction: (a: RowAction, t: Ticket) => void
+  /** «تأكيد المراجعة» was answered (confirmed or refused): the page re-reads the list, figures and counts. */
+  onConfirmed?: () => void
   /** Mobile layout: one card per ticket instead of a table. */
   compact?: boolean
 }
@@ -134,7 +129,7 @@ export function ColumnMenu({ columns, onColumns }: { columns: ColumnKey[]; onCol
   )
 }
 
-export function TicketTable({ tickets, filters, columns, onSort, selected, onToggle, onToggleAll, activeId, onOpen, onAction, compact = false }: Props) {
+export function TicketTable({ tickets, filters, columns, onSort, selected, onToggle, onToggleAll, activeId, onOpen, onAction, onConfirmed, compact = false }: Props) {
   const visible = COLUMNS.filter((c) => columns.includes(c.key))
   const ids = tickets.map((t) => t.id)
   const allOn = ids.length > 0 && ids.every((id) => selected.has(id))
@@ -162,7 +157,7 @@ export function TicketTable({ tickets, filters, columns, onSort, selected, onTog
               <div><dt className="font-semibold text-deepBlue/45">المكلف</dt><dd className="truncate font-bold text-deepBlue/80">{t.assignee?.name ?? 'غير مُسنَدة'}</dd></div>
               <div className="col-span-2"><dt className="font-semibold text-deepBlue/45">الموعد المتوقع</dt><dd><DeadlineText ticket={t} /></dd></div>
             </dl>
-            <div className="mt-3"><RowActions ticket={t} onAction={onAction} /></div>
+            <div className="mt-3"><RowActions ticket={t} onAction={onAction} onConfirmed={onConfirmed} /></div>
           </li>
         ))}
       </ul>
@@ -213,7 +208,7 @@ export function TicketTable({ tickets, filters, columns, onSort, selected, onTog
                 {visible.map((c) => (
                   <td key={c.key} className="px-3 py-3"><Cell col={c.key} t={t} /></td>
                 ))}
-                <td className="px-3 py-3"><RowActions ticket={t} onAction={onAction} /></td>
+                <td className="px-3 py-3"><RowActions ticket={t} onAction={onAction} onConfirmed={onConfirmed} /></td>
               </tr>
             ))}
           </tbody>

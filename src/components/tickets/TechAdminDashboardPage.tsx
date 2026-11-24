@@ -6,7 +6,6 @@ import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketMod
 import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal'
 import { deploymentFreezeMessage, isDeploymentFlagLocked } from '@/lib/ticketLifecycle'
 import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal'
-import { ApproveCompletionModal, ApproveForDeployModal } from '@/components/tickets/modals/ApproveCompletionModal'
 import { ReturnForReworkModal } from '@/components/tickets/modals/ReturnForReworkModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAbortableResource } from '@/hooks/useAbortableResource'
@@ -350,6 +349,7 @@ export default function TechAdminDashboardPage() {
                     activeId={ticketId}
                     onOpen={openTicket}
                     onAction={onAction}
+                    onConfirmed={refreshAll}
                     compact={compact}
                   />
                   <TicketPagination
@@ -375,6 +375,7 @@ export default function TechAdminDashboardPage() {
                   activeId={ticketId}
                   onOpen={openTicket}
                   onAction={onAction}
+                  onConfirmed={refreshAll}
                   onShowAll={(status) => nav.update({ status: [status], tab: 'all' }, { view: 'table' })}
                 />
               : <ListSkeleton />
@@ -421,8 +422,6 @@ export default function TechAdminDashboardPage() {
       />
 
       {modal?.type === 'approve' ? <ApproveTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} onClose={closeModal} onSuccess={modalDone} /> : null}
-      {modal?.type === 'approve_completion' ? <ApproveCompletionModal ticket={modal.ticket} onClose={closeModal} onSuccess={modalDone} onStale={modalDone} /> : null}
-      {modal?.type === 'approve_for_deploy' ? <ApproveForDeployModal ticket={modal.ticket} onClose={closeModal} onSuccess={modalDone} onStale={modalDone} /> : null}
       {modal?.type === 'return_for_rework' ? <ReturnForReworkModal ticketId={modal.ticketId} fromDeploy={modal.ticket.status === 'APPROVED_FOR_DEPLOY'} assigneeUnavailable={modal.ticket.status === 'PENDING_VERIFICATION'} onClose={closeModal} onSuccess={modalDone} onStale={modalDone} /> : null}
       {modal?.type === 'reject' ? <RejectTicketModal ticketId={modal.ticketId} onClose={closeModal} onSuccess={modalDone} /> : null}
       {modal?.type === 'reassign' ? <ReassignTicketModal ticketId={modal.ticketId} departmentId={modal.departmentId} currentUnitId={modal.unitId} previousDeclineReason={modal.ticket.assignee_rejection_reason} declinedAssigneeId={modal.ticket.status === 'REJECTED_BY_ASSIGNEE' ? (modal.ticket.assigned_to_id ?? modal.ticket.assignee?.id ?? null) : null} currentEstimate={{ task_scope: modal.ticket.task_scope, task_points: modal.ticket.task_points, estimated_hours: modal.ticket.estimated_hours }} currentRequiresDeployment={modal.ticket.requires_deployment === true} deploymentFrozen={modal.ticket.capabilities?.can_edit_estimate === false} deploymentFrozenMessage={deploymentFreezeMessage(modal.ticket, user?.id)} deploymentLocked={isDeploymentFlagLocked(modal.ticket)} onClose={closeModal} onSuccess={modalDone} /> : null}

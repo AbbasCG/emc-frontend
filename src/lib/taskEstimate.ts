@@ -56,7 +56,7 @@ export const isTaskScope = (v: unknown): v is TaskScope => typeof v === 'string'
  * duration is never credited; the time added to the balance is the ACTUAL duration the authorised reviewer enters at
  * the final approval, and points and hours are added only then, once.
  */
-export const TICKET_ESTIMATE_NOTE = 'المدة التقريبية للتخطيط فقط. الوقت الذي يُضاف إلى رصيد المكلّف هو المدة الفعلية التي يعتمدها المراجع، ولا تُضاف النقاط والساعات إلا بعد الاعتماد النهائي.'
+export const TICKET_ESTIMATE_NOTE = 'المدة التقريبية للتخطيط فقط. الوقت الذي يُضاف إلى رصيد المكلّف هو المدة الفعلية التي يسجّلها المكلّف قبل المراجعة، ولا تُضاف النقاط والساعات إلا بعد الاعتماد النهائي للتذكرة.'
 
 export type DurationUnit = 'hours' | 'minutes'
 
@@ -147,7 +147,7 @@ export function validatePointsForScope(scope: TaskScope, points: number, excepti
  * Not required and fully empty: valid (nothing is saved). The duration is always optional, but when given it must
  * be a positive number.
  */
-export function validateEstimate(d: EstimateDraft, { required }: { required: boolean }): EstimateErrors {
+export function validateEstimate(d: EstimateDraft, { required, durationRequired = false }: { required: boolean; durationRequired?: boolean }): EstimateErrors {
   const errors: EstimateErrors = {}
   const touched = d.scope !== '' || d.points.trim() !== '' || d.duration.trim() !== ''
 
@@ -161,6 +161,8 @@ export function validateEstimate(d: EstimateDraft, { required }: { required: boo
   }
 
   const hours = durationToHours(d.duration, d.unit)
+  // Ticket assignment: the approximate duration is set now (and is read-only during review), so it is required too.
+  if (durationRequired && hours === null) errors.estimated_hours = 'حدّد المدة التقريبية للمهمة.'
   if (hours !== null) {
     if (!Number.isFinite(hours) || hours < MIN_HOURS) errors.estimated_hours = 'المدة التقريبية يجب ألا تقل عن 0.01 ساعة (أقل من دقيقة لا تُحتسب).'
     else if (hours > MAX_HOURS) errors.estimated_hours = `المدة التقريبية لا تتجاوز ${MAX_HOURS} ساعة.`
@@ -313,6 +315,8 @@ export interface TicketEstimateMode {
   /** `null`: the server did not send any (an older one): the form falls back to the free number input. */
   pointsOptions: PointsOptions | null
   pointsLoading?: boolean
+  /** Assigning a ticket: the approximate duration is required (no «بدون مدة تقريبية» choice). */
+  durationRequired?: boolean
   /** The ticket's stored size and points: its stored value is always offered while that size is chosen. */
   stored?: { scope: TaskScope | ''; points: string }
 }

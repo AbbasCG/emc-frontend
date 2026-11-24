@@ -6,7 +6,7 @@ import { CategoryPill, DeadlineText, PriorityPill } from './TicketBadges'
 import { RowActions, type RowAction } from './TicketTable'
 import { STATUS_META, ageText } from './ticketOpsUi'
 
-function Card({ t, onOpen, onAction, active }: { t: Ticket; onOpen: (id: number) => void; onAction: (a: RowAction, t: Ticket) => void; active: boolean }) {
+function Card({ t, onOpen, onAction, onConfirmed, active }: { t: Ticket; onOpen: (id: number) => void; onAction: (a: RowAction, t: Ticket) => void; onConfirmed?: () => void; active: boolean }) {
   return (
     <li className={cn('rounded-2xl border bg-white p-3 shadow-sm transition hover:shadow-md', active ? 'border-customBlue' : 'border-deepBlue/[0.08]', t.is_delayed && 'border-s-4 border-s-rose-400')} data-testid="board-card" data-ticket-id={t.id}>
       <button type="button" onClick={() => onOpen(t.id)} aria-label={`فتح التذكرة ${t.ticket_number}`} className="block w-full text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40">
@@ -22,7 +22,7 @@ function Card({ t, onOpen, onAction, active }: { t: Ticket; onOpen: (id: number)
         <span className="shrink-0">{ageText(t.created_at)}</span>
       </div>
       <div className="mt-1.5"><DeadlineText ticket={t} /></div>
-      <div className="mt-2"><RowActions ticket={t} onAction={onAction} /></div>
+      <div className="mt-2"><RowActions ticket={t} onAction={onAction} onConfirmed={onConfirmed} /></div>
     </li>
   )
 }
@@ -39,6 +39,7 @@ export function TicketKanbanBoard({
   activeId,
   onOpen,
   onAction,
+  onConfirmed,
   onShowAll,
 }: {
   columns: BoardColumn[]
@@ -46,6 +47,7 @@ export function TicketKanbanBoard({
   activeId: number | null
   onOpen: (id: number) => void
   onAction: (a: RowAction, t: Ticket) => void
+  onConfirmed?: () => void
   onShowAll: (status: TicketStatus) => void
 }) {
   return (
@@ -67,7 +69,7 @@ export function TicketKanbanBoard({
               <>
                 <ul className="space-y-2.5">
                   {col.tickets.map((t) => (
-                    <Card key={t.id} t={t} onOpen={onOpen} onAction={onAction} active={activeId === t.id} />
+                    <Card key={t.id} t={t} onOpen={onOpen} onAction={onAction} onConfirmed={onConfirmed} active={activeId === t.id} />
                   ))}
                 </ul>
                 {more > 0 ?

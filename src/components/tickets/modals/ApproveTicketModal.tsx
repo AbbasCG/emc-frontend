@@ -76,7 +76,7 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
       return;
     }
     // The estimate is required whenever an assignee is chosen (and one always is here).
-    if (!estimate.check(true)) {
+    if (!estimate.check(true, true)) {
       toast.error('أكمل حجم المهمة ونقاطها');
       return;
     }
@@ -189,7 +189,7 @@ function ApproveTicketModalBody({ ticketId, departmentId, onClose, onSuccess }: 
           errors={estimate.errors}
           idPrefix={`${formId}-est`}
           disabled={submitting}
-          ticketMode={{ requiresDeployment, pointsOptions: targets.pointsOptions, pointsLoading: targets.phase === 'loading' }}
+          ticketMode={{ requiresDeployment, durationRequired: true, pointsOptions: targets.pointsOptions, pointsLoading: targets.phase === 'loading' }}
         />
 
         <RequiresDeploymentSwitch checked={requiresDeployment} onChange={setRequiresDeployment} disabled={submitting} />

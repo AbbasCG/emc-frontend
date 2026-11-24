@@ -52,7 +52,7 @@ beforeEach(() => {
 
 const scope = () => screen.getByLabelText(/حجم المهمة/) as HTMLSelectElement
 const points = () => screen.getByLabelText(/نقاط المهمة/) as HTMLInputElement
-const duration = () => screen.getByLabelText('المدة التقريبية') as HTMLInputElement
+const duration = () => screen.getByLabelText(/^المدة التقريبية\s*\*?$/) as HTMLInputElement
 
 function expectPinnedLayout(testId: string, submitName: RegExp | string) {
   const dialog = screen.getByTestId(testId)
@@ -111,17 +111,29 @@ describe('ApproveTicketModal: points and duration are required to assign', () =>
     expect(await screen.findByText('النقاط لهذا الحجم يجب أن تكون بين 75 و 150 نقطة')).toBeInTheDocument()
   })
 
-  it('sends the estimate; an empty duration is left out of the request', async () => {
-    svc.approveTicket.mockResolvedValue({ success: true })
+  it('the approximate duration is required: an empty one is refused under the field and nothing is sent', async () => {
     const { onSuccess } = mount()
     await fillApprove()
     await userEvent.selectOptions(scope(), 'medium')
     await userEvent.type(points(), '120')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
+    expect(await screen.findByText('حدّد المدة التقريبية للمهمة.')).toBeInTheDocument()
+    expect(duration()).toHaveAttribute('aria-invalid', 'true')
+    expect(svc.approveTicket).not.toHaveBeenCalled()
+    expect(onSuccess).not.toHaveBeenCalled()
+  })
+
+  it('sends the estimate with the chosen duration', async () => {
+    svc.approveTicket.mockResolvedValue({ success: true })
+    const { onSuccess } = mount()
+    await fillApprove()
+    await userEvent.selectOptions(scope(), 'medium')
+    await userEvent.type(points(), '120')
+    await userEvent.selectOptions(duration(), '3')
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     const body = svc.approveTicket.mock.calls[0][1]
-    expect(body).toMatchObject({ unit_id: 4, assigned_to_id: 9, sla_hours: 24, task_scope: 'medium', task_points: 120 })
-    expect('estimated_hours' in body).toBe(false)
+    expect(body).toMatchObject({ unit_id: 4, assigned_to_id: 9, sla_hours: 24, task_scope: 'medium', task_points: 120, estimated_hours: 3 })
   })
 
   it('converts minutes to decimal hours exactly like the task form', async () => {
@@ -145,6 +157,7 @@ describe('ApproveTicketModal: points and duration are required to assign', () =>
     await fillApprove()
     await userEvent.selectOptions(scope(), 'medium')
     await userEvent.type(points(), '100')
+    await userEvent.selectOptions(duration(), '2')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد الاعتماد والإحالة' }))
     expect(await screen.findByText('نقاط المهمة المتوسطة يجب أن تتراوح بين 75 و 150 نقطة.')).toBeInTheDocument()
     expect(screen.getByText('المدة غير صالحة.')).toBeInTheDocument()
@@ -187,7 +200,7 @@ describe('ReassignTicketModal', () => {
     expect(within(box).queryByRole('textbox')).not.toBeInTheDocument()
   })
 
-  it('reassigns with the estimate; the unchanged duration is not sent', async () => {
+  it('reassigns with the estimate, the required duration included', async () => {
     svc.reassign.mockResolvedValue({ success: true })
     const onSuccess = vi.fn()
     render(<ReassignTicketModal ticketId={5} departmentId={2} currentUnitId={4} onClose={vi.fn()} onSuccess={onSuccess} />)
@@ -196,16 +209,16 @@ describe('ReassignTicketModal', () => {
     await userEvent.selectOptions(await screen.findByLabelText('المكلف الجديد'), '9')
     await userEvent.selectOptions(scope(), 'large')
     await userEvent.type(points(), '250')
+    await userEvent.selectOptions(duration(), '4')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد إعادة التوجيه' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(svc.reassign.mock.calls[0][0]).toBe(5)
-    expect(svc.reassign.mock.calls[0][1]).toMatchObject({ assigned_to_id: 9, unit_id: 4, task_scope: 'large', task_points: 250 })
-    expect('estimated_hours' in svc.reassign.mock.calls[0][1]).toBe(false)
+    expect(svc.reassign.mock.calls[0][1]).toMatchObject({ assigned_to_id: 9, unit_id: 4, task_scope: 'large', task_points: 250, estimated_hours: 4 })
   })
 
   it('surfaces a server refusal of the reassignment (e.g. back to the one who declined)', async () => {
     svc.reassign.mockRejectedValue(unprocessable({ assigned_to_id: ['لا يمكن إسناد التذكرة لمن اعتذر عنها.'] }))
-    render(<ReassignTicketModal ticketId={5} departmentId={2} currentUnitId={4} currentEstimate={{ task_scope: 'simple', task_points: 30, estimated_hours: null }} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    render(<ReassignTicketModal ticketId={5} departmentId={2} currentUnitId={4} currentEstimate={{ task_scope: 'simple', task_points: 30, estimated_hours: 1 }} onClose={vi.fn()} onSuccess={vi.fn()} />)
     await screen.findByRole('option', { name: 'سلمى' })
     await userEvent.selectOptions(await screen.findByLabelText('المكلف الجديد'), '9')
     await userEvent.click(screen.getByRole('button', { name: 'تأكيد إعادة التوجيه' }))

@@ -3,7 +3,10 @@ import { Link } from 'react-router';
 import { TICKET_STAGE_CARD } from '@/lib/myWork';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketService } from '@/services/ticketService';
-import { apiMessage } from '@/services/ticketOpsService';
+import { apiErrorCode, apiMessage, httpStatus } from '@/services/ticketOpsService';
+import { getLaravelFieldErrors } from '@/api/apiErrors';
+import { SUBMIT_DURATION_REQUIRED_MESSAGE, SubmitDurationSection } from '@/components/tickets/modals/SubmitDurationSection';
+import { actualDraftToMinutes, actualDurationMessage, emptyActualDuration, type ActualDurationDraft } from '@/lib/taskEstimate';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Ticket, TicketAttachment, TicketPriority, TicketStatus } from '@/types/ticket';
 import TicketStatusBadge from './TicketStatusBadge';
@@ -44,7 +47,7 @@ import { formatDateTime24 } from '@/utils/time24';
 // ── Types ───────────────────────────────────────────────────────────────────
 type ActiveModal =
   | { type: 'reject'; ticketId: number; reason: string }
-  | { type: 'resolve'; ticketId: number; summary: string; files: File[]; status: 'RESOLVED' | 'UNRESOLVED'; unresolvedReason: string; internalNote: string }
+  | { type: 'resolve'; ticketId: number; summary: string; files: File[]; status: 'RESOLVED' | 'UNRESOLVED'; unresolvedReason: string; internalNote: string; actual: ActualDurationDraft; actualError: string | null }
   | null;
 
 type ListTab = 'active' | 'closed';
@@ -278,7 +281,7 @@ const AssigneeWorkspacePage: React.FC = () => {
   // ── Complete task (Resolved / Unresolved) ─────────────────────────────────
   const handleComplete = async () => {
     if (modal?.type !== 'resolve') return;
-    const { ticketId, status, summary, unresolvedReason, files } = modal;
+    const { ticketId, status, summary, unresolvedReason, files, actual } = modal;
 
     if (status === 'RESOLVED' && !summary.trim()) {
       toast.error('يجب توضيح ما تم بالتفصيل لتقديم التذكرة للمراجعة');
@@ -289,12 +292,20 @@ const AssigneeWorkspacePage: React.FC = () => {
       return;
     }
 
+    // The ACTUAL duration is recorded by the assignee before the review (hours + minutes, exact, above 0).
+    const minutes = actualDraftToMinutes(actual);
+    if (status === 'RESOLVED' && !minutes.ok) {
+      setModal({ ...modal, actualError: minutes.reason === 'empty' ? SUBMIT_DURATION_REQUIRED_MESSAGE : actualDurationMessage(minutes.reason) });
+      return;
+    }
+
     setActionLoading(true);
     try {
       const formData = new FormData();
       formData.append('resolution_type', status);
       if (status === 'RESOLVED') {
         formData.append('resolution_summary', summary.trim());
+        if (minutes.ok) formData.append('actual_minutes', String(minutes.minutes));
         files.forEach((f) => formData.append('proof_files[]', f));
       } else {
         formData.append('unresolved_reason', unresolvedReason.trim());
@@ -304,7 +315,11 @@ const AssigneeWorkspacePage: React.FC = () => {
       setModal(null);
       refreshAfterAction(ticketId);
     } catch (e) {
-      toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
+      if (httpStatus(e) === 422 && (getLaravelFieldErrors(e).actual_minutes || apiErrorCode(e) === 'ACTUAL_DURATION_REQUIRED' || apiErrorCode(e) === 'ACTUAL_DURATION_INVALID')) {
+        setModal((cur) => (cur?.type === 'resolve' ? { ...cur, actualError: getLaravelFieldErrors(e).actual_minutes ?? apiMessage(e, SUBMIT_DURATION_REQUIRED_MESSAGE) } : cur));
+      } else {
+        toast.error(apiMessage(e, 'حدث خطأ أثناء حفظ نتيجة المهمة'));
+      }
     } finally {
       setActionLoading(false);
     }
@@ -699,6 +714,8 @@ const AssigneeWorkspacePage: React.FC = () => {
                               summary: '',
                               unresolvedReason: '',
                               internalNote: '',
+                              actual: emptyActualDuration(),
+                              actualError: null,
                               files: [],
                             })}
                             disabled={actionLoading}
@@ -716,6 +733,8 @@ const AssigneeWorkspacePage: React.FC = () => {
                               summary: '',
                               unresolvedReason: '',
                               internalNote: '',
+                              actual: emptyActualDuration(),
+                              actualError: null,
                               files: [],
                             })}
                             disabled={actionLoading}
@@ -943,7 +962,7 @@ const AssigneeWorkspacePage: React.FC = () => {
             {modal.status === 'RESOLVED' ? (
               <>
                 <p className="rounded-xl bg-indigo-50 p-3 text-xs font-bold leading-relaxed text-indigo-800" data-testid="submit-review-note">
-                  لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي، والوقت المُضاف هو المدة الفعلية التي يعتمدها المراجع.
+                  لن تُضاف النقاط والساعات إلا بعد الاعتماد النهائي، والوقت المُضاف هو المدة الفعلية التي تسجّلها الآن.
                 </p>
                 <div>
                   <label htmlFor="resolve-summary" className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -963,6 +982,15 @@ const AssigneeWorkspacePage: React.FC = () => {
                     <p className="mt-1 text-[11px] text-rose-500">يجب ملء هذا الحقل لتقديم التذكرة للمراجعة</p>
                   )}
                 </div>
+                <SubmitDurationSection
+                  value={modal.actual}
+                  onChange={(next) => setModal({ ...modal, actual: next, actualError: null })}
+                  error={modal.actualError}
+                  idPrefix="resolve-actual"
+                  disabled={actionLoading}
+                  points={ticket?.task_points}
+                  estimatedHours={ticket?.estimated_hours}
+                />
                 {/* Proof upload */}
                 <div>
                   <span className="mb-1.5 block text-xs font-bold text-slate-700">

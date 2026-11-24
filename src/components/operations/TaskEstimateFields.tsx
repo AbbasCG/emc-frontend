@@ -209,7 +209,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
       <div>
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <label htmlFor={durationId} className="text-xs font-black text-deepBlue">
-            المدة التقريبية
+            المدة التقريبية{ticketMode?.durationRequired ? <> <span className="text-red-500" aria-hidden="true">*</span></> : null}
           </label>
           <div className={`flex gap-1 ${ticketMode && !customShown ? 'hidden' : ''}`} aria-hidden={ticketMode && !customShown ? true : undefined} role="group" aria-label="وحدة المدة">
             {(['hours', 'minutes'] as const).map((u) => (
@@ -231,6 +231,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
             id={durationId}
             value={customShown ? 'custom' : preset === null ? '' : String(preset)}
             disabled={disabled}
+            aria-required={ticketMode.durationRequired ? true : undefined}
             aria-invalid={errors?.estimated_hours ? true : undefined}
             aria-describedby={errors?.estimated_hours ? `${durationId}-err` : `${durationId}-hint`}
             onChange={(e) => {
@@ -245,7 +246,7 @@ export function EstimatePointsDuration({ value, onChange, errors, idPrefix, disa
             }}
             className={`${FIELD} ${border(Boolean(errors?.estimated_hours))} font-black`}
           >
-            <option value="">بدون مدة تقريبية</option>
+            <option value="">{ticketMode.durationRequired ? '-- اختر المدة --' : 'بدون مدة تقريبية'}</option>
             {DURATION_PRESETS.map((p) => (
               <option key={p.hours} value={String(p.hours)}>
                 {p.label}

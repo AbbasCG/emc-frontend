@@ -26,8 +26,8 @@ export function useEstimateDraft(initial: EstimateDraft | (() => EstimateDraft))
 
   /** Validate; true when the estimate is acceptable. */
   const check = useCallback(
-    (required = true): boolean => {
-      const found = validateEstimate(draft, { required })
+    (required = true, durationRequired = false): boolean => {
+      const found = validateEstimate(draft, { required, durationRequired })
       setErrors(found)
 
       return !hasEstimateErrors(found)
