@@ -18,6 +18,8 @@ import {
 import { DepartmentPageAccessPanel } from '@/components/access-control/DepartmentPageAccessPanel'
 import { RolePageAccessPanel } from '@/components/access-control/RolePageAccessPanel'
 import { UserPageAccessPanel } from '@/components/access-control/UserPageAccessPanel'
+import { UserActionPermissionsPanel } from '@/components/access-control/UserActionPermissionsPanel'
+import { RoleMembersPanel } from '@/components/access-control/RoleMembersPanel'
 import { EffectiveAccessPreview } from '@/components/access-control/EffectiveAccessPreview'
 import { fetchWorkspaceDepartmentsForSuperAdmin } from '@/api/superAdminOpsApi'
 import { searchAdminUsers, type UserSearchHit } from '@/api/adminUsersApi'
@@ -322,7 +324,10 @@ function RolesTab() {
         }
         editor={
           selected ?
-            <RolePageAccessPanel key={selected.slug} roleId={selected.slug} roleLabelAr={selected.labelAr} />
+            <div className="space-y-8">
+              <RolePageAccessPanel key={selected.slug} roleId={selected.slug} roleLabelAr={selected.labelAr} />
+              <RoleMembersPanel key={`members-${selected.slug}`} roleSlug={selected.slug} roleLabelAr={selected.labelAr} />
+            </div>
           : <ChoosePrompt
               titleAr="اختر دورًا للبدء"
               subtitleAr="اختر دورًا من القائمة لإدارة صفحاته الافتراضية."
@@ -424,12 +429,15 @@ function UsersTab() {
         picker={<UserPicker selected={selected} onSelect={setSelected} />}
         editor={
           selected ?
-            <UserPageAccessPanel
-              key={selected.id}
-              userId={selected.id}
-              userName={selected.name}
-              viewerRole={viewer?.role ?? null}
-            />
+            <div className="space-y-8">
+              <UserPageAccessPanel
+                key={selected.id}
+                userId={selected.id}
+                userName={selected.name}
+                viewerRole={viewer?.role ?? null}
+              />
+              <UserActionPermissionsPanel key={`actions-${selected.id}`} userId={selected.id} userName={selected.name} />
+            </div>
           : <ChoosePrompt
               titleAr="اختر مستخدمًا للبدء"
               subtitleAr="ابحث عن مستخدم لإدارة استثناءات الوصول الخاصة به."

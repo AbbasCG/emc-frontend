@@ -6,6 +6,8 @@ import {
   type PageAccessSource,
 } from '@/api/accessControlApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { ActionEffectiveChip, ActionSourceChips } from '@/components/access-control/ActionPermissionBadges'
+import type { EffectiveActionPermission } from '@/api/actionPermissionsApi'
 import { AccessSourceBadge, PageAccessScopeNotice, RiskBadge } from '@/components/access-control/AccessBadges'
 import { EmptyPanel, ErrorPanel, LoadingPanel } from '@/pages/super-admin/crud/shared/States'
 import { ProtectedAuthorityNotice } from '@/components/access-control/AccessBadges'
@@ -40,6 +42,7 @@ type Filter = 'all' | 'allowed' | 'denied'
 export function EffectiveAccessPreview({ userId, userName }: { userId: number; userName: string }) {
   const [rows, setRows] = useState<EffectivePageAccessRow[]>([])
   const [allowedKeys, setAllowedKeys] = useState<string[]>([])
+  const [actionPermissions, setActionPermissions] = useState<EffectiveActionPermission[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [forbidden, setForbidden] = useState(false)
@@ -54,6 +57,7 @@ export function EffectiveAccessPreview({ userId, userName }: { userId: number; u
       const data = await fetchUserEffectivePageAccess(userId)
       setRows(data.pages)
       setAllowedKeys(data.allowedKeys)
+      setActionPermissions(data.actionPermissions ?? [])
     } catch (e) {
       const status = (e as { response?: { status?: number } })?.response?.status
       if (status === 403) setForbidden(true)
@@ -120,6 +124,29 @@ export function EffectiveAccessPreview({ userId, userName }: { userId: number; u
         ))}
         <SummaryTile labelAr="محجوبة بشكل خاص" value={summary.denied} tone="deny" />
       </div>
+
+      {/* Action permissions — the server's own decision, same rows as «صلاحيات الإجراءات» */}
+      {actionPermissions.length > 0 ?
+        <div className="space-y-2 rounded-2xl border border-ink-100 bg-white p-3" aria-label="صلاحيات الإجراءات الفعلية">
+          <p className="text-[12px] font-black text-deepBlue">صلاحيات الإجراءات</p>
+          <ul className="divide-y divide-ink-100/70">
+            {actionPermissions.map((a) => (
+              <li key={a.key} data-action-permission={a.key} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-black text-deepBlue">{a.labelAr || a.key}</p>
+                  <p className="font-mono text-[10px] font-semibold text-slate-400" dir="ltr">
+                    {a.key}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ActionEffectiveChip effective={a.effective} />
+                  <ActionSourceChips sources={a.sources} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      : null}
 
       {/* Filters */}
       <div className="space-y-2 rounded-2xl border border-ink-100 bg-slate-50/70 p-3">

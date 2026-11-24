@@ -22,7 +22,7 @@ import {
   Users2,
   X,
 } from 'lucide-react'
-import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
+import { fetchRolesWithUserCounts, type RoleWithCount } from '@/api/roleMembersApi'
 import { RoleDetailDrawer } from '@/components/super-admin/RoleDetailDrawer'
 import { SUPER_ADMIN_ROLE_CATALOG_ROWS } from '@/pages/super-admin/users/assignableRoles'
 import { CAPABILITIES, roleHasCapabilitySlug } from '@/pages/super-admin/users/roleScopeHints'
@@ -281,13 +281,11 @@ function CapabilityMatrix({ roles, usageCounts, onDetail }: {
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
-/** Pure shaping — no state — shared by the mount effect and the imperative refresh. */
-function countUsersByRole(rows: AdminManagedUser[]): Record<string, number> {
+/** Pure shaping — no state. The counts are the SERVER's `users_count` per role, never a client-side tally. */
+function countsFromRoles(rows: RoleWithCount[]): Record<string, number> {
   const counts: Record<string, number> = {}
-  rows.forEach((u) => {
-    const slug = normalizeRole(u.role ?? null)
-    if (!slug) return
-    counts[slug] = (counts[slug] ?? 0) + 1
+  rows.forEach((r) => {
+    counts[normalizeRole(r.name) || r.name] = r.usersCount
   })
   return counts
 }
@@ -300,15 +298,17 @@ export default function RolesPermissionsPage() {
   const [detailSlug, setDetailSlug] = useState<string | null>(null)
   const [usageCounts, setUsageCounts] = useState<Record<string, number>>({})
   const [usageLoading, setUsageLoading] = useState(true)
+  const [usageFailed, setUsageFailed] = useState(false)
   const [showMatrix, setShowMatrix] = useState(false)
 
   /** Manual refresh from the toolbar button — outside any effect, so flipping to the
    *  loading state synchronously is both allowed and required here. */
   const loadUsers = useCallback(() => {
     setUsageLoading(true)
-    fetchAdminUsers()
-      .then((rows) => setUsageCounts(countUsersByRole(rows)))
-.catch(() => { /* silent matrix still works */ })
+    setUsageFailed(false)
+    fetchRolesWithUserCounts()
+      .then((rows) => setUsageCounts(countsFromRoles(rows)))
+      .catch(() => setUsageFailed(true))
       .finally(() => setUsageLoading(false))
   }, [])
 
@@ -316,9 +316,9 @@ export default function RolesPermissionsPage() {
   // (`usageLoading` already starts as `true`).
   useEffect(() => {
     let alive = true
-    fetchAdminUsers()
-      .then((rows) => { if (alive) setUsageCounts(countUsersByRole(rows)) })
-.catch(() => { /* silent matrix still works */ })
+    fetchRolesWithUserCounts()
+      .then((rows) => { if (alive) setUsageCounts(countsFromRoles(rows)) })
+      .catch(() => { if (alive) setUsageFailed(true) })
       .finally(() => { if (alive) setUsageLoading(false) })
     return () => { alive = false }
   }, [])
@@ -461,13 +461,13 @@ export default function RolesPermissionsPage() {
         <KpiTile
           icon={Users}
           label="مستخدمون مرتبطون"
-          value={usageLoading ? '...' : totalUsers > 0 ? totalUsers : 'غير متوفر'}
+          value={usageLoading ? '...' : usageFailed ? 'تعذّر التحميل' : totalUsers}
           accent="success"
         />
         <KpiTile
           icon={AlertTriangle}
           label="وصول كامل"
-          value={usageLoading ? '...' : highRiskAssignments}
+          value={usageLoading ? '...' : usageFailed ? '—' : highRiskAssignments}
           sub="مستخدمون بصلاحية عالية"
           accent="orange"
         />
