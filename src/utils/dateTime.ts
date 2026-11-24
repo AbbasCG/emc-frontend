@@ -18,7 +18,8 @@ function timeStr(d: Date, tz: string): string {
     timeZone: tz,
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    // h23, not hour12:false: the 'ar' locale answers hour12:false with the h24 cycle and prints midnight as «24:05».
+    hourCycle: 'h23',
     numberingSystem: 'latn',
   }).format(d)
 }

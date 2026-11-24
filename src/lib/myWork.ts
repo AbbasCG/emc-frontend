@@ -3,6 +3,7 @@ import type { OpsTask, TaskPriority, TaskScope } from '@/types/operations'
 import { dueMs } from './dueDate'
 import { isEstimateHidden } from './taskEstimate'
 import { columnForTask, columnForTicket, MY_WORK_COLUMNS, type MyWorkColumnKey } from './myWorkColumns'
+import type { WorkBoardCard } from '@/api/operationsWorkBoardApi'
 
 /**
  * One card on «مهامي ومسؤولياتي»: a task OR a ticket, in the same shape, so search, priority, due date and the
@@ -54,6 +55,12 @@ export interface WorkItem {
   credited: { points: number; minutes: number | null; hours: number } | null
   /** Newest-first ordering key. */
   updatedAt: string | null
+  /** The global board only: a ticket the viewer may not open, shown as a read-only placeholder (no title, no reference, no dates). */
+  masked?: boolean
+  /** The global board only: a locked task (nobody edits it until it is unlocked). */
+  locked?: boolean
+  /** The global board only: it is the viewer's own assignment. */
+  isMine?: boolean
 }
 
 /** The stages that keep a ticket in «بانتظار الاعتماد والتقييم»: the badge naming the stage and the line saying who is next. */
@@ -146,6 +153,48 @@ export function taskToWorkItem(t: OpsTask, me: { name: string }, now: number = D
 }
 
 /**
+ * A card of the GLOBAL board in the shape «مهامي ومسؤولياتي» renders, so one card component, one column map and one
+ * filter set serve both boards. Nothing is derived: the column, the stage badge, the next step and every capability are the
+ * server's answers about THIS viewer, copied as they are.
+ */
+export function workBoardCardToItem(c: WorkBoardCard): WorkItem {
+  // An unassigned task is «غير مسندة»; a null assignee on a ticket means the viewer may not see it (never «unassigned»).
+  const assigneeName = c.assignee?.name ?? (c.kind === 'task' ? 'غير مسندة' : '—')
+
+  return {
+    key: c.key,
+    kind: c.kind,
+    id: c.id,
+    title: c.title,
+    description: null,
+    reference: c.masked ? null : c.reference,
+    column: c.column,
+    priority: c.priority,
+    dueAt: c.masked ? null : c.due_at,
+    // A masked ticket reveals nothing about its dates: not even that it is late.
+    overdue: c.masked ? false : c.is_overdue,
+    assigneeName,
+    departmentName: c.department?.name ?? null,
+    scope: c.scope,
+    points: c.points,
+    hours: c.hours,
+    estimateHidden: c.estimate_hidden,
+    canAccept: c.capabilities.can_accept,
+    canReject: c.capabilities.can_reject,
+    canComplete: c.capabilities.can_complete,
+    canOpen: c.capabilities.can_open,
+    awaitingApproval: c.stage_badge !== null,
+    stageBadge: c.stage_badge,
+    nextStep: c.next_step,
+    credited: null,
+    updatedAt: c.updated_at,
+    masked: c.masked,
+    locked: c.is_locked,
+    isMine: c.is_mine,
+  }
+}
+
+/**
  * A collective task is stored as a parent (given to the first member) PLUS one copy per member. The member who owns
  * both would see the same work twice, so a task is hidden when the same person also owns one of its copies: the
  * copy is what they work on. Recognized from the flat list (a copy names its parent) and from loaded `subtasks`.
@@ -189,6 +238,8 @@ export function filterWorkItems(items: WorkItem[], f: WorkFilters, now: number =
     if (f.kind === 'tickets' && i.kind !== 'ticket') return false
     if (f.priority !== 'all' && i.priority !== f.priority) return false
     if (f.due !== 'all') {
+      // A masked item has no date to filter on; «no due date» must not claim it.
+      if (i.masked) return false
       const due = dueMs(i.dueAt)
       if (f.due === 'none' && due !== null) return false
       if (f.due === 'overdue' && !i.overdue) return false

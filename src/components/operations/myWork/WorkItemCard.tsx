@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Building2, CalendarClock, CheckCircle2, Sparkles, Ticket as TicketIcon, User, XCircle, ClipboardList } from 'lucide-react'
+import { Building2, CalendarClock, CheckCircle2, Lock, Sparkles, Ticket as TicketIcon, User, XCircle, ClipboardList } from 'lucide-react'
 import OpsPriorityBadge from '@/components/operations/OpsPriorityBadge'
 import { formatDue } from '@/lib/dueDate'
 import { creditedDurationText, formatEstimate, hasEstimate } from '@/lib/taskEstimate'
@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils'
  * One card of «مهامي ومسؤولياتي», for a task or a ticket (same layout, so the two read the same). Shared pieces:
  * priority, due date, assignee and the points/duration line. What differs: the «تذكرة» badge, where a click
  * leads (the task panel / the original ticket), and the accept / decline actions when the server allows them.
+ *
+ * It is also the card of the global board (`item.masked`, `item.locked`): a masked item is a read-only placeholder with nothing
+ * to open, and an item the viewer may not open (`canOpen === false`) has no link or button, whatever its kind.
  */
 export default function WorkItemCard({
   item,
@@ -17,12 +20,15 @@ export default function WorkItemCard({
   onAccept,
   onReject,
   onOpenTask,
+  backPath = MY_WORK_PATH,
 }: {
   item: WorkItem
   busy?: boolean
   onAccept?: (item: WorkItem) => void
   onReject?: (item: WorkItem) => void
   onOpenTask?: (item: WorkItem) => void
+  /** The page the ticket page's «back» returns to. */
+  backPath?: string
 }) {
   const isTicket = item.kind === 'ticket'
   const estimateKnown = hasEstimate({ task_points: item.points, estimated_hours: item.hours })
@@ -63,13 +69,30 @@ export default function WorkItemCard({
         {item.stageBadge ? <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700 ring-1 ring-indigo-200" data-testid="stage-badge">{item.stageBadge}</span> : null}
       </div>
 
-      {isTicket ?
+      {item.masked ?
+        <div data-testid="masked-heading">
+          <span className="block text-[13px] font-black leading-snug text-slate-400">{item.title}</span>
+          <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-slate-400" data-testid="masked-hint">
+            <Lock size={10} aria-hidden="true" />
+            بيانات محجوبة
+          </span>
+        </div>
+      : isTicket ?
         item.canOpen ?
-          <Link to={`/dashboard/tickets/${item.id}`} state={{ from: MY_WORK_PATH }} className={openCls} aria-label={`فتح التذكرة ${item.reference ?? item.id}: ${item.title}`}>
+          <Link to={`/dashboard/tickets/${item.id}`} state={{ from: backPath }} className={openCls} aria-label={`فتح التذكرة ${item.reference ?? item.id}: ${item.title}`}>
             {heading}
           </Link>
         : <div>{heading}</div>
-      : <button type="button" onClick={() => onOpenTask?.(item)} className={openCls}>{heading}</button>}
+      : item.canOpen ?
+        <button type="button" onClick={() => onOpenTask?.(item)} className={openCls}>{heading}</button>
+      : <div>{heading}</div>}
+
+      {item.locked ?
+        <p className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500" data-testid="locked-hint">
+          <Lock size={10} aria-hidden="true" />
+          مهمة مقفلة
+        </p>
+      : null}
 
       {item.nextStep ? <p className="mt-1.5 text-[11px] font-black text-indigo-700" data-testid="next-step">{item.nextStep}</p> : null}
 
@@ -88,11 +111,14 @@ export default function WorkItemCard({
             <dd className="min-w-0 truncate">{item.departmentName}</dd>
           </div>
         : null}
+        {item.masked ? null : (
         <div className="flex items-center gap-1.5">
           <CalendarClock size={11} className={cn('shrink-0', item.overdue ? 'text-rose-500' : 'text-slate-400')} aria-hidden="true" />
           <dt className="sr-only">الموعد</dt>
           <dd className={cn('tabular-nums', item.overdue && 'text-rose-700')} data-testid="due">{item.dueAt ? `الموعد: ${formatDue(item.dueAt)}` : 'بلا موعد محدد'}</dd>
         </div>
+        )}
+        {item.masked ? null : (
         <div className="flex items-center gap-1.5" data-testid="estimate">
           <Sparkles size={11} className="shrink-0 text-customBlue" aria-hidden="true" />
           <dt className="sr-only">النقاط والمدة</dt>
@@ -100,6 +126,7 @@ export default function WorkItemCard({
             {item.estimateHidden ? <span className="text-slate-400">غير متاح لك</span> : estimateKnown ? formatEstimate({ task_points: item.points, estimated_hours: item.hours }) : <span className="text-slate-400">— لم تُحدَّد</span>}
           </dd>
         </div>
+        )}
         {item.credited ?
           <div className="flex items-center gap-1.5" data-testid="credited">
             <CheckCircle2 size={11} className="shrink-0 text-emerald-600" aria-hidden="true" />
@@ -142,7 +169,7 @@ export default function WorkItemCard({
         <div className="mt-3 border-t border-slate-100 pt-2.5">
           <Link
             to={`/dashboard/tickets/${item.id}`}
-            state={{ from: MY_WORK_PATH }}
+            state={{ from: backPath }}
             className="block rounded-xl border border-emerald-300 py-1.5 text-center text-xs font-black text-emerald-700 transition hover:bg-emerald-50"
           >
             فتح التذكرة

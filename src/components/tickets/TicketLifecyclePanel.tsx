@@ -3,6 +3,8 @@ import type { Ticket, TicketStatus, TicketWorkflowStage } from '@/types/ticket'
 import { formatDateTime, ticketActionLabel } from '@/components/tickets/ops/ticketOpsUi'
 import { NEXT_ACTOR_TEXT, NEXT_STEP_TEXT } from '@/lib/ticketLifecycle'
 import { cn } from '@/lib/utils'
+import { TicketReviewContextNotice } from '@/components/tickets/TicketReviewContextNotice'
+import { ReviewLogMeta } from '@/components/tickets/ReviewLogMeta'
 
 const DEPLOYMENT_STEPS: { stage: TicketWorkflowStage; label: string }[] = [
   { stage: 'in_progress', label: 'قيد التنفيذ' },
@@ -91,6 +93,8 @@ export function TicketLifecyclePanel({ ticket, className = '' }: { ticket: Ticke
         </p>
       ) : null}
 
+      <TicketReviewContextNotice context={ticket.review_context} />
+
       {d && (d.review_approved_at || d.deployed_at || d.verified_at) ? (
         <dl className="space-y-1.5 text-sm" data-testid="lifecycle-deployment">
           {d.round != null && d.round > 1 ? (
@@ -141,6 +145,7 @@ export function TicketLifecyclePanel({ ticket, className = '' }: { ticket: Ticke
                 {l.performed_by_name ? `بواسطة: ${l.performed_by_name} — ` : ''}
                 {formatDateTime(l.logged_at)}
               </p>
+              <ReviewLogMeta log={l} className="mt-0.5 text-[10px] text-slate-500" />
             </li>
           ))}
         </ol>

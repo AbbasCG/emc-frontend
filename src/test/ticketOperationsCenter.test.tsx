@@ -50,7 +50,7 @@ function ticket(over: Partial<Ticket> = {}): Ticket {
   } as Ticket
 }
 
-const list = (items: Ticket[], over: Partial<TicketListResult> = {}): TicketListResult => ({ items, total: items.length, currentPage: 1, lastPage: 1, perPage: 25, ...over })
+const list = (items: Ticket[], over: Partial<TicketListResult> = {}): TicketListResult => ({ items, total: items.length, currentPage: 1, lastPage: 1, perPage: 25, requestedPage: over.currentPage ?? 1, tab: null, tabCounts: null, ...over })
 
 function stats(over: Partial<TicketStats['counts']> = {}): TicketStats {
   return {
@@ -198,7 +198,7 @@ describe('the table', () => {
     renderAt()
     await screen.findAllByTestId('ticket-row')
 
-    expect(lastListParams()).toEqual({ sort: 'created_at', dir: 'desc', per_page: 25, lite: 1 })
+    expect(lastListParams()).toEqual({ tab: 'open', sort: 'created_at', dir: 'desc', per_page: 25, lite: 1 })
   })
 
   it('clicking a row opens the details modal in place and keeps the filters', async () => {
@@ -341,7 +341,7 @@ describe('filters and the URL', () => {
     renderAt('/dashboard/tickets/admin?status=HACK&priority=ZZ&per_page=99999&page=-4&sort=password&dept=1;DROP')
     await screen.findAllByTestId('ticket-row')
 
-    expect(lastListParams()).toEqual({ sort: 'created_at', dir: 'desc', per_page: 25, lite: 1 })
+    expect(lastListParams()).toEqual({ tab: 'open', sort: 'created_at', dir: 'desc', per_page: 25, lite: 1 })
   })
 
   it('old links with the previous parameter names still work', async () => {
@@ -544,7 +544,8 @@ describe('states', () => {
   it('shows an empty state without filters, and a different one with filters that offers to clear them', async () => {
     ops.fetchTicketList.mockResolvedValue(list([]))
     const { unmount } = renderAt()
-    expect(await screen.findByText('لا توجد تذاكر')).toBeInTheDocument()
+    // The page opens on «مفتوحة», so «nothing» is said about open tickets, not about every ticket.
+    expect(await screen.findByText('لا توجد تذاكر مفتوحة')).toBeInTheDocument()
     unmount()
 
     renderAt('/dashboard/tickets/admin?search=zzz')
@@ -1029,7 +1030,7 @@ describe('saved views', () => {
 
     const saved = JSON.parse(localStorage.getItem('emc.tickets.savedViews.v1:7') ?? '[]')
     expect(saved).toHaveLength(1)
-    expect(saved[0].query).toBe('status=IN_PROGRESS&dept=3')
+    expect(saved[0].query).toBe('status=IN_PROGRESS&dept=3&tab=open')
     expect(saved[0].query).not.toContain('page')
 
     unmount()
@@ -1213,8 +1214,10 @@ describe('the results toolbar', () => {
 
     expect(within(toolbar).getByRole('tablist', { name: 'طريقة العرض' })).toBeInTheDocument()
     expect(within(toolbar).getByRole('button', { name: 'الأعمدة' })).toBeInTheDocument()
-    // One switcher on the page, and it is not in the page header.
+    // Two tab lists: the queue's tabs (above the filters) and the view switcher; the switcher is not in the page header.
     expect(screen.getAllByRole('tablist')).toHaveLength(1)
+    expect(screen.getByRole('group', { name: 'تبويبات التذاكر' })).toBe(screen.getByTestId('ticket-tabs'))
+    expect(within(toolbar).queryByRole('group', { name: 'تبويبات التذاكر' })).toBeNull()
     expect(document.querySelector('header')?.querySelector('[role="tablist"]')).toBeNull()
     // Order on the page: filters, then the toolbar, then the table.
     const pos = (el: Element) => Array.from(document.querySelectorAll('*')).indexOf(el)
@@ -1255,8 +1258,10 @@ describe('board and analytics views', () => {
     const board = await screen.findByTestId('kanban-board')
     const counts = within(board).getAllByTestId('column-count').map((c) => c.textContent)
     expect(counts).toEqual(['12', '0'])
-    expect(ops.fetchTicketList).not.toHaveBeenCalled()
-    expect(ops.fetchTicketBoard).toHaveBeenCalledWith({ department_id: '3' }, 8, expect.anything())
+    // The table is not loaded; the only list request is the one-row read of the tab counts.
+    await waitFor(() => expect(ops.fetchTicketList).toHaveBeenCalled())
+    expect(ops.fetchTicketList.mock.calls.every(([p]) => (p as Record<string, unknown>).per_page === 1)).toBe(true)
+    expect(ops.fetchTicketBoard).toHaveBeenCalledWith({ department_id: '3', tab: 'open' }, 8, expect.anything())
     expect(within(board).getAllByTestId('board-card')).toHaveLength(1)
   })
 
@@ -1372,5 +1377,257 @@ describe('the ticket table sends the right rework dialog', () => {
     renderAt()
     await userEvent.click(await screen.findByRole('button', { name: /إعادة التذكرة EMC-501 للتنفيذ/ }))
     expect(await screen.findByTestId('return-for-rework-modal')).toHaveTextContent(wording)
+  })
+})
+
+const COUNTS = { open: 12, all: 40, resolved: 25, needs_action: 3 }
+const withTabs = (items: Ticket[], over: Partial<TicketListResult> = {}) => list(items, { tab: 'open', tabCounts: COUNTS, ...over })
+const tab = (name: string) => within(screen.getByTestId('ticket-tabs')).getByRole('button', { name: new RegExp(name) })
+
+describe('the queue tabs', () => {
+  it('opens on «مفتوحة», sends tab=open explicitly and keeps the URL clean', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    expect(tab('مفتوحة')).toHaveAttribute('aria-pressed', 'true')
+    expect(tab('جميع التذاكر')).toHaveAttribute('aria-pressed', 'false')
+    expect(lastListParams().tab).toBe('open')
+    expect(url().has('tab')).toBe(false)
+  })
+
+  it('shows the four tabs above the filter bar in this order, with the personal one named for what it does', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    const names = within(screen.getByTestId('ticket-tabs')).getAllByRole('button').map((t) => t.getAttribute('data-tab'))
+    expect(names).toEqual(['open', 'all', 'resolved', 'needs_action'])
+    expect(tab('تحتاج إجراءً منك')).toBeInTheDocument()
+    const pos = (el: Element) => Array.from(document.querySelectorAll('*')).indexOf(el)
+    expect(pos(screen.getByTestId('ticket-tabs'))).toBeLessThan(pos(screen.getByRole('region', { name: 'البحث والتصفية' })))
+  })
+
+  it('shows the count of every tab from the server as a badge', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    expect(screen.getByTestId('tab-count-open')).toHaveTextContent('12')
+    expect(screen.getByTestId('tab-count-all')).toHaveTextContent('40')
+    expect(screen.getByTestId('tab-count-resolved')).toHaveTextContent('25')
+    expect(screen.getByTestId('tab-count-needs_action')).toHaveTextContent('3')
+  })
+
+  it('shows no badge at all when the server sent no counts (never a fake zero)', async () => {
+    ops.fetchTicketList.mockResolvedValue(list([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    expect(screen.queryByTestId('tab-count-open')).toBeNull()
+  })
+
+  it('switching tab sends that tab, writes it to the URL and goes back to page 1', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()], { total: 90, lastPage: 4, currentPage: 3 }))
+    renderAt('/dashboard/tickets/admin?page=3&search=net')
+    await screen.findAllByTestId('ticket-row')
+    expect(lastListParams()).toMatchObject({ tab: 'open', page: 3 })
+
+    await userEvent.click(tab('جميع التذاكر'))
+
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'all', search: 'net' }))
+    expect(lastListParams()).not.toHaveProperty('page')
+    expect(url().get('tab')).toBe('all')
+    expect(url().has('page')).toBe(false)
+    expect(url().get('search')).toBe('net')
+    expect(tab('جميع التذاكر')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it.each([['تم حلها', 'resolved'], ['تحتاج إجراءً منك', 'needs_action']])('«%s» sends tab=%s', async (label, key) => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(tab(label))
+
+    await waitFor(() => expect(lastListParams().tab).toBe(key))
+    expect(url().get('tab')).toBe(key)
+  })
+
+  it('combines with a filter: the filter change keeps the tab, the tab change keeps the filter', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?tab=resolved')
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(screen.getByRole('button', { name: 'بلا مكلف' }))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'resolved', unassigned: 1 }))
+
+    await userEvent.click(tab('مفتوحة'))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'open', unassigned: 1 }))
+  })
+
+  it('opens straight on a tab from a link', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?tab=needs_action')
+    await screen.findAllByTestId('ticket-row')
+
+    expect(tab('تحتاج إجراءً منك')).toHaveAttribute('aria-pressed', 'true')
+    expect(lastListParams().tab).toBe('needs_action')
+  })
+
+  it('follows the page the server answers with (a tab left the requested page past the end)', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()], { total: 30, lastPage: 2, currentPage: 2, requestedPage: 5 }))
+    renderAt('/dashboard/tickets/admin?tab=all&page=5')
+
+    await waitFor(() => expect(url().get('page')).toBe('2'))
+    expect(url().get('tab')).toBe('all')
+  })
+
+  it('keeps the page when the server answered for the page that was asked', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()], { total: 90, lastPage: 4, currentPage: 3, requestedPage: 3 }))
+    renderAt('/dashboard/tickets/admin?page=3')
+    await screen.findAllByTestId('ticket-row')
+
+    expect(url().get('page')).toBe('3')
+  })
+
+  it('does not send the tab to the figures (the statistics ignore it)', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?tab=resolved')
+    await screen.findAllByTestId('ticket-row')
+
+    expect(ops.fetchTicketStats.mock.calls.every(([p]) => !('tab' in (p as object)))).toBe(true)
+    expect(ops.fetchTicketInsights.mock.calls.every(([p]) => !('tab' in (p as object)))).toBe(true)
+  })
+
+  it('the «تم حلها» and «مغلقة» cards pick a tab that can show their tickets', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(screen.getByRole('button', { name: /مزيد من المؤشرات/ }))
+    await userEvent.click(kpi('resolved'))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'resolved', status: 'RESOLVED' }))
+
+    await userEvent.click(kpi('closed'))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'all', state: 'closed' }))
+  })
+
+  it('an open-work card pressed on «تم حلها» moves to «مفتوحة» (no tab could hold both)', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?tab=resolved')
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(kpi('overdue'))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ tab: 'open', overdue: 1 }))
+  })
+
+  it('shows the tabs on the board (counts come from a one-row list request)', async () => {
+    ops.fetchTicketBoard.mockResolvedValue([])
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?view=board')
+
+    expect(await screen.findByTestId('tab-count-all')).toHaveTextContent('40')
+    expect(lastListParams()).toMatchObject({ per_page: 1, tab: 'open' })
+    expect(ops.fetchTicketBoard).toHaveBeenCalledWith(expect.objectContaining({ tab: 'open' }), 8, expect.anything())
+  })
+
+  it('an empty tab says what it is, not "no tickets"', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([], { tabCounts: { open: 0, all: 5, resolved: 5, needs_action: 0 } }))
+    renderAt('/dashboard/tickets/admin?tab=needs_action')
+
+    expect(await screen.findByText('لا شيء ينتظر إجراءً منك')).toBeInTheDocument()
+  })
+})
+
+describe('«بانتظار …»: who must act next, and the personal marker', () => {
+  const awaitingRow = (over: Partial<Ticket> = {}) =>
+    ticket({
+      status: 'PENDING_REVIEW',
+      needs_my_action: true,
+      awaiting: { actor: 'reviewer', label: 'بانتظار مراجعة الإنجاز', name: null },
+      ...over,
+    })
+
+  it('shows the label of the server and «عليك إجراء» on a row that needs the viewer', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([awaitingRow()]))
+    renderAt('/dashboard/tickets/admin?tab=needs_action')
+
+    const row = (await screen.findAllByTestId('ticket-row'))[0]
+    expect(within(row).getByTestId('awaiting')).toHaveTextContent('بانتظار مراجعة الإنجاز')
+    expect(within(row).getByTestId('needs-my-action')).toHaveTextContent('عليك إجراء')
+    expect(within(row).getByTestId('awaiting').querySelector('[data-actor]')).toHaveAttribute('data-actor', 'reviewer')
+  })
+
+  it('names the assignee when the step is theirs, and adds «بانتظار:» to a label that lacks it', async () => {
+    ops.fetchTicketList.mockResolvedValue(
+      withTabs([awaitingRow({ id: 1, ticket_number: 'EMC-1', needs_my_action: false, awaiting: { actor: 'assignee', label: 'قيد التنفيذ لدى المكلّف', name: 'سلمى' } })]),
+    )
+    renderAt('/dashboard/tickets/admin?tab=open')
+
+    const row = (await screen.findAllByTestId('ticket-row'))[0]
+    expect(within(row).getByTestId('awaiting')).toHaveTextContent('بانتظار: قيد التنفيذ لدى المكلّف — سلمى')
+    expect(within(row).queryByTestId('needs-my-action')).toBeNull()
+  })
+
+  it('shows nothing for a row the server did not mark (finished ticket, reporter-only row)', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket({ needs_my_action: false, awaiting: null })]))
+    renderAt('/dashboard/tickets/admin')
+
+    const row = (await screen.findAllByTestId('ticket-row'))[0]
+    expect(within(row).queryByTestId('awaiting')).toBeNull()
+  })
+
+  it('the quick filter «تحتاج إجراءً منك» still works on the other tabs, and is not repeated on its own tab', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt()
+    await screen.findAllByTestId('ticket-row')
+    const quickGroup = () => within(screen.getByRole('group', { name: 'تصفية سريعة' }))
+
+    await userEvent.click(quickGroup().getByRole('button', { name: 'تحتاج إجراءً منك' }))
+    await waitFor(() => expect(lastListParams()).toMatchObject({ attention: 1, tab: 'open' }))
+
+    // Turn it off, then go to the tab that already means the same thing: the toggle is not offered a second time.
+    await userEvent.click(quickGroup().getByRole('button', { name: 'تحتاج إجراءً منك' }))
+    await waitFor(() => expect(lastListParams().attention).toBeUndefined())
+    await userEvent.click(tab('تحتاج إجراءً منك'))
+    await waitFor(() => expect(lastListParams().tab).toBe('needs_action'))
+    expect(quickGroup().queryByRole('button', { name: 'تحتاج إجراءً منك' })).toBeNull()
+  })
+})
+
+describe('clearing the filters keeps the tab', () => {
+  it('«مسح الكل» clears the filters but stays on the tab the user is on', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?tab=resolved&search=net&status=RESOLVED&page=2')
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(screen.getByRole('button', { name: 'مسح الكل' }))
+
+    await waitFor(() => expect(url().has('search')).toBe(false))
+    expect(url().get('tab')).toBe('resolved')
+    expect(url().has('status')).toBe(false)
+    expect(url().has('page')).toBe(false)
+    expect(tab('تم حلها')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('the empty-state «مسح الفلاتر» does the same', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([]))
+    renderAt('/dashboard/tickets/admin?tab=all&search=zzz')
+
+    await userEvent.click(await screen.findByRole('button', { name: 'مسح الفلاتر' }))
+
+    await waitFor(() => expect(url().has('search')).toBe(false))
+    expect(url().get('tab')).toBe('all')
+  })
+
+  it('on the default tab a clear leaves a clean URL', async () => {
+    ops.fetchTicketList.mockResolvedValue(withTabs([ticket()]))
+    renderAt('/dashboard/tickets/admin?search=net')
+    await screen.findAllByTestId('ticket-row')
+
+    await userEvent.click(screen.getByRole('button', { name: 'مسح الكل' }))
+
+    await waitFor(() => expect(url().toString()).toBe(''))
   })
 })

@@ -17,9 +17,9 @@ import { useTicketMeta } from '@/hooks/useTicketMeta'
 import { invalidateTicketDetail, prefetchTicketDetail } from '@/services/ticketDetailCache'
 import { fetchTicketAnalytics, fetchTicketBoard, fetchTicketInsights, fetchTicketList, fetchTicketStats, httpStatus } from '@/services/ticketOpsService'
 import type { Ticket } from '@/types/ticket'
-import type { TicketFilters, TicketView } from '@/types/ticketOps'
+import type { TicketFilters, TicketTab, TicketTabCounts, TicketView } from '@/types/ticketOps'
 import { cn } from '@/lib/utils'
-import { activeFilterCount, isKpiActive, kpiPatch, toApiParams, type KpiKey } from '@/utils/ticketFilters'
+import { activeFilterCount, isKpiActive, kpiPatchFor, toApiParams, type KpiKey } from '@/utils/ticketFilters'
 import { TicketBulkBar } from './ops/TicketBulkBar'
 import { TicketDetailsModal } from './ops/TicketDetailsModal'
 import { TicketFilterBar } from './ops/TicketFilterBar'
@@ -28,6 +28,7 @@ import { TicketKanbanBoard } from './ops/TicketKanbanBoard'
 import { TicketKpiCards } from './ops/TicketKpiCards'
 import { TicketPagination } from './ops/TicketPagination'
 import { TicketSavedViews } from './ops/TicketSavedViews'
+import { TicketTabs } from './ops/TicketTabs'
 import { loadColumns, type ColumnKey } from './ops/ticketColumns'
 import { ColumnMenu, TicketTable, type RowAction } from './ops/TicketTable'
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from './ops/ticketOpsUi'
@@ -45,6 +46,19 @@ const VIEW_TABS: { id: TicketView; label: string }[] = [
   { id: 'board', label: 'لوحة كانبان' },
   { id: 'analytics', label: 'التحليلات' },
 ]
+
+const EMPTY_TITLE: Record<TicketTab, string> = {
+  open: 'لا توجد تذاكر مفتوحة',
+  all: 'لا توجد تذاكر',
+  resolved: 'لا توجد تذاكر محلولة',
+  needs_action: 'لا شيء ينتظر إجراءً منك',
+}
+const EMPTY_BODY: Record<TicketTab, string> = {
+  open: 'كل التذاكر التي تراها منتهية. افتح «جميع التذاكر» لرؤية ما أُغلق.',
+  all: 'ستظهر هنا التذاكر المُدخَلة للإدارات التي تتبعها.',
+  resolved: 'ستظهر هنا التذاكر بعد أن تُحَل.',
+  needs_action: 'ليست لديك خطوة معلّقة على أي تذكرة الآن.',
+}
 
 function StateCard({ icon: Icon, title, body, action, danger = false }: { icon: typeof Inbox; title: string; body: string; action?: React.ReactNode; danger?: boolean }) {
   return (
@@ -104,7 +118,17 @@ export default function TechAdminDashboardPage() {
   const scopeKey = JSON.stringify(scopeParams)
   const boardKey = JSON.stringify(boardParams)
 
+  // The tab badges come with the list. The board does not fetch the list, so it asks for one row only to read the counts.
+  const countParams = useMemo(() => {
+    const p: Record<string, string | number> = { ...listParams, per_page: 1 }
+    delete p.page
+
+    return p
+  }, [listParams])
+  const countKey = JSON.stringify(countParams)
+
   const list = useAbortableResource((signal) => fetchTicketList(listParams, { signal }), listKey, view === 'table')
+  const boardCounts = useAbortableResource((signal) => fetchTicketList(countParams, { signal }), countKey, view === 'board')
   const stats = useAbortableResource((signal) => fetchTicketStats(scopeParams, { signal }), scopeKey)
   const insights = useAbortableResource((signal) => fetchTicketInsights(scopeParams, { signal }), scopeKey)
   const board = useAbortableResource((signal) => fetchTicketBoard(boardParams, 8, { signal }), boardKey, view === 'board')
@@ -118,11 +142,20 @@ export default function TechAdminDashboardPage() {
     // Anything changed from here (row actions, bulk actions) makes every cached copy untrustworthy.
     invalidateTicketDetail()
     list.reload()
+    boardCounts.reload()
     stats.reload()
     insights.reload()
     board.reload()
     analytics.reload()
   }
+
+  // The server may answer for a different page than the one asked (a tab or a filter left the page past the end: it sends the LAST
+  // page and says so in `current_page`). The URL follows it. Only an answer to the page that is in the URL counts, never a stale one.
+  const answered = list.data
+  useEffect(() => {
+    if (view !== 'table' || !answered || list.loading) return
+    if (answered.requestedPage === filters.page && answered.currentPage !== filters.page && answered.currentPage >= 1) nav.update({ page: answered.currentPage }, { replace: true })
+  }, [view, answered, list.loading, filters.page, nav])
 
   // A page past the end (a link from before the data shrank) lands on the last page instead of an empty one.
   const lastPage = list.data?.lastPage ?? 1
@@ -161,11 +194,11 @@ export default function TechAdminDashboardPage() {
       return m
     })
 
-  const pickKpi = (k: KpiKey) => nav.update(isKpiActive(filters, k) && k !== 'total' ? kpiPatch('total') : kpiPatch(k))
+  const pickKpi = (k: KpiKey) => nav.update(isKpiActive(filters, k) && k !== 'total' ? kpiPatchFor('total', filters.tab) : kpiPatchFor(k, filters.tab))
   const apply = (f: TicketFilters) => nav.update({ ...f, page: 1 })
   const drill = (patch: Partial<TicketFilters>) => {
     // From a chart: a clean slate for the card-level filters, keep search/department/dates, and show the table.
-    nav.update({ ...kpiPatch('total'), ...patch }, { view: 'table' })
+    nav.update({ ...kpiPatchFor('total', filters.tab), ...patch }, { view: 'table' })
   }
 
   // The element that opened the ticket gets focus back when the modal closes. `ticket-row`/`card` re-render
@@ -223,6 +256,9 @@ export default function TechAdminDashboardPage() {
     refreshAll()
   }
 
+  const tabCounts: TicketTabCounts | null = (view === 'board' ? boardCounts.data?.tabCounts : list.data?.tabCounts) ?? null
+  const changeTab = (tab: TicketTab) => nav.update({ tab })
+
   const labels = { active: activeFilterCount(filters, { status: STATUS_LABELS, priority: PRIORITY_LABELS, category: CATEGORY_LABELS }) }
   const hasFilters = labels.active > 0
   const total = view === 'table' ? (list.data?.total ?? null) : view === 'board' ? (board.data ? board.data.reduce((n, c) => n + c.count, 0) : null) : (stats.data?.counts.total ?? null)
@@ -270,6 +306,8 @@ export default function TechAdminDashboardPage() {
             <TicketKpiCards stats={stats.data} loading={stats.loading} filters={filters} onPick={pickKpi} />
             <TicketInsightsPanel insights={insights.data} loading={insights.loading} onOpen={openTicket} />
 
+            {view !== 'analytics' ? <TicketTabs value={filters.tab} counts={tabCounts} onChange={changeTab} /> : null}
+
             <TicketFilterBar
               filters={filters}
               onChange={nav.update}
@@ -295,8 +333,8 @@ export default function TechAdminDashboardPage() {
               : list.data && items.length === 0 ?
                 <StateCard
                   icon={hasFilters ? SearchX : Inbox}
-                  title={hasFilters ? 'لا توجد تذاكر مطابقة' : 'لا توجد تذاكر'}
-                  body={hasFilters ? 'جرّب تغيير الفلاتر أو مسحها.' : 'ستظهر هنا التذاكر المُدخَلة للإدارات التي تتبعها.'}
+                  title={hasFilters ? 'لا توجد تذاكر مطابقة' : EMPTY_TITLE[filters.tab]}
+                  body={hasFilters ? 'جرّب تغيير الفلاتر أو مسحها.' : EMPTY_BODY[filters.tab]}
                   action={hasFilters ? <button type="button" onClick={nav.reset} className="rounded-xl bg-customBlue px-5 py-2.5 text-sm font-extrabold text-white">مسح الفلاتر</button> : undefined}
                 />
               : (
@@ -337,7 +375,7 @@ export default function TechAdminDashboardPage() {
                   activeId={ticketId}
                   onOpen={openTicket}
                   onAction={onAction}
-                  onShowAll={(status) => nav.update({ status: [status] }, { view: 'table' })}
+                  onShowAll={(status) => nav.update({ status: [status], tab: 'all' }, { view: 'table' })}
                 />
               : <ListSkeleton />
             : null}

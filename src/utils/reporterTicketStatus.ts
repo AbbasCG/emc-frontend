@@ -92,7 +92,7 @@ export function reporterStatusCopy(status: TicketStatus, category: TicketCategor
   }
 }
 
-/** Gregorian, Latin digits, e.g. "12 أكتوبر 2026، 9:30 ص" — the same style the email uses. */
+/** Gregorian, Latin digits, 24-hour time, e.g. "12 أكتوبر 2026، 09:30" (display only; h23 so midnight is 00:xx). */
 export function formatReporterDate(iso: string | null | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -101,8 +101,9 @@ export function formatReporterDate(iso: string | null | undefined): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-    hour: 'numeric',
+    hour: '2-digit',
     minute: '2-digit',
+    hourCycle: 'h23',
     calendar: 'gregory',
     numberingSystem: 'latn',
   }).format(d);

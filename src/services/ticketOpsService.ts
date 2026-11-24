@@ -12,6 +12,8 @@ import type {
   TicketInsight,
   TicketListResult,
   TicketStats,
+  TicketTab,
+  TicketTabCounts,
 } from '@/types/ticketOps'
 
 /**
@@ -41,13 +43,41 @@ export const httpStatus = (e: unknown): number | null => (axios.isAxiosError(e) 
 
 /**
  * The machine-readable `code` the ticket endpoints put in a refusal (409: ALREADY_CREDITED, NOT_PENDING_REVIEW,
- * ESTIMATE_FROZEN; 403: SELF_REVIEW, HR_APPROVAL_REQUIRED), or null. The response body reaches here untouched.
+ * ESTIMATE_FROZEN; 403: REVIEW_PERMISSION_REQUIRED, PARTICIPATION_PERMISSION_REQUIRED, HR_APPROVAL_REQUIRED; SELF_REVIEW is retired
+ * for the review endpoints but stays harmless), or null. The response body reaches here untouched.
  */
 export function apiErrorCode(e: unknown): string | null {
   if (!axios.isAxiosError(e)) return null
   const code = rec(e.response?.data).code
 
   return typeof code === 'string' && code !== '' ? code : null
+}
+
+/**
+ * The two refusals of the review gate (approve-completion, approve-for-deploy, return-for-rework, mark-deployed): 403 with
+ * `{ success: false, message, code }`. The message is the server's own Arabic sentence and says exactly what to ask for.
+ *   REVIEW_PERMISSION_REQUIRED          the caller lacks «مراجعة واعتماد إنجاز التذاكر»
+ *   PARTICIPATION_PERMISSION_REQUIRED   the caller created / is assigned to / submitted the ticket and lacks
+ *                                       «اعتماد التذاكر التي أشارك فيها»
+ */
+export const REVIEW_PERMISSION_REQUIRED = 'REVIEW_PERMISSION_REQUIRED'
+export const PARTICIPATION_PERMISSION_REQUIRED = 'PARTICIPATION_PERMISSION_REQUIRED'
+
+const REVIEW_REFUSAL_FALLBACK: Record<string, string> = {
+  [REVIEW_PERMISSION_REQUIRED]: 'لا تملك صلاحية «مراجعة واعتماد إنجاز التذاكر»؛ اطلبها من مسؤول الصلاحيات.',
+  [PARTICIPATION_PERMISSION_REQUIRED]: 'لاعتماد تذكرة تشارك فيها تلزمك صلاحية «اعتماد التذاكر التي أشارك فيها» إضافةً إلى صلاحية المراجعة، أو يعتمدها مراجع آخر.',
+}
+
+/**
+ * A review refusal as the user must read it: the server's sentence (never a generic error), or the same meaning in Arabic
+ * when the server sent a code without a message. Null for any other failure.
+ */
+export function reviewRefusalOf(e: unknown): { code: string; message: string } | null {
+  if (!axios.isAxiosError(e) || e.response?.status !== 403) return null
+  const code = apiErrorCode(e)
+  if (code === null || !(code in REVIEW_REFUSAL_FALLBACK)) return null
+
+  return { code, message: apiMessage(e, REVIEW_REFUSAL_FALLBACK[code]) }
 }
 
 /** The server's message for a failed request, when it sent one. */
@@ -60,16 +90,30 @@ export function apiMessage(e: unknown, fallback: string): string {
   return (typeof first === 'string' && first) || (typeof d.message === 'string' && d.message) || fallback
 }
 
+const TABS: TicketTab[] = ['open', 'all', 'resolved', 'needs_action']
+
+/** `meta` of a list requested with `tab`: the tab the server applied and the count of every tab (null without `meta`). */
+function tabMeta(raw: unknown): { tab: TicketTab | null; tabCounts: TicketTabCounts | null } {
+  const meta = rec(raw)
+  const tab = TABS.find((t) => t === meta.tab) ?? null
+  const counts = rec(meta.tab_counts)
+  const tabCounts = Object.keys(counts).length > 0 ? { open: num(counts.open), all: num(counts.all), resolved: num(counts.resolved), needs_action: num(counts.needs_action) } : null
+
+  return { tab, tabCounts }
+}
+
 export async function fetchTicketList(params: Query, { signal }: Opts = {}): Promise<TicketListResult> {
   const res = await apiClient.get<unknown>('/v1/tickets', { params, signal, ...silent })
   const page = rec(rec(res.data).data)
 
   return {
+    ...tabMeta(rec(res.data).meta),
     items: arr(page.data) as Ticket[],
     total: num(page.total),
     currentPage: num(page.current_page, 1),
     lastPage: Math.max(1, num(page.last_page, 1)),
     perPage: num(page.per_page, 25),
+    requestedPage: Math.max(1, num(params.page, 1)),
   }
 }
 

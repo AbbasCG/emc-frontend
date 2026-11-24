@@ -1,4 +1,5 @@
 import type { Ticket, TicketCategory, TicketPriority, TicketStatus } from '@/types/ticket'
+import { formatDateTime24 } from '@/utils/time24'
 
 /**
  * Presentation only: labels, tones and formatting for the ticket work queue. No rule about what a
@@ -103,11 +104,9 @@ export function formatDate(raw: string | null | undefined): string {
   return Number.isFinite(t) ? new Intl.DateTimeFormat(LOCALE, { dateStyle: 'medium' }).format(new Date(t)) : '—'
 }
 
+/** The date and the 24-hour time («22:28», never «10:28 م»): the platform's one time formatter (utils/time24). Display only. */
 export function formatDateTime(raw: string | null | undefined): string {
-  if (!raw) return '—'
-  const t = Date.parse(raw)
-
-  return Number.isFinite(t) ? new Intl.DateTimeFormat(LOCALE, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(t)) : '—'
+  return formatDateTime24(raw, { locale: LOCALE })
 }
 
 /** "منذ 3 ساعات" style age, in whole units; empty when the date is missing or in the future. */

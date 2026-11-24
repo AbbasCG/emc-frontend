@@ -59,3 +59,34 @@ export function deploymentFreezeMessage(ticket: { status: string; assignee?: { i
 export function isDeploymentFlagLocked(ticket: { requires_deployment?: boolean; deployment?: { round: number | null } | null }): boolean {
   return ticket.requires_deployment === true && (ticket.deployment?.round ?? 0) > 0
 }
+
+/** How a reviewer was tied to the ticket they reviewed (`activity_logs[].metadata.reviewer_relation`, `review_context.relation`). */
+export const REVIEWER_RELATION_LABEL: Record<string, string> = {
+  creator: 'المنشئ',
+  assignee: 'المكلّف',
+  submitter: 'مقدّم الإنجاز',
+}
+
+/** The same roles as a predicate of «أنت …»: «منشئ» / «مكلّف» / «مقدّم إنجاز». */
+const RELATION_PREDICATE: Record<string, string> = {
+  creator: 'منشئ',
+  assignee: 'مكلّف',
+  submitter: 'مقدّم إنجاز',
+}
+
+const joinAr = (parts: string[]): string => parts.join(' و')
+
+/** Arabic names of the relations, in the order the server sent; an unknown relation is shown as it came. */
+export function reviewerRelationLabels(relation: readonly string[] | null | undefined): string[] {
+  return (relation ?? []).map((r) => REVIEWER_RELATION_LABEL[r] ?? r)
+}
+
+/** The log rows that record a review decision (the ones whose metadata names the reviewer's relation). */
+export const REVIEW_DECISION_ACTIONS = ['APPROVED_COMPLETION', 'APPROVED_FOR_DEPLOY', 'RETURNED_FOR_REWORK']
+
+/** «أنت منشئ ومكلّف ومقدّم إنجاز هذه التذكرة»: what the viewer is to the ticket, from `review_context.relation`. */
+export function viewerRelationSentence(relation: readonly string[] | null | undefined): string {
+  const parts = (relation ?? []).map((r) => RELATION_PREDICATE[r] ?? r)
+
+  return parts.length === 0 ? '' : `أنت ${joinAr(parts)} هذه التذكرة`
+}

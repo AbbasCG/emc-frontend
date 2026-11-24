@@ -210,7 +210,7 @@ function sanitizeNotificationBody(body: string): string {
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false,
+          hourCycle: 'h23',
         }).format(d)
         return ` الموعد: ${formatted}`
       } catch {

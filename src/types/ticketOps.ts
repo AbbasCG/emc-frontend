@@ -2,6 +2,8 @@ import type { Ticket, TicketCategory, TicketEstimateInput, TicketPriority, Ticke
 
 /** Everything the work queue can filter on. Empty string / empty array / false mean "not filtering". */
 export interface TicketFilters {
+  /** The queue's tab (a view of the viewer's visible tickets, applied by the server before paging). Default: `open`. */
+  tab: TicketTab
   search: string
   status: TicketStatus[]
   priority: TicketPriority[]
@@ -23,6 +25,11 @@ export interface TicketFilters {
   perPage: number
   page: number
 }
+
+export type TicketTab = 'open' | 'all' | 'resolved' | 'needs_action'
+
+/** Counts of every tab for the viewer, under the SAME search / filters as the list (each equals that tab's `total`). */
+export type TicketTabCounts = Record<TicketTab, number>
 
 export type TicketSortKey = 'created_at' | 'updated_at' | 'priority' | 'status' | 'ticket_number' | 'title' | 'due' | 'last_activity'
 export type TicketView = 'table' | 'board' | 'analytics'
@@ -71,6 +78,11 @@ export interface TicketListResult {
   currentPage: number
   lastPage: number
   perPage: number
+  /** The page this answer was REQUESTED for (what the caller sent; `currentPage` is what the server actually answered with). */
+  requestedPage: number
+  /** The tab the server applied, and the counts of all tabs; null when the server did not send `meta` (a request without `tab`). */
+  tab: TicketTab | null
+  tabCounts: TicketTabCounts | null
 }
 
 export interface BoardColumn {

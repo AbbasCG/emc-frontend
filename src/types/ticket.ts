@@ -151,6 +151,22 @@ export interface TicketAttachment {
   created_at: string;
 }
 
+/** How a reviewer is tied to a ticket they review: the person who created it, is assigned to it, or submitted its completion. */
+export type TicketReviewerRelation = 'creator' | 'assignee' | 'submitter';
+
+/**
+ * Structured data the server attaches to a review log row (approved / approved for deployment / returned for rework).
+ * Sent to internal viewers only (managers, global roles, the assignee); absent for a reporter or a plain member, and on
+ * every older row, so every reader must treat it as optional.
+ */
+export interface TicketActivityMetadata {
+  /** Unknown strings are kept (a newer server may add a relation) and shown as they are. */
+  reviewer_relation?: Array<TicketReviewerRelation | string>;
+  /** True when the reviewer took part in the ticket and used the «اعتماد التذاكر التي أشارك فيها» permission. */
+  participated?: boolean;
+  review_round?: number;
+}
+
 export interface TicketActivityLog {
   id: number;
   ticket_id: number;
@@ -161,6 +177,31 @@ export interface TicketActivityLog {
   performed_by_name?: string;
   details?: string;
   logged_at: string;
+  metadata?: TicketActivityMetadata | null;
+}
+
+/**
+ * Why a leader / global role can or cannot review a ticket that is in a review stage right now (`review_context` on the
+ * detail payload). ABSENT for everyone who is not a potential reviewer of the ticket's department, for tickets outside a
+ * review stage, and for reporters and plain members: never invent it. The review BUTTONS still come only from `capabilities`.
+ */
+export interface TicketReviewContext {
+  stage: TicketStatus;
+  can_review: boolean;
+  /** `missing_permission`: lacks «مراجعة واعتماد إنجاز التذاكر». `needs_participation_permission`: took part in the ticket and lacks «اعتماد التذاكر التي أشارك فيها». */
+  reason: 'missing_permission' | 'needs_participation_permission' | null;
+  relation: Array<TicketReviewerRelation | string>;
+  needs_participation_permission: boolean;
+  required_permissions: string[];
+}
+
+/** Who must act next on a ticket row of the work queue (null once the ticket is finished, and for reporters / plain members). */
+export interface TicketAwaiting {
+  actor: 'approver' | 'assignee' | 'reviewer' | 'deployer' | 'verifier' | string;
+  /** Arabic sentence, ready to show: «بانتظار اعتماد مدير الإدارة». */
+  label: string;
+  /** The assignee's name when the actor is the assignee. */
+  name: string | null;
 }
 
 export interface Ticket {
@@ -211,6 +252,12 @@ export interface Ticket {
   capabilities?: TicketCapabilities;
   /** 'staff' on the operational payload from show(); absent on list rows. */
   viewer_role?: 'staff';
+  /** Detail payload, review stages, potential reviewers only: why review is (not) available to this viewer. */
+  review_context?: TicketReviewContext;
+  /** List rows requested with a `tab`: does THIS viewer have a workflow step to take on this ticket now? */
+  needs_my_action?: boolean;
+  /** List rows requested with a `tab`: who must act next (null when finished or when the viewer may not see it). */
+  awaiting?: TicketAwaiting | null;
 
   // Relations
   department?: Department;

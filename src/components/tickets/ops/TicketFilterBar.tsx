@@ -51,15 +51,16 @@ function MultiPills<T extends string>({ label, options, value, onToggle, labels 
   )
 }
 
-function Toggle({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) {
+function Toggle({ label, on, onClick, title, quiet = false }: { label: string; on: boolean; onClick: () => void; title?: string; quiet?: boolean }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
+      title={title}
       className={cn(
         'rounded-full border px-3 py-1.5 text-[12px] font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40',
-        on ? 'border-customBlue bg-customBlue/10 text-customBlue' : 'border-deepBlue/10 bg-white text-deepBlue/70 hover:border-customBlue/40',
+        on ? 'border-customBlue bg-customBlue/10 text-customBlue' : quiet ? 'border-dashed border-deepBlue/10 bg-white text-deepBlue/45 hover:border-customBlue/40 hover:text-deepBlue/70' : 'border-deepBlue/10 bg-white text-deepBlue/70 hover:border-customBlue/40',
       )}
     >
       {label}
@@ -158,7 +159,10 @@ export function TicketFilterBar({ filters, onChange, onReset, departments, assig
 
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="تصفية سريعة">
         <Toggle label="المسندة إليّ" on={filters.mine} onClick={() => onChange({ mine: !filters.mine })} />
-        <Toggle label="تحتاج إجرائي" on={filters.attention} onClick={() => onChange({ attention: !filters.attention })} />
+        {/* The same set as the «تحتاج إجراءً منك» tab: on that tab it would repeat it, so it is offered on the other tabs only, and quietly. */}
+        {filters.tab !== 'needs_action' || filters.attention ?
+          <Toggle quiet label="تحتاج إجراءً منك" title="نفس نتيجة تبويب «تحتاج إجراءً منك»" on={filters.attention} onClick={() => onChange({ attention: !filters.attention })} />
+        : null}
         <Toggle label="بلا مكلف" on={filters.unassigned} onClick={() => onChange({ unassigned: !filters.unassigned })} />
         <Toggle label="متأخرة" on={filters.overdue} onClick={() => onChange({ overdue: !filters.overdue })} />
       </div>

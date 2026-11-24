@@ -63,3 +63,29 @@ export function DeadlineText({ ticket, className }: { ticket: Pick<Ticket, 'stat
     </span>
   )
 }
+
+/**
+ * «بانتظار: …»: who must act next on a queue row (the server's `awaiting`: label + the assignee's name when it is them),
+ * and a marker when the step is the VIEWER's own (`needs_my_action`). Both are the server's answers; nothing is derived
+ * from the status here. Renders nothing for a finished ticket or when the server sent neither.
+ */
+export function AwaitingLine({ ticket, className = '' }: { ticket: Pick<Ticket, 'awaiting' | 'needs_my_action'>; className?: string }) {
+  const awaiting = ticket.awaiting
+  if (!awaiting && ticket.needs_my_action !== true) return null
+  // The server's labels already read «بانتظار …»; anything else gets the prefix so the line always says what it is.
+  const text = awaiting ? (awaiting.label.startsWith('بانتظار') ? awaiting.label : `بانتظار: ${awaiting.label}`) : ''
+
+  return (
+    <span className={cn('mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-bold', className)} data-testid="awaiting">
+      {ticket.needs_my_action === true ?
+        <span data-testid="needs-my-action" className="rounded-full bg-customOrange/15 px-2 py-0.5 text-[10px] font-black text-customOrange ring-1 ring-customOrange/30">عليك إجراء</span>
+      : null}
+      {awaiting ?
+        <span className="text-indigo-700" data-actor={awaiting.actor}>
+          {text}
+          {awaiting.name && !text.includes(awaiting.name) ? ` — ${awaiting.name}` : ''}
+        </span>
+      : null}
+    </span>
+  )
+}

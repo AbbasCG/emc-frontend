@@ -10,12 +10,16 @@
 
 /**
  * Same-feature paths only — never trust an arbitrary state value blindly. «مهامي ومسؤولياتي» is the one page
- * outside /dashboard/tickets that opens tickets (from its work board), so "back" returns there too.
+ * outside /dashboard/tickets that opens tickets (from its work board), so "back" returns there too; the global operations
+ * board (/dashboard/operations/board) opens tickets from its cards the same way.
  */
 export function isSafeTicketOrigin(path: unknown): path is string {
   return (
     typeof path === 'string' &&
-    (path.startsWith('/dashboard/tickets') || path === '/dashboard/admin/tasks/my' || path.startsWith('/dashboard/admin/tasks/my?'))
+    (path.startsWith('/dashboard/tickets') ||
+      path === '/dashboard/admin/tasks/my' ||
+      path.startsWith('/dashboard/admin/tasks/my?') ||
+      path === '/dashboard/operations/board')
   );
 }
 

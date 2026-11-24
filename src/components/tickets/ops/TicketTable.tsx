@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, BadgeCheck, CheckCircle2, Columns3, Pa
 import type { Ticket } from '@/types/ticket'
 import type { TicketFilters, TicketSortKey } from '@/types/ticketOps'
 import { cn } from '@/lib/utils'
-import { CategoryPill, DeadlineText, PriorityPill, StatusPill } from './TicketBadges'
+import { AwaitingLine, CategoryPill, DeadlineText, PriorityPill, StatusPill } from './TicketBadges'
 import { COLUMNS, DEFAULT_COLUMNS, saveColumns, type ColumnKey } from './ticketColumns'
 import { ageText, formatDateTime } from './ticketOpsUi'
 
@@ -151,6 +151,7 @@ export function TicketTable({ tickets, filters, columns, onSort, selected, onTog
                 <span className="mt-0.5 line-clamp-2 block text-sm font-black text-deepBlue">{t.title}</span>
               </button>
             </div>
+            <AwaitingLine ticket={t} className="ms-7" />
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
               <StatusPill status={t.status} />
               <PriorityPill priority={t.priority} />
@@ -206,6 +207,7 @@ export function TicketTable({ tickets, filters, columns, onSort, selected, onTog
                     <span className="block font-mono text-[11px] font-black text-customBlue">{t.ticket_number}</span>
                     <span className="mt-0.5 block truncate text-[13px] font-black text-deepBlue" title={t.title}>{t.title}</span>
                   </button>
+                  <AwaitingLine ticket={t} />
                   {t.attachments_count ? <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-deepBlue/45"><Paperclip size={10} aria-hidden="true" />{t.attachments_count}</span> : null}
                 </td>
                 {visible.map((c) => (

@@ -10,6 +10,12 @@ describe('isSafeTicketOrigin', () => {
     expect(isSafeTicketOrigin('/dashboard/admin/users')).toBe(false)
   })
 
+  it('accepts the global operations board (it opens tickets from its cards), and only that exact page', () => {
+    expect(isSafeTicketOrigin('/dashboard/operations/board')).toBe(true)
+    expect(isSafeTicketOrigin('/dashboard/operations/board/../../admin/users')).toBe(false)
+    expect(isSafeTicketOrigin('/dashboard/operations/meetings')).toBe(false)
+  })
+
   it('rejects an absolute external URL', () => {
     expect(isSafeTicketOrigin('https://evil.example.com/dashboard/tickets')).toBe(false)
   })

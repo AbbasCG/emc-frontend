@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../../../api/axios';
 import { Shield, ShieldOff, Check, X, Users, ChevronRight, Settings2 } from 'lucide-react';
+import { permissionNoteAr } from '@/utils/permissionLabels';
 
 interface Role {
   id: number;
@@ -88,6 +89,7 @@ export default function AdminPermissionConfigTree() {
               {node.label_ar}
             </p>
             {node.is_system && <span className="text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded-full mt-1 inline-block">صلاحية نظام مقفلة</span>}
+            {permissionNoteAr(node.permission_name ?? '') ? <p data-testid="permission-note" className="mt-1 max-w-md rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium leading-relaxed text-amber-800">{permissionNoteAr(node.permission_name ?? '')}</p> : null}
           </div>
         </div>
         

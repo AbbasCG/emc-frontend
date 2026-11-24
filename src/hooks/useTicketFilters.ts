@@ -57,9 +57,12 @@ export function useTicketFilters() {
     [setParams],
   )
 
-  /** Clear every filter; keeps the view mode and the open ticket. Sorting and page size go back to default too. */
+  /**
+   * Clear every filter; keeps the view mode, the open ticket and the TAB the user is on (a tab is a place to look, not a filter
+   * to clear). Sorting and page size go back to default too.
+   */
   const reset = useCallback(() => {
-    setParams((prev) => mergeIntoParams(prev, DEFAULT_FILTERS))
+    setParams((prev) => mergeIntoParams(prev, { ...DEFAULT_FILTERS, tab: parseFilters(prev).tab }))
   }, [setParams])
 
   const setView = useCallback(

@@ -18,9 +18,11 @@ import {
   type AdminPermissionItem,
 } from '@/api/rolesPermissionsApi'
 import {
+  isExplicitOnlyPermission,
   permissionActionLabelAr,
   permissionDescriptionAr,
   permissionGroupLabelAr,
+  permissionNoteAr,
   sortPermissionGroups,
 } from '@/utils/permissionLabels'
 import { cn } from '@/lib/utils'
@@ -228,6 +230,8 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
     setSelected((prev) => {
       const next = new Set(prev)
       for (const p of group.permissions) {
+        // Never granted (or revoked) in bulk: only its own checkbox changes it.
+        if (isExplicitOnlyPermission(p.key)) continue
         if (checked) next.add(p.key)
         else next.delete(p.key)
       }
@@ -236,7 +240,9 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
   }
 
   function groupState(group: AdminPermissionGroup): 'all' | 'some' | 'none' {
-    const keys = group.permissions.map((p) => p.key)
+    // The state of the bulk control follows only what the bulk control can change.
+    const keys = group.permissions.map((p) => p.key).filter((k) => !isExplicitOnlyPermission(k))
+    if (keys.length === 0) return 'none'
     const granted = keys.filter((k) => selected.has(k)).length
     if (granted === 0) return 'none'
     if (granted === keys.length) return 'all'
@@ -341,7 +347,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                     <h3 className="text-[13px] font-black text-[#0C2A4B]">{groupLabel}</h3>
                     <p className="mt-0.5 font-mono text-[10px] text-slate-400">{group.key}</p>
                   </div>
-                  {canEdit && (
+                  {canEdit && group.permissions.some((p) => !isExplicitOnlyPermission(p.key)) && (
                     <button
                       type="button"
                       onClick={() => toggleGroup(group, state !== 'all')}
@@ -360,6 +366,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                     const checked = selected.has(perm.key)
                     const label = permissionActionLabelAr(perm.key, perm.label)
                     const desc = permissionDescriptionAr(perm.key, perm.description)
+                    const note = permissionNoteAr(perm.key)
                     return (
                       <li key={perm.key}>
                         <label
@@ -385,6 +392,14 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                             </div>
                             {desc ? (
                               <p className="mt-0.5 text-[11px] font-semibold leading-relaxed text-slate-500">{desc}</p>
+                            ) : null}
+                            {note ? (
+                              <p
+                                data-testid="permission-note"
+                                className="mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold leading-relaxed text-amber-800"
+                              >
+                                {note}
+                              </p>
                             ) : null}
                           </div>
                         </label>
