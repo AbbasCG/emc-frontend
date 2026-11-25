@@ -115,7 +115,7 @@ export default function CouponForm({
         </div>
 
         {eligibilityType === 'selected_courses' && (
-          <CouponCourseSelector value={courseIds} onChange={(ids) => { setCourseIds(ids); setCourseError('') }} error={courseError} />
+          <CouponCourseSelector initialCourses={initial?.courses} value={courseIds} onChange={(ids) => { setCourseIds(ids); setCourseError('') }} error={courseError} />
         )}
       </div>
 

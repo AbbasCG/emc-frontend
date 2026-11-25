@@ -53,6 +53,7 @@ export default function ExpenseManagementPage() {
   const [expenseAccounts, setExpenseAccounts] = useState<ChartOfAccountItem[]>([])
   const [paymentAccounts, setPaymentAccounts] = useState<ChartOfAccountItem[]>([])
   const [departments, setDepartments] = useState<DepartmentOption[]>([])
+  const [departmentsFailed, setDepartmentsFailed] = useState(false)
 
   // Filters state
   const [search, setSearch] = useState('')
@@ -83,10 +84,9 @@ export default function ExpenseManagementPage() {
   // Load initial accounts and suggest voucher number
   const loadInitialOptions = useCallback(async () => {
     try {
-      const [allAccountsRes, suggestedNoRes, deptsRes] = await Promise.all([
+      const [allAccountsRes, suggestedNoRes] = await Promise.all([
         fetchAccountsList(),
         suggestExpenseVoucherNo(),
-        apiClient.get<{ success: boolean; data: DepartmentOption[] }>('/admin/departments').catch(() => ({ data: { data: [] } })),
       ])
 
       // Categorize accounts
@@ -102,13 +102,24 @@ export default function ExpenseManagementPage() {
       setExpenseAccounts(expensesList)
       setPaymentAccounts(paymentsList)
 
-      if (Array.isArray(deptsRes.data.data)) {
-        setDepartments(deptsRes.data.data)
-      }
-
       setVoucherNo(suggestedNoRes)
     } catch {
       toast.error('تعذّر تحميل بيانات الحسابات الأولية')
+    }
+  }, [])
+
+  // Departments come from the open options endpoint (any authenticated user, active departments only).
+  // A failure never blocks the page: it shows a notice and the form falls back to free text.
+  const loadDepartments = useCallback(async () => {
+    try {
+      const res = await apiClient.get<{ data?: DepartmentOption[] }>('/departments/options', { skipErrorToast: true })
+      const rows = res.data?.data
+      if (!Array.isArray(rows)) throw new Error('bad departments payload')
+      setDepartments(rows)
+      setDepartmentsFailed(false)
+    } catch {
+      setDepartments([])
+      setDepartmentsFailed(true)
     }
   }, [])
 
@@ -134,7 +145,8 @@ export default function ExpenseManagementPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
     void loadInitialOptions()
-  }, [loadInitialOptions])
+    void loadDepartments()
+  }, [loadInitialOptions, loadDepartments])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the request starts, whenever its inputs change
@@ -593,6 +605,9 @@ export default function ExpenseManagementPage() {
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
                       >
                         <option value="">-- اختر القسم أو الإدارة --</option>
+                        {departmentId && !departments.some((dept) => String(dept.id) === departmentId) && (
+                          <option value={departmentId}>{departmentName || `إدارة #${departmentId}`} (غير نشطة)</option>
+                        )}
                         {departments.map((dept) => (
                           <option key={dept.id} value={dept.id}>
                             {dept.name_ar || dept.name}
@@ -600,13 +615,21 @@ export default function ExpenseManagementPage() {
                         ))}
                       </select>
                     ) : (
-                      <input
-                        type="text"
-                        value={departmentName}
-                        onChange={(e) => setDepartmentName(e.target.value)}
-                        placeholder="مثال: إدارة تقنية المعلومات، التسويق..."
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
-                      />
+                      <>
+                        <input
+                          type="text"
+                          value={departmentName}
+                          onChange={(e) => setDepartmentName(e.target.value)}
+                          placeholder="مثال: إدارة تقنية المعلومات، التسويق..."
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:border-customBlue focus:outline-none"
+                        />
+                        {departmentsFailed && (
+                          <p role="alert" className="mt-1.5 text-[11px] font-bold text-amber-700">
+                            تعذّر تحميل قائمة الإدارات، يمكنك كتابة اسم الإدارة يدويًا.{' '}
+                            <button type="button" onClick={() => void loadDepartments()} className="underline">إعادة المحاولة</button>
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -730,6 +753,9 @@ export default function ExpenseManagementPage() {
               <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
 
+            {departmentsFailed && (
+              <span role="status" className="text-[11px] font-bold text-amber-700">تعذّر تحميل قائمة الإدارات للتصفية</span>
+            )}
             {/* Department Filter */}
             {departments.length > 0 && (
               <select
