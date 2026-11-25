@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users } from 'lucide-react'
 import EmptyState from '@/components/dashboard/EmptyState'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
 import { HrPageShell } from '@/components/hr/HrLayout'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
 import { getTeam, resolveTeamMemberImage, type Department, type TeamMember } from '@/services/teamApi'
 
-export default function HrTeamPage() {
-  const [depts, setDepts] = useState<Department[] | null>(null)
-  const [loading, setLoading] = useState(true)
+const FORBIDDEN_AR = 'لا تملك صلاحية عرض أعضاء الفريق. اطلب من مسؤول الوصول منحك الصلاحية المناسبة.'
 
-  useEffect(() => {
-    let c = false
-    ;(async () => {
-      try {
-        const d = await getTeam()
-        if (!c) setDepts(d)
-      } catch {
-        if (!c) setDepts(null)
-      } finally {
-        if (!c) setLoading(false)
-      }
-    })()
-    return () => {
-      c = true
-    }
-  }, [])
+export default function HrTeamPage() {
+  const load = useRetryableLoad<Department[]>(getTeam, 'hr-team')
+  const depts = load.data
+  const loadError = load.error ? describeLoadError(load.cause, { forbiddenMessage: FORBIDDEN_AR }) : null
 
   function renderMember(m: TeamMember) {
     const src = resolveTeamMemberImage(m.image)
@@ -50,7 +38,7 @@ export default function HrTeamPage() {
     )
   }
 
-  if (loading) {
+  if (load.loading) {
     return <div className="animate-pulse text-right opacity-70">يتم تحميل أعضاء الفريق...</div>
   }
 
@@ -59,11 +47,9 @@ export default function HrTeamPage() {
       title="أعضاء الفريق"
       description="عرض أعضاء فريق EMC حسب الوحدات المعروضة في دليل المنصّة العام."
     >
-      {depts == null ?
-        <p className="rounded-3xl bg-amber-50 px-6 py-8 text-center text-sm font-bold text-amber-900 ring-1 ring-amber-100">
-          لم يتم ربط هذا القسم بالبيانات بعد
-        </p>
-      : depts.length === 0 ?
+      {loadError ?
+        <LoadErrorState error={loadError} onRetry={load.retry} />
+      : !depts || depts.length === 0 ?
         <EmptyState icon={Users} title="لا توجد مجموعات ضمن دليل الفريق" />
       : <div className="grid gap-6">
           {depts.map((d) => (

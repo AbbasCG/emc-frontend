@@ -1,13 +1,52 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
+import axios from 'axios'
+import apiClient from '@/api/axios'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
+import { asList } from '@/api/lmsApi'
 import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
 import type { OpsVolunteer, VolunteerStatus, WorkspaceDepartment } from '@/types/operations'
 
-const LOAD_ERROR = 'تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.'
+const FORBIDDEN_VIEW_AR = 'لا تملك صلاحية عرض بيانات هذا المتطوع. اطلب من مسؤول الوصول منحك الصلاحية المناسبة.'
+const FORBIDDEN_SAVE_AR = 'لا تملك صلاحية تعديل بيانات هذا المتطوع.'
+const SAVE_FAILED_AR = 'تعذّر حفظ التعديل. حاول مرة أخرى.'
+const DEPTS_UNAVAILABLE_AR = 'تعذّر تحميل قائمة الإدارات، لذلك لا يمكن تغيير الإدارة الآن.'
+
+type DepartmentOption = Pick<WorkspaceDepartment, 'id' | 'title'>
+
+/**
+ * The department list only feeds the edit dropdown, so it must never fail the page: try the operations list,
+ * then the open `GET /departments/options`, and report "unavailable" (null) when neither answers.
+ */
+async function loadDepartmentOptions(): Promise<DepartmentOption[] | null> {
+  try {
+    const { items } = await fetchWorkspaceDepartments({ silent: true })
+    return items
+  } catch {
+    // fall through to the open list
+  }
+  try {
+    const res = await apiClient.get<unknown>('/departments/options', { skipErrorToast: true })
+    return asList<{ id: number | string; name_ar?: string | null; name?: string | null }>(res.data).map((d) => ({
+      id: String(d.id),
+      title: d.name_ar || d.name || String(d.id),
+    }))
+  } catch {
+    return null
+  }
+}
+
+async function loadVolunteerPage(vid: number): Promise<{ volunteer: OpsVolunteer; depts: DepartmentOption[] | null }> {
+  const [vol, depts] = await Promise.allSettled([fetchVolunteer(vid), loadDepartmentOptions()])
+  if (vol.status === 'rejected') throw vol.reason
+  return { volunteer: vol.value, depts: depts.status === 'fulfilled' ? depts.value : null }
+}
 
 export default function OpsVolunteerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,93 +55,52 @@ export default function OpsVolunteerDetailPage() {
     ? '/dashboard/volunteer'
     : '/dashboard/admin/volunteers'
   const vid = id ? Number(id) : NaN
-  const [v, setV] = useState<OpsVolunteer | null>(null)
-  const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const validId = Number.isFinite(vid)
+  const load = useRetryableLoad(() => loadVolunteerPage(vid), `volunteer:${vid}`, validId)
+  const [edited, setEdited] = useState<{ src: OpsVolunteer; value: OpsVolunteer } | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [canEdit, setCanEdit] = useState(true)
   const [notes] = useState('مساحة الملاحظات الداخلية قيد ربط الـ API.')
 
-  // Re-arm the loading state during render when the route id changes (react.dev
-  // "adjusting state when a prop changes"), so the fetch effect below never has to
-  // touch state synchronously.
-  const [seenVid, setSeenVid] = useState(vid)
-  if (!Object.is(seenVid, vid)) {
-    setSeenVid(vid)
-    setLoading(true)
-    setLoadError(null)
-  }
+  const loaded = load.data
+  const v = loaded ? (edited?.src === loaded.volunteer ? edited.value : loaded.volunteer) : null
+  const depts = loaded?.depts ?? []
+  const deptsUnavailable = loaded != null && loaded.depts == null
+  const loadError = load.error ? describeLoadError(load.cause, { forbiddenMessage: FORBIDDEN_VIEW_AR }) : null
 
-  useEffect(() => {
-    if (!Number.isFinite(vid)) return
-    let cancelled = false
-    void (async () => {
-      try {
-        const [vData, dData] = await Promise.all([
-          fetchVolunteer(vid),
-          fetchWorkspaceDepartments(),
-        ])
-        if (cancelled) return
-        setV(vData)
-        setDepts(dData.items)
-      } catch {
-        if (!cancelled) setLoadError(LOAD_ERROR)
-      } finally {
-        if (!cancelled) setLoading(false)
+  /** Optimistic update that is rolled back, with a message, when the server refuses or fails. */
+  async function save(patch: Partial<OpsVolunteer>, body: Parameters<typeof updateVolunteer>[1]) {
+    if (!v || !loaded) return
+    const previous = v
+    const src = loaded.volunteer
+    setSaveError(null)
+    setEdited({ src, value: { ...v, ...patch } })
+    try {
+      const u = await updateVolunteer(v.id, body)
+      setEdited({ src, value: u })
+    } catch (e) {
+      setEdited({ src, value: previous })
+      if (axios.isAxiosError(e) && e.response?.status === 403) {
+        setCanEdit(false)
+        setSaveError(FORBIDDEN_SAVE_AR)
+      } else {
+        setSaveError(SAVE_FAILED_AR)
       }
-    })()
-    return () => { cancelled = true }
-  }, [vid])
-
-  // Retry lives outside the effect, so the synchronous reset here is legitimate.
-  const retry = useCallback(async () => {
-    if (!Number.isFinite(vid)) return
-    setLoadError(null)
-    setLoading(true)
-    try {
-      const [vData, dData] = await Promise.all([
-        fetchVolunteer(vid),
-        fetchWorkspaceDepartments(),
-      ])
-      setV(vData)
-      setDepts(dData.items)
-    } catch {
-      setLoadError(LOAD_ERROR)
-    } finally {
-      setLoading(false)
-    }
-  }, [vid])
-
-  async function patchStatus(status: VolunteerStatus) {
-    if (!v) return
-    setV({ ...v, status })
-    try {
-      const u = await updateVolunteer(v.id, { status })
-      setV(u)
-    } catch {
-      /* keep local */
     }
   }
 
-  async function patchDept(department_id: string) {
-    if (!v) return
+  function patchStatus(status: VolunteerStatus) {
+    void save({ status }, { status })
+  }
+
+  function patchDept(department_id: string) {
     const name = depts.find((d) => d.id === department_id)?.title
-    setV({ ...v, department_id, department_name: name ?? null })
-    try {
-      const u = await updateVolunteer(v.id, { department_id })
-      setV(u)
-    } catch {
-      /* keep local */
-    }
+    void save({ department_id, department_name: name ?? null }, { department_id })
   }
 
   if (!Number.isFinite(vid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading) return <OpsPageSkeleton />
-  if (loadError) return (
-    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
-      <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
-    </div>
-  )
+  if (load.loading) return <OpsPageSkeleton />
+  if (loadError) return <LoadErrorState error={loadError} onRetry={load.retry} />
   if (!v) return <OpsPageSkeleton />
 
   return (
@@ -125,6 +123,7 @@ export default function OpsVolunteerDetailPage() {
             <select
               value={v.status}
               onChange={(e) => patchStatus(e.target.value as VolunteerStatus)}
+              disabled={!canEdit}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
             >
               {(Object.keys(VOLUNTEER_STATUS_AR) as VolunteerStatus[]).map((k) => (
@@ -140,6 +139,7 @@ export default function OpsVolunteerDetailPage() {
             <select
               value={v.department_id ?? ''}
               onChange={(e) => patchDept(e.target.value)}
+              disabled={!canEdit || deptsUnavailable}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
             >
               <option value=""> اختر </option>
@@ -150,6 +150,17 @@ export default function OpsVolunteerDetailPage() {
               ))}
             </select>
           </label>
+
+          {saveError ?
+            <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-right text-xs font-black text-rose-800 ring-1 ring-rose-200">
+              {saveError}
+            </p>
+          : null}
+          {deptsUnavailable ?
+            <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-right text-xs font-bold text-amber-900 ring-1 ring-amber-200">
+              {DEPTS_UNAVAILABLE_AR}
+            </p>
+          : null}
 
           <div>
             <p className="text-xs font-black text-deepBlue">المهارات</p>

@@ -1,54 +1,37 @@
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ClipboardCheck } from 'lucide-react'
 import apiClient from '@/api/axios'
 import { asList } from '@/api/lmsApi'
 import EmptyState from '@/components/dashboard/EmptyState'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
 import { HrPageShell } from '@/components/hr/HrLayout'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
 import type { OpsVolunteer } from '@/types/operations'
 
+const FORBIDDEN_AR = 'لا تملك صلاحية عرض مسارات التأهيل. اطلب من مسؤول الوصول منحك الصلاحية المناسبة.'
+
+async function loadOnboarding(): Promise<OpsVolunteer[]> {
+  const res = await apiClient.get<unknown>('/operations/volunteers', { skipErrorToast: true })
+  return asList<OpsVolunteer>(res.data).filter(
+    (v) => Boolean(v.onboarding_step) || v.status === 'applied' || v.status === 'review' || v.status === 'accepted',
+  )
+}
+
 export default function HrOnboardingPage() {
-  const [rows, setRows] = useState<OpsVolunteer[] | null>(null)
-  const [loading, setLoading] = useState(true)
+  const load = useRetryableLoad(loadOnboarding, 'hr-onboarding')
+  const rows = load.data ?? []
+  const loadError = load.error ? describeLoadError(load.cause, { forbiddenMessage: FORBIDDEN_AR }) : null
 
-  useEffect(() => {
-    let c = false
-    ;(async () => {
-      try {
-        const res = await apiClient.get<unknown>('/operations/volunteers', { skipErrorToast: true })
-        const list = asList<OpsVolunteer>(res.data)
-        if (!c)
-          setRows(
-            list.filter(
-              (v) =>
-                Boolean(v.onboarding_step) ||
-                v.status === 'applied' ||
-                v.status === 'review' ||
-                v.status === 'accepted',
-            ),
-          )
-      } catch {
-        if (!c) setRows(null)
-      } finally {
-        if (!c) setLoading(false)
-      }
-    })()
-    return () => {
-      c = true
-    }
-  }, [])
-
-  if (loading) return <div className="animate-pulse text-right opacity-70">يتم تحميل مسارات التأهيل...</div>
+  if (load.loading) return <div className="animate-pulse text-right opacity-70">يتم تحميل مسارات التأهيل...</div>
 
   return (
     <HrPageShell
       title="التأهيل والانضمام"
       description="خطوات التأهيل المسجلة للمتطوعين عبر نظام العمليات. لمزامنة مهام تأهيل أوسع مع HR، ضع نقطة تجمع في الخلفية."
     >
-      {rows == null ?
-        <p className="rounded-3xl bg-amber-50 px-6 py-8 text-center text-sm font-bold text-amber-900 ring-1 ring-amber-100">
-          لم يتم ربط هذا القسم بالبيانات بعد
-        </p>
+      {loadError ?
+        <LoadErrorState error={loadError} onRetry={load.retry} />
       : rows.length === 0 ?
         <EmptyState icon={ClipboardCheck} title="لا توجد سجلات تأهيل واضحة في العيّنة الحالية" />
       : (

@@ -23,7 +23,7 @@ beforeAll(() => {
 const app = (over: Partial<ConsultantApplication> = {}): ConsultantApplication => ({
   id: 4, full_name: 'سارة المستشارة', email: 'sara@example.com', phone: '+31600000000', country: 'هولندا', city: 'أمستردام', specialty: 'استراتيجية البيانات',
   desired_department: 'التقنية', years_experience: 9, linkedin_url: 'https://linkedin.com/in/sara', motivation: 'أرغب في دعم فرق EMC في مشاريع البيانات.', availability: '5 ساعات',
-  status: 'new', reviewer_note: null, cv_view_url: 'https://api.test/signed/cv', created_at: '2026-10-01T09:00:00Z', ...over,
+  status: 'new', reviewer_note: null, cv_view_url: 'https://api.test/signed/cv', can_update_status: true, created_at: '2026-10-01T09:00:00Z', ...over,
 })
 const partner = (over: Partial<PartnershipRequest> = {}): PartnershipRequest => ({
   id: 8, partner_name: 'جامعة المستقبل', contact_name: 'خالد', email: 'k@uni.edu', phone: '+966500000000', country: 'السعودية', city: 'الرياض', website: 'https://uni.edu',

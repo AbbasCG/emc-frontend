@@ -176,39 +176,51 @@ function pickMeta(payload: unknown, lifted: unknown): Record<string, unknown> {
   return {}
 }
 
-/**
- * Instructor directory — GET /api/admin/instructors  
- * Supports: `data`, `data.data`, `data.instructors`, nested Laravel pagination.
- */
-export async function fetchAdminInstructorsDirectory(params?: { search?: string; status?: string }): Promise<{
+export type InstructorDirectory = {
   rows: AdminInstructorDirectoryRow[]
   meta: { total: number; current_page: number; last_page: number; per_page: number }
-}> {
+}
+
+/**
+ * Instructor directory — GET /api/admin/instructors. Supports: `data`, `data.data`, `data.instructors`, nested
+ * Laravel pagination. A failed request REJECTS so the page can tell "no instructors" from "could not load".
+ * `scope: 'hr'` reads GET /api/hr/instructors (the HR manager's own endpoint; same row shape minus role,
+ * expertise, upcoming workshops and last login, which the normalizer defaults).
+ */
+export async function fetchInstructorsDirectoryOrThrow(
+  params?: { search?: string; status?: string },
+  scope: 'admin' | 'hr' = 'admin',
+): Promise<InstructorDirectory> {
+  const res = await apiClient.get<unknown>(scope === 'hr' ? '/hr/instructors' : '/admin/instructors', {
+    ...silent,
+    params: {
+      per_page: 500,
+      ...(params?.search?.trim() ? { search: params.search.trim() } : {}),
+      ...(params?.status ? { status: params.status } : {}),
+    },
+  })
+
+  const rawList = extractInstructorsArray(res.data)
+  const rows = rawList.map(normalizeDirectoryRow).filter((x): x is AdminInstructorDirectoryRow => x != null)
+
+  const lifted = unwrapData(res.data)
+  const metaRaw = pickMeta(res.data, lifted)
+
+  return {
+    rows,
+    meta: {
+      total: Number(metaRaw.total ?? rows.length) || rows.length,
+      current_page: Number(metaRaw.current_page ?? 1) || 1,
+      last_page: Number(metaRaw.last_page ?? 1) || 1,
+      per_page: Number(metaRaw.per_page ?? rows.length) || rows.length,
+    },
+  }
+}
+
+/** Lenient variant for pickers/overviews that treat a failure as "nothing to show". */
+export async function fetchAdminInstructorsDirectory(params?: { search?: string; status?: string }): Promise<InstructorDirectory> {
   try {
-    const res = await apiClient.get<unknown>('/admin/instructors', {
-      ...silent,
-      params: {
-        per_page: 500,
-        ...(params?.search?.trim() ? { search: params.search.trim() } : {}),
-        ...(params?.status ? { status: params.status } : {}),
-      },
-    })
-
-    const rawList = extractInstructorsArray(res.data)
-    const rows = rawList.map(normalizeDirectoryRow).filter((x): x is AdminInstructorDirectoryRow => x != null)
-
-    const lifted = unwrapData(res.data)
-    const metaRaw = pickMeta(res.data, lifted)
-
-    return {
-      rows,
-      meta: {
-        total: Number(metaRaw.total ?? rows.length) || rows.length,
-        current_page: Number(metaRaw.current_page ?? 1) || 1,
-        last_page: Number(metaRaw.last_page ?? 1) || 1,
-        per_page: Number(metaRaw.per_page ?? rows.length) || rows.length,
-      },
-    }
+    return await fetchInstructorsDirectoryOrThrow(params)
   } catch (e) {
     if (axios.isAxiosError(e) && e.response?.status !== 404 && import.meta.env.DEV) {
       console.warn('fetchAdminInstructorsDirectory:', getApiErrorMessage(e))

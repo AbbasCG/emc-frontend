@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Award, CheckCircle2, Clock, Sparkles, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getApiMessageOr } from '@/api/apiErrors'
@@ -6,46 +6,47 @@ import apiClient from '@/api/axios'
 import { asList } from '@/api/lmsApi'
 import { fetchPendingHrApprovalTasks, hrApproveTask, type BoardTask } from '@/api/operationsBoardApi'
 import EmptyState from '@/components/dashboard/EmptyState'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
 import { HrPageShell } from '@/components/hr/HrLayout'
-import type { OpsTask } from '@/types/operations'
+import { normalizeOpsTask } from '@/api/normalizers/opsTask'
+import { TASK_STATUS_AR } from '@/data/operationsLabels'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
+import type { OpsTask, TaskStatus } from '@/types/operations'
+
+const HR_TASKS_FORBIDDEN_MESSAGE_AR =
+  'لا تملك صلاحية عرض مهام الموارد البشرية. اطلب من مسؤول الوصول منح «عرض مهام واعتمادات الموارد البشرية».'
+
+/** A log row: the normalized task (nested `assigned_to` / `department` read, old flat names as fallback) plus the server's own status key. */
+type LogTask = OpsTask & { status_key: string }
+
+async function fetchAllTasks(): Promise<LogTask[]> {
+  const res = await apiClient.get<unknown>('/operations/tasks', { params: { scope: 'all' }, skipErrorToast: true })
+  return asList<Record<string, unknown>>(res.data).map((raw) => ({
+    ...normalizeOpsTask(raw),
+    // The normalizer folds an unknown status into 'planning'; the log must not mislabel it.
+    status_key: typeof raw.status === 'string' ? raw.status : '',
+  }))
+}
+
+/** Arabic label from the project's task status map; the raw key only when the map does not know it. */
+function statusLabel(key: string): string {
+  return TASK_STATUS_AR[key as TaskStatus] ?? (key || '—')
+}
 
 export default function HrTasksPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'all'>('pending')
-  const [pendingTasks, setPendingTasks] = useState<BoardTask[]>([])
-  const [loadingPending, setLoadingPending] = useState(true)
+  const { user } = useAuth()
   const [approvingId, setApprovingId] = useState<number | null>(null)
+  const [allOpened, setAllOpened] = useState(false)
 
-  const [allTasks, setAllTasks] = useState<OpsTask[] | null>(null)
-  const [loadingAll, setLoadingAll] = useState(false)
-
-  const loadPending = async () => {
-    try {
-      setLoadingPending(true)
-      const data = await fetchPendingHrApprovalTasks()
-      setPendingTasks(data)
-    } catch {
-      setPendingTasks([])
-    } finally {
-      setLoadingPending(false)
-    }
-  }
-
-  const loadAll = async () => {
-    try {
-      setLoadingAll(true)
-      const res = await apiClient.get<unknown>('/operations/tasks', { params: { scope: 'all' }, skipErrorToast: true })
-      setAllTasks(asList<OpsTask>(res.data))
-    } catch {
-      setAllTasks([])
-    } finally {
-      setLoadingAll(false)
-    }
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount; the loader sets its own loading state
-    void loadPending()
-  }, [])
+  const pending = useRetryableLoad(fetchPendingHrApprovalTasks, 'hr-pending')
+  const all = useRetryableLoad(fetchAllTasks, 'hr-all', allOpened)
+  const pendingTasks: BoardTask[] = pending.data ?? []
+  const allTasks: LogTask[] = all.data ?? []
+  const pendingError = pending.error ? describeLoadError(pending.cause, { forbiddenMessage: HR_TASKS_FORBIDDEN_MESSAGE_AR }) : null
+  const allError = all.error ? describeLoadError(all.cause, { forbiddenMessage: HR_TASKS_FORBIDDEN_MESSAGE_AR }) : null
 
   const handleHrApprove = async (task: BoardTask) => {
     try {
@@ -54,7 +55,7 @@ export default function HrTasksPage() {
       toast.success(
         `تم اعتماد المهمة بنجاح! أودعت ${task.points ?? 0} نقطة و ${task.estimated_hours ?? 0} ساعة في رصيد المتطوع.`
       )
-      await loadPending()
+      pending.retry()
     } catch (err: unknown) {
       toast.error(getApiMessageOr(err, 'تعذر اعتماد المهمة'))
     } finally {
@@ -72,8 +73,8 @@ export default function HrTasksPage() {
         <button
           type="button"
           onClick={() => {
+            if (activeTab !== 'pending') pending.retry()
             setActiveTab('pending')
-            void loadPending()
           }}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black transition ${
             activeTab === 'pending'
@@ -94,7 +95,7 @@ export default function HrTasksPage() {
           type="button"
           onClick={() => {
             setActiveTab('all')
-            if (!allTasks) void loadAll()
+            setAllOpened(true)
           }}
           className={`rounded-xl px-4 py-2.5 text-xs font-black transition ${
             activeTab === 'all'
@@ -108,12 +109,14 @@ export default function HrTasksPage() {
 
       {activeTab === 'pending' && (
         <div>
-          {loadingPending ? (
+          {pending.loading ? (
             <p className="text-center text-xs text-slate-500 py-10">جاري تحميل المهام بانتظار الاعتماد...</p>
+          ) : pendingError ? (
+            <LoadErrorState error={pendingError} onRetry={pending.retry} />
           ) : pendingTasks.length === 0 ? (
             <EmptyState
               icon={CheckCircle2}
-              title="لا توجد مهام بانتظار الاعتماد حالياً"
+              title="لا توجد مهام بانتظار الاعتماد حاليًا"
               description="جميع المهام المقيمة إما بسيطة تم اعتمادها آلياً، أو تم اعتمادها من الموارد البشرية مسبقاً."
             />
           ) : (
@@ -178,7 +181,9 @@ export default function HrTasksPage() {
                       <span>الإدارة: <strong className="text-deepBlue">{task.department?.name ?? '—'}</strong></span>
                     </div>
 
-                    <button
+                    {user?.id != null && task.assigned_to?.id === user.id ?
+                      <p className="text-xs font-bold text-slate-500">هذه المهمة مسندة إليك، لذلك لا يمكنك اعتمادها.</p>
+                    : <button
                       type="button"
                       disabled={approvingId === task.id}
                       onClick={() => void handleHrApprove(task)}
@@ -186,7 +191,7 @@ export default function HrTasksPage() {
                     >
                       <Award size={14} className="text-amber-300" />
                       <span>{approvingId === task.id ? 'جاري الاعتماد...' : 'اعتماد المهمة وإيداع النقاط والساعات'}</span>
-                    </button>
+                    </button>}
                   </div>
                 </div>
               ))}
@@ -197,8 +202,12 @@ export default function HrTasksPage() {
 
       {activeTab === 'all' && (
         <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm" dir="rtl">
-          {loadingAll ? (
+          {all.loading ? (
             <p className="text-center text-xs text-slate-400 py-6">جاري التحميل...</p>
+          ) : allError ? (
+            <LoadErrorState error={allError} onRetry={all.retry} />
+          ) : allTasks.length === 0 ? (
+            <EmptyState icon={CheckCircle2} title="لا توجد مهام في السجل حاليًا" />
           ) : (
             <table className="w-full text-right text-xs">
               <thead className="border-b border-slate-100 text-slate-400 font-black">
@@ -212,12 +221,12 @@ export default function HrTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 font-bold text-deepBlue">
-                {(allTasks ?? []).slice(0, 30).map((t) => (
+                {allTasks.slice(0, 30).map((t) => (
                   <tr key={t.id}>
                     <td className="p-3 font-black">{t.title}</td>
                     <td className="p-3">{t.assignee_name ?? '—'}</td>
-                    <td className="p-3 text-slate-500">{t.department_name ?? t.department_id}</td>
-                    <td className="p-3">{t.status}</td>
+                    <td className="p-3 text-slate-500">{t.department_name ?? (t.department_id || '—')}</td>
+                    <td className="p-3">{statusLabel(t.status_key)}</td>
                     <td className="p-3 text-customBlue">{t.points ? `${t.points} ن` : '—'}</td>
                     <td className="p-3 text-emerald-700">{t.estimated_hours ? `${t.estimated_hours} س` : '—'}</td>
                   </tr>

@@ -97,7 +97,7 @@ describe('fetchVolunteer / updateVolunteer', () => {
   it('fetchVolunteer GETs /operations/volunteers/{id} and unwraps { data }', async () => {
     mockedApi.get.mockResolvedValueOnce({ data: { data: volunteer } })
     await expect(fetchVolunteer(7)).resolves.toEqual(volunteer)
-    expect(mockedApi.get).toHaveBeenCalledWith('/operations/volunteers/7')
+    expect(mockedApi.get).toHaveBeenCalledWith('/operations/volunteers/7', { skipErrorToast: true })
   })
 
   it('fetchVolunteer propagates request errors', async () => {
@@ -109,7 +109,7 @@ describe('fetchVolunteer / updateVolunteer', () => {
     const updated: OpsVolunteer = { ...volunteer, status: 'inactive' }
     mockedApi.patch.mockResolvedValueOnce({ data: { data: updated } })
     await expect(updateVolunteer(7, { status: 'inactive' })).resolves.toEqual(updated)
-    expect(mockedApi.patch).toHaveBeenCalledWith('/operations/volunteers/7', { status: 'inactive' })
+    expect(mockedApi.patch).toHaveBeenCalledWith('/operations/volunteers/7', { status: 'inactive' }, { skipErrorToast: true })
   })
 
   it('updateVolunteer propagates request errors', async () => {

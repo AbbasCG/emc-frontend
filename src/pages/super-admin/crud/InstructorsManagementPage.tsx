@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ElementType } from 'react'
+import { useMemo, useState, type ElementType } from 'react'
 import { Link } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -18,9 +18,12 @@ import {
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
-  fetchAdminInstructorsDirectory,
+  fetchInstructorsDirectoryOrThrow,
   type AdminInstructorDirectoryRow,
 } from '@/api/adminInstructorsApi'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
 import { updateAdminUser } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
@@ -88,9 +91,9 @@ const ASSIGN_FILTER = [
   { value: 'unassigned', labelAr: 'بدون دورات' },
 ]
 
+const FORBIDDEN_AR = 'لا تملك صلاحية عرض المدربين. اطلب من مسؤول الوصول منحك صلاحية عرض المدربين.'
+
 export default function InstructorsManagementPage({ isHrPage = false }: { isHrPage?: boolean } = {}) {
-  const [loading, setLoading] = useState(true)
-  const [rows, setRows] = useState<AdminInstructorDirectoryRow[]>([])
   const [q, setQ] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [photoFilter, setPhotoFilter] = useState<string>('all')
@@ -99,41 +102,14 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
   const [view, setView] = useState<AdminInstructorDirectoryRow | null>(null)
   const [togglingId, setTogglingId] = useState<number | null>(null)
 
-  /** Manual refresh / post-mutation reload from a handler — outside any effect, so
-   *  flipping to the loading state synchronously is both allowed and required here. */
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const { rows: list } = await fetchAdminInstructorsDirectory()
-      setRows(Array.isArray(list) ? list : [])
-    } catch {
-      toast.error('تعذّر تحميل المدربين من /api/admin/instructors')
-      setRows([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Initial load — inlined so no state is set on the effect's synchronous path
-  // (`loading` already starts as `true`).
-  useEffect(() => {
-    let alive = true
-    void (async () => {
-      try {
-        const { rows: list } = await fetchAdminInstructorsDirectory()
-        if (alive) setRows(Array.isArray(list) ? list : [])
-      } catch {
-        if (!alive) return
-        toast.error('تعذّر تحميل المدربين من /api/admin/instructors')
-        setRows([])
-      } finally {
-        if (alive) setLoading(false)
-      }
-    })()
-    return () => {
-      alive = false
-    }
-  }, [])
+  const instructors = useRetryableLoad(
+    () => fetchInstructorsDirectoryOrThrow(undefined, isHrPage ? 'hr' : 'admin').then((d) => d.rows),
+    isHrPage ? 'instructors:hr' : 'instructors:admin',
+  )
+  const rows = useMemo(() => instructors.data ?? [], [instructors.data])
+  const loading = instructors.loading
+  const loadError = instructors.error ? describeLoadError(instructors.cause, { forbiddenMessage: FORBIDDEN_AR }) : null
+  const load = instructors.retry
 
   const expertiseTags = useMemo(() => {
     const s = new Set<string>()
@@ -195,7 +171,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
         is_active: !row.is_active,
       })
       toast.success(!row.is_active ? 'تم التفعيل' : 'تم التعطيل')
-      await load()
+      load()
     } catch (e) {
       toast.error(getApiErrorMessage(e))
     } finally {
@@ -213,14 +189,13 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/55">Faculty · EMC</p>
             <h1 className="text-3xl font-black leading-tight md:text-4xl">دليل المدربين</h1>
             <p className="text-[14px] font-semibold leading-relaxed text-white/75">
-              مستند إلى <code className="rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">GET /api/admin/instructors</code>
- كل سجل في جدول المدربين يُعرَض مع التطبيع المناسب (حتى بدون صورة أو بريد أو ربط مستخدم بعد).
+              كل سجل في جدول المدربين يُعرَض مع التطبيع المناسب (حتى بدون صورة أو بريد أو ربط مستخدم بعد).
             </p>
           </div>
           <div className="flex flex-wrap gap-2 justify-end">
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => load()}
               className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur-md transition hover:bg-white/15"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
@@ -275,6 +250,8 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
 
       {loading ?
         <LoadingPanel />
+      : loadError ?
+        <LoadErrorState error={loadError} onRetry={load} />
       : rows.length === 0 ?
         <SaGlassCard className="p-12 text-center" glow="blue">
           <div className="mx-auto flex max-w-md flex-col items-center gap-4">
@@ -288,10 +265,10 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
             </p>
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => load()}
               className="rounded-2xl bg-[#0077B6] px-6 py-2.5 text-[12px] font-black text-white shadow-md"
             >
-              إعادة المحاولة
+              تحديث
             </button>
           </div>
         </SaGlassCard>
