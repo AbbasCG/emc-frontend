@@ -12,8 +12,10 @@ export type DepartmentsResult = {
   noDepartmentLinked: boolean
 }
 
-export async function fetchWorkspaceDepartments(): Promise<DepartmentsResult> {
-  const res = await apiClient.get<unknown>('/operations/departments')
+export async function fetchWorkspaceDepartments(options: { silent?: boolean } = {}): Promise<DepartmentsResult> {
+  const res = options.silent
+    ? await apiClient.get<unknown>('/operations/departments', { skipErrorToast: true })
+    : await apiClient.get<unknown>('/operations/departments')
   const raw = res.data as Record<string, unknown> | null | undefined
   const noDepartmentLinked = Boolean(raw?.no_department_linked)
   return {

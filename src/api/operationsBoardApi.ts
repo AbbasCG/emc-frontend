@@ -86,7 +86,7 @@ export async function fetchPendingEvaluationTasks(params?: { department_id?: num
 }
 
 export async function fetchPendingHrApprovalTasks(): Promise<BoardTask[]> {
-  const res = await apiClient.get<unknown>('/admin/tasks/pending-hr-approval')
+  const res = await apiClient.get<unknown>('/admin/tasks/pending-hr-approval', { skipErrorToast: true })
   return unwrapData<BoardTask[]>(res.data) ?? []
 }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import { Briefcase, Calendar, Clock, FileText, Globe2, MessageSquareText, Sparkles, UserRound } from 'lucide-react'
 import toast from '@/lib/toast'
 import { updateConsultantApplicationStatus, type ConsultantApplication } from '@/api/consultantApi'
@@ -36,7 +37,7 @@ const TONE = { under_review: 'neutral', interview: 'neutral', accepted: 'success
 
 const ltr = (v?: string | null) => (v?.trim() ? <span dir="ltr">{v}</span> : null)
 
-export default function ConsultantApplicationDetailModal({ app, onClose, onUpdated }: { app: ConsultantApplication; onClose: () => void; onUpdated: (next: ConsultantApplication) => void }) {
+export default function ConsultantApplicationDetailModal({ app, canUpdateStatus = false, onClose, onUpdated }: { app: ConsultantApplication; /** The server's decision; false (or absent) shows the application read-only. */ canUpdateStatus?: boolean; onClose: () => void; onUpdated: (next: ConsultantApplication) => void }) {
   const [note, setNote] = useState(app.reviewer_note ?? '')
   const [busy, setBusy] = useState<ConsultantApplication['status'] | null>(null)
   const dirty = note !== (app.reviewer_note ?? '')
@@ -47,8 +48,8 @@ export default function ConsultantApplicationDetailModal({ app, onClose, onUpdat
       const updated = await updateConsultantApplicationStatus(app.id, status, note.trim() || undefined)
       onUpdated({ ...app, ...updated })
       toast.success(`الحالة الآن: ${CONSULTANT_STATUS_LABELS[status]}`)
-    } catch {
-      toast.error('تعذر تحديث الحالة')
+    } catch (e) {
+      toast.error(axios.isAxiosError(e) && e.response?.status === 403 ? 'لا تملك صلاحية تغيير حالة طلبات الاستشاريين.' : 'تعذر تحديث الحالة')
     } finally {
       setBusy(null)
     }
@@ -78,7 +79,7 @@ export default function ConsultantApplicationDetailModal({ app, onClose, onUpdat
       footer={
         <DetailFooter
           start={<>{dirty ? <span className="text-[11px] font-bold text-slate-500" role="status">ملاحظة المراجعة تُحفظ مع أي قرار تختاره</span> : null}</>}
-          end={ACTIONS.filter((s) => s !== app.status).map((s) => (
+          end={(canUpdateStatus ? ACTIONS : []).filter((s) => s !== app.status).map((s) => (
             <FooterButton key={s} tone={TONE[s]} disabled={busy !== null} loading={busy === s} onClick={() => void move(s)}>
               {CONSULTANT_STATUS_LABELS[s]}
             </FooterButton>
@@ -126,7 +127,7 @@ export default function ConsultantApplicationDetailModal({ app, onClose, onUpdat
               <textarea
                 id="consultant-review-note"
                 value={note}
-                disabled={busy !== null}
+                disabled={busy !== null || !canUpdateStatus}
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 placeholder="سبب القرار أو ما يلزم من المتقدم..."

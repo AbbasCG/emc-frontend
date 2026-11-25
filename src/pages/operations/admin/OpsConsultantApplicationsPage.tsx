@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Eye, FileText, RefreshCw, UserCheck, Search } from 'lucide-react'
+import axios from 'axios'
 import toast from 'react-hot-toast'
 import {
   fetchConsultantApplication,
@@ -7,10 +8,13 @@ import {
   updateConsultantApplicationStatus,
   type ConsultantApplication,
 } from '@/api/consultantApi'
+import LoadErrorState from '@/components/dashboard/LoadErrorState'
 import ConsultantApplicationDetailModal from '@/components/operations/ConsultantApplicationDetailModal'
 import { DetailStateModal } from '@/components/detailModal/DetailModalParts'
 import { useDetailParam } from '@/hooks/useDetailParam'
 import { useDetailRecord } from '@/hooks/useDetailRecord'
+import { useRetryableLoad } from '@/hooks/useRetryableLoad'
+import { describeLoadError } from '@/lib/describeLoadError'
 
 /** طلبات المستشارين: مراجعة واعتماد المتقدمين إلى إدارة المستشارين. */
 
@@ -32,61 +36,46 @@ const STATUS_STYLES: Record<ConsultantApplication['status'], string> = {
   archived: 'bg-slate-100 text-slate-500',
 }
 
+const FORBIDDEN_VIEW_AR = 'لا تملك صلاحية عرض طلبات الاستشاريين. اطلب منح «عرض طلبات الاستشاريين».'
+const FORBIDDEN_UPDATE_AR = 'لا تملك صلاحية تغيير حالة طلبات الاستشاريين.'
+
 export default function OpsConsultantApplicationsPage() {
-  const [rows, setRows] = useState<ConsultantApplication[]>([])
-  const [counts, setCounts] = useState<Record<string, number>>({})
+  const [filters, setFilters] = useState<{ status: string; search: string }>({ status: '', search: '' })
   const [status, setStatus] = useState<string>('')
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<number | null>(null)
+  const list = useRetryableLoad(
+    () => fetchConsultantApplications({ status: filters.status || undefined, search: filters.search || undefined }),
+    `consultants:${filters.status}:${filters.search}`,
+  )
+  // Rows changed from this page (a status move) are layered over the loaded list until it is loaded again.
+  const [patched, setPatched] = useState<{ src: unknown; byId: Record<number, Partial<ConsultantApplication>> }>({ src: null, byId: {} })
+  const patches = patched.src === list.data ? patched.byId : {}
+  const rows = (list.data?.rows ?? []).map((r) => (patches[r.id] ? { ...r, ...patches[r.id] } : r))
+  const counts = list.data?.counts ?? {}
+  const metaCanUpdate = list.data?.canUpdateStatus === true
+  const loadError = list.error ? describeLoadError(list.cause, { forbiddenMessage: FORBIDDEN_VIEW_AR }) : null
+  const canUpdate = (r: ConsultantApplication) => (r.can_update_status ?? metaCanUpdate) === true
+  const applyFilters = (next: { status: string; search: string }) => setFilters(next)
+
+  function patchRow(id: number, next: Partial<ConsultantApplication>) {
+    setPatched({ src: list.data, byId: { ...patches, [id]: { ...patches[id], ...next } } })
+  }
+
   const detail = useDetailParam('view')
   // In the loaded list when it is there; otherwise that one record is requested (and authorized) by itself.
   const fromList = detail.id !== null ? (rows.find((r) => r.id === detail.id) ?? null) : null
   const record = useDetailRecord(detail.id, fromList, fetchConsultantApplication)
   const opened = record.record
 
-  const load = useCallback(async (filters: { status?: string; search?: string }) => {
-    setLoading(true)
-    try {
-      const res = await fetchConsultantApplications(filters)
-      setRows(res.rows)
-      setCounts(res.counts)
-    } catch {
-      toast.error('فشل تحميل طلبات المستشارين')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Mount fetch — inline async IIFE per effect-patterns.md.
-  useEffect(() => {
-    let alive = true
-    void (async () => {
-      try {
-        const res = await fetchConsultantApplications({})
-        if (alive) {
-          setRows(res.rows)
-          setCounts(res.counts)
-        }
-      } catch {
-        if (alive) toast.error('فشل تحميل طلبات المستشارين')
-      } finally {
-        if (alive) setLoading(false)
-      }
-    })()
-    return () => {
-      alive = false
-    }
-  }, [])
-
   async function setRowStatus(row: ConsultantApplication, next: ConsultantApplication['status']) {
     setBusyId(row.id)
     try {
       const updated = await updateConsultantApplicationStatus(row.id, next)
-      setRows((r) => r.map((x) => (x.id === row.id ? { ...x, ...updated } : x)))
+      patchRow(row.id, updated)
       toast.success(`الحالة الآن: ${STATUS_LABELS[next]}`)
-    } catch {
-      toast.error('تعذر تحديث الحالة')
+    } catch (e) {
+      toast.error(axios.isAxiosError(e) && e.response?.status === 403 ? FORBIDDEN_UPDATE_AR : 'تعذر تحديث الحالة')
     } finally {
       setBusyId(null)
     }
@@ -101,7 +90,7 @@ export default function OpsConsultantApplicationsPage() {
           <p className="mt-1 text-sm text-deepBlue/50">مراجعة المتقدمين واعتماد انضمامهم إلى إدارة المستشارين</p>
         </div>
         <button
-          onClick={() => void load({ status: status || undefined, search: search || undefined })}
+          onClick={() => list.retry()}
           className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-deepBlue hover:bg-slate-50"
         >
           <RefreshCw size={15} /> تحديث
@@ -115,7 +104,7 @@ export default function OpsConsultantApplicationsPage() {
             key={s || 'all'}
             onClick={() => {
               setStatus(s)
-              void load({ status: s || undefined, search: search || undefined })
+              applyFilters({ status: s, search })
             }}
             className={`rounded-xl px-4 py-2 text-xs font-black transition ${
               status === s ? 'bg-deepBlue text-white' : 'bg-white text-deepBlue border border-slate-200 hover:bg-slate-50'
@@ -131,7 +120,7 @@ export default function OpsConsultantApplicationsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') void load({ status: status || undefined, search: search || undefined })
+              if (e.key === 'Enter') applyFilters({ status, search })
             }}
             placeholder="بحث بالاسم أو التخصص…"
             className="w-64 rounded-xl border border-slate-200 bg-white py-2 pe-3 ps-9 text-sm font-semibold text-deepBlue outline-none focus:border-customBlue"
@@ -139,12 +128,14 @@ export default function OpsConsultantApplicationsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {list.loading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadErrorState error={loadError} onRetry={list.retry} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
           <UserCheck size={32} className="mx-auto text-slate-300" />
@@ -199,7 +190,7 @@ export default function OpsConsultantApplicationsPage() {
                       <button type="button" onClick={() => detail.open(row.id)} className="inline-flex items-center gap-1 rounded-lg bg-customBlue px-2.5 py-1 text-[11px] font-black text-white transition hover:brightness-110">
                         <Eye size={12} aria-hidden /> عرض التفاصيل
                       </button>
-                      {(['under_review', 'interview', 'accepted', 'rejected'] as const)
+                      {(canUpdate(row) ? (['under_review', 'interview', 'accepted', 'rejected'] as const) : [])
                         .filter((s) => s !== row.status)
                         .map((s) => (
                           <button
@@ -223,9 +214,10 @@ export default function OpsConsultantApplicationsPage() {
       {detail.id === null ? null : opened ?
         <ConsultantApplicationDetailModal
           app={opened}
+          canUpdateStatus={canUpdate(opened)}
           onClose={detail.close}
           onUpdated={(next) => {
-            setRows((r) => r.map((x) => (x.id === next.id ? { ...x, ...next } : x)))
+            patchRow(next.id, next)
             record.replace({ ...opened, ...next })
           }}
         />

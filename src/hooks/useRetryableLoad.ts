@@ -6,6 +6,8 @@ export interface RetryableLoad<T> {
   loading: boolean
   /** True when the latest request failed: the caller must show it and offer `retry`. */
   error: boolean
+  /** The rejection of the latest failed request (for `describeLoadError`), otherwise null. */
+  cause: unknown
   retry: () => void
 }
 
@@ -22,7 +24,7 @@ export interface RetryableLoad<T> {
  */
 export function useRetryableLoad<T>(load: () => Promise<T>, key: string, enabled = true): RetryableLoad<T> {
   const [attempt, setAttempt] = useState(0)
-  const [settled, setSettled] = useState<{ token: string; data: T | null; failed: boolean } | null>(null)
+  const [settled, setSettled] = useState<{ token: string; data: T | null; failed: boolean; cause?: unknown } | null>(null)
   const loadRef = useRef(load)
 
   useEffect(() => {
@@ -38,8 +40,8 @@ export function useRetryableLoad<T>(load: () => Promise<T>, key: string, enabled
       try {
         const data = await loadRef.current()
         if (alive) setSettled({ token, data, failed: false })
-      } catch {
-        if (alive) setSettled({ token, data: null, failed: true })
+      } catch (cause) {
+        if (alive) setSettled({ token, data: null, failed: true, cause })
       }
     })()
 
@@ -55,6 +57,7 @@ export function useRetryableLoad<T>(load: () => Promise<T>, key: string, enabled
     data: current && !current.failed ? current.data : null,
     loading: enabled && current == null,
     error: current?.failed ?? false,
+    cause: current?.failed ? current.cause : null,
     retry,
   }
 }
