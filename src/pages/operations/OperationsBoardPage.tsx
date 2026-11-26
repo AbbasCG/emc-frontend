@@ -6,11 +6,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { fetchDepartmentOptions } from '@/api/jobTitlesApi'
 import { acceptMyTask, rejectMyTask } from '@/api/tasksApi'
 import { taskApiMessage } from '@/api/taskErrors'
-import type { WorkBoardScope } from '@/api/operationsWorkBoardApi'
+import { NO_TASK_ACTIONS, type WorkBoardCard, type WorkBoardScope } from '@/api/operationsWorkBoardApi'
 import StatusBoard from '@/components/ui/StatusBoard'
 import OpsLoadError from '@/components/operations/OpsLoadError'
 import TaskCreateModal from '@/components/operations/TaskCreateModal'
 import TaskDetailPanel from '@/components/operations/TaskDetailPanel'
+import TaskReassignModal from '@/components/operations/TaskReassignModal'
 import TaskRejectModal from '@/components/operations/TaskRejectModal'
 import BoardTaskManagement from '@/components/operations/BoardTaskManagement'
 import WorkItemCard from '@/components/operations/myWork/WorkItemCard'
@@ -24,7 +25,7 @@ import { useNow } from '@/hooks/useNow'
 import { useWorkBoard } from '@/hooks/useWorkBoard'
 import { MY_WORK_COLUMNS, MY_WORK_COLUMN_LABEL, type MyWorkColumnKey } from '@/lib/myWorkColumns'
 import { DEFAULT_WORK_FILTERS, filterWorkItems, workBoardCardToItem, type WorkFilters, type WorkItem } from '@/lib/myWork'
-import { allCards, anyHasMore, matchesQuickView, type QuickView } from '@/lib/workBoard'
+import { allCards, anyHasMore, cardToBoardTask, matchesQuickView, type QuickView } from '@/lib/workBoard'
 import { formatDue } from '@/lib/dueDate'
 import { cn } from '@/lib/utils'
 import { TASK_PRIORITY_AR } from '@/data/operationsLabels'
@@ -33,10 +34,13 @@ import { useBoardTaskDrawer } from './hooks/useBoardTaskDrawer'
 const OPERATIONS_BOARD_PATH = '/dashboard/operations/board'
 
 /**
- * The roles that get the management controls (task creation, the quick views, the actions inside the task drawer). These are
- * exactly the roles the server lets open ANY task (`can_open` on another person's task: OperationsWorkBoard::TASK_DETAIL_ROLES),
- * so none of those controls is a dead end. executive_admin, hr_manager and department_manager used to see them on the old
- * board but cannot open task details server-side, so they no longer do. The server still decides each call.
+ * The roles that get the old management controls: the quick views and the lock / evaluate / claim actions inside the task drawer.
+ * These are exactly the roles the server lets open ANY task (`can_open` on another person's task:
+ * OperationsWorkBoard::TASK_DETAIL_ROLES), so none of those controls is a dead end. The server still decides each call.
+ *
+ * Creating, editing and (re)assigning a task are NOT decided here any more: they follow three grantable permissions
+ * (tasks.create / tasks.update / tasks.assign), and the server tells the board what the viewer may do (`meta.task_actions`,
+ * and `capabilities.can_edit` / `can_reassign` on each task card). The page shows exactly that, whatever the role.
  */
 const MANAGER_ROLES = new Set(['admin', 'super_admin', 'tech_admin', 'operations_manager'])
 
@@ -73,6 +77,12 @@ export default function OperationsBoardPage() {
   const [departments, setDepartments] = useState<Array<{ id: number; name: string }>>([])
   const [view, setView] = useState<ViewMode>('kanban')
   const [showCreate, setShowCreate] = useState(false)
+  // The ONE form edits too: the id of the task being edited (null = none), and the card whose reassign dialog is open.
+  const [editingId, setEditingId] = useState<number | null>(null)
+  // Whether the open form may assign is decided ONCE, when it opens: a refresh that fails (or changes the answer) while somebody
+  // is typing must not turn the assignee controls off under them and send the task unassigned.
+  const [formCanAssign, setFormCanAssign] = useState(false)
+  const [reassigning, setReassigning] = useState<WorkBoardCard | null>(null)
   const [actingKey, setActingKey] = useState<string | null>(null)
   const [decliningTask, setDecliningTask] = useState<{ id: number; title: string } | null>(null)
   const [decliningTicketId, setDecliningTicketId] = useState<number | null>(null)
@@ -94,6 +104,8 @@ export default function OperationsBoardPage() {
 
   const cards = useMemo(() => allCards(columns), [columns])
   const loadedAll = !anyHasMore(columns)
+  // One object per card / drawer state, so the reassign dialog does not re-read the department's members on every board refresh.
+  const reassignTask = useMemo(() => (reassigning ? cardToBoardTask(reassigning, drawer.selected) : null), [reassigning, drawer.selected])
 
   // Priority, the due filter and the management quick views read fields that are already on the cards, so they filter the
   // cards that are loaded; kind, search, scope and department go to the server and change what is loaded.
@@ -113,6 +125,17 @@ export default function OperationsBoardPage() {
   const pendingAcceptance = cards.filter((c) => c.capabilities.can_accept).length
 
   const counts = meta?.counts ?? { all: 0, tasks: 0, tickets: 0 }
+  // What the viewer may do to tasks is the server's LAST GOOD answer: nothing while it is unknown (loading, the first read failed, or
+  // an answer without it). A later quiet refresh that fails keeps the cards AND this answer on screen (`error` only says the latest read failed).
+  const taskActions = meta ? meta.task_actions : NO_TASK_ACTIONS
+  const openCreate = () => {
+    setFormCanAssign(taskActions.can_assign)
+    setShowCreate(true)
+  }
+  const openEdit = (id: number) => {
+    setFormCanAssign(taskActions.can_assign)
+    setEditingId(id)
+  }
   const firstLoad = loading && meta === null
   const departmentSelectShown = canManage || departments.length > 0
 
@@ -146,6 +169,12 @@ export default function OperationsBoardPage() {
   }
 
   const openTask = (item: WorkItem) => void drawer.openTask(item.id, item.isMine === true)
+  const cardOf = (item: WorkItem) => cards.find((c) => c.key === item.key) ?? null
+  // After an edit / reassign: the board columns AND the open drawer (when there is one), so nothing keeps showing the old values.
+  const afterTaskWrite = () => {
+    void refresh()
+    void drawer.reloadSelected()
+  }
   const openedCard = drawer.selected ? cards.find((c) => c.kind === 'task' && c.id === drawer.selected!.id) : undefined
 
   const viewButtons: Array<{ key: ViewMode; label: string; icon: typeof List }> = [
@@ -215,8 +244,8 @@ export default function OperationsBoardPage() {
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
           </button>
 
-          {canManage ?
-            <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-xl bg-deepBlue px-4 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-deepBlue/90">
+          {taskActions.can_create ?
+            <button type="button" onClick={openCreate} className="flex items-center gap-2 rounded-xl bg-deepBlue px-4 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-deepBlue/90">
               <Plus size={16} aria-hidden="true" />
               إسناد مهمة جديدة
             </button>
@@ -314,7 +343,17 @@ export default function OperationsBoardPage() {
               emptyText: firstLoad ? 'جارٍ التحميل…' : col.empty,
               children: [
                 ...items.map((item) => (
-                  <WorkItemCard key={item.key} item={item} busy={actingKey === item.key} onAccept={(i) => void accept(i)} onReject={decline} onOpenTask={openTask} backPath={OPERATIONS_BOARD_PATH} />
+                  <WorkItemCard
+                    key={item.key}
+                    item={item}
+                    busy={actingKey === item.key}
+                    onAccept={(i) => void accept(i)}
+                    onReject={decline}
+                    onOpenTask={openTask}
+                    onEdit={(i) => openEdit(i.id)}
+                    onReassign={(i) => setReassigning(cardOf(i))}
+                    backPath={OPERATIONS_BOARD_PATH}
+                  />
                 )),
                 loadMoreButton(col.key),
               ],
@@ -387,18 +426,33 @@ export default function OperationsBoardPage() {
         memberView={drawer.memberView}
         onToggleChecklist={drawer.onToggleChecklist}
         onComment={drawer.onComment}
-        extraActions={canManage && openedCard ? <BoardTaskManagement
+        extraActions={openedCard && (canManage || openedCard.capabilities.can_edit || openedCard.capabilities.can_reassign) ? <BoardTaskManagement
             card={openedCard}
             detail={drawer.selected}
-            onChanged={() => {
-              // The board columns AND the open drawer: claim / evaluate / reassign change both.
-              void refresh()
-              void drawer.reloadSelected()
-            }}
+            canManage={canManage}
+            onChanged={afterTaskWrite}
+            onEdit={(c) => openEdit(c.id)}
+            onReassign={(c) => setReassigning(c)}
           /> : null}
       />
 
-      <TaskCreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={() => void reload()} />
+      <TaskCreateModal
+        open={showCreate || editingId !== null}
+        editTaskId={editingId}
+        canAssign={formCanAssign}
+        onClose={() => {
+          setShowCreate(false)
+          setEditingId(null)
+        }}
+        onCreated={() => (editingId !== null ? afterTaskWrite() : void reload())}
+      />
+
+      <TaskReassignModal
+        task={reassignTask}
+        open={reassigning !== null}
+        onClose={() => setReassigning(null)}
+        onReassigned={afterTaskWrite}
+      />
 
       <TaskRejectModal task={decliningTask} open={decliningTask !== null} onClose={() => setDecliningTask(null)} onRejected={() => void refresh()} reject={rejectMyTask} onFailed={() => void refresh()} />
 

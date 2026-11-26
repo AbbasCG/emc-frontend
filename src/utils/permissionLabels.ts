@@ -15,6 +15,7 @@ const GROUP_LABELS_AR: Record<string, string> = {
   reports: 'التقارير',
   settings: 'الإعدادات',
   tickets: 'التذاكر',
+  tasks: 'المهام والعمليات',
 }
 
 /**

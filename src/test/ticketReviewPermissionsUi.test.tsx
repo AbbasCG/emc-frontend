@@ -55,6 +55,7 @@ describe('labels of the ticket review permissions', () => {
   it('the group «التذاكر» and both permissions have Arabic labels even when the catalog came without them', () => {
     expect(permissionGroupLabelAr('tickets', 'tickets')).toBe('التذاكر')
     expect(permissionGroupLabelAr('tickets')).toBe('التذاكر')
+    expect(permissionGroupLabelAr('tasks')).toBe('المهام والعمليات')
     expect(permissionActionLabelAr(REVIEW)).toBe('مراجعة واعتماد إنجاز التذاكر')
     expect(permissionActionLabelAr(PARTICIPATED)).toBe('اعتماد التذاكر التي أشارك فيها')
     expect(permissionDescriptionAr(PARTICIPATED)).toContain('أرسل إنجازها')
