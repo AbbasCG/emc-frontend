@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import type { BoardTask } from '@/api/operationsBoardApi'
 
 vi.mock('@/api/operationsBoardApi', async (orig) => ({ ...(await orig<typeof import('@/api/operationsBoardApi')>()), reassignTask: vi.fn().mockResolvedValue(undefined), evaluateTask: vi.fn().mockResolvedValue(undefined) }))
-vi.mock('@/api/operationsReportsApi', () => ({ fetchDepartmentMembers: vi.fn().mockResolvedValue([{ id: 9, user_id: 9, name: 'سلمى', role: 'member' }]) }))
+vi.mock('@/api/taskScopeApi', () => ({ fetchTaskScopeMembers: vi.fn().mockResolvedValue([{ id: 9, user_id: 9, name: 'سلمى', role: 'member' }]) }))
 vi.mock('@/services/ticketService', () => ({ ticketService: { completeTask: vi.fn() } }))
 vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/lib/toast', () => ({ default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() } }))
@@ -55,5 +55,37 @@ describe('the task dialogs reached from the boards use the shared modal', () => 
     render(<CompleteTaskModal ticketId={4} onClose={vi.fn()} onSuccess={vi.fn()} />)
     expect(await screen.findByRole('dialog', { name: 'تقديم للمراجعة' })).toBeInTheDocument()
     expectPinned('complete-task-modal', /تأكيد التقديم للمراجعة/)
+  })
+})
+
+describe('the reassign dialog says what a reassignment does, and never offers stale members', () => {
+  const held = { ...task, rejection_reason: null, acceptance_status: 'accepted' } as unknown as BoardTask
+
+  it('a task somebody already holds shows a short confirmation text; a declined or an unassigned one does not', async () => {
+    const view = render(<TaskReassignModal task={held} open onClose={vi.fn()} onReassigned={vi.fn()} />)
+    expect(await screen.findByTestId('reassign-confirm-note')).toHaveTextContent('مسندة حاليًا إلى خالد')
+    expect(screen.getByTestId('reassign-confirm-note')).toHaveTextContent('بانتظار الموافقة')
+    view.unmount()
+
+    const declined = render(<TaskReassignModal task={{ ...held, acceptance_status: 'rejected', rejection_reason: 'تعارض' } as BoardTask} open onClose={vi.fn()} onReassigned={vi.fn()} />)
+    await screen.findByRole('dialog')
+    expect(screen.queryByTestId('reassign-confirm-note')).toBeNull()
+    declined.unmount()
+
+    render(<TaskReassignModal task={{ ...held, assigned_to: null } as BoardTask} open onClose={vi.fn()} onReassigned={vi.fn()} />)
+    await screen.findByRole('dialog')
+    expect(screen.queryByTestId('reassign-confirm-note')).toBeNull()
+  })
+
+  it('going from a task with a department to a task without one empties the member list', async () => {
+    const { rerender } = render(<TaskReassignModal task={held} open onClose={vi.fn()} onReassigned={vi.fn()} />)
+    const select = (await screen.findByLabelText(/توجيه المهمة إلى عضو جديد/)) as HTMLSelectElement
+    await screen.findByRole('option', { name: /سلمى/ })
+    expect(select.options.length).toBeGreaterThan(1)
+
+    rerender(<TaskReassignModal task={{ ...held, id: 99, department: null } as BoardTask} open onClose={vi.fn()} onReassigned={vi.fn()} />)
+    const next = (await screen.findByLabelText(/توجيه المهمة إلى عضو جديد/)) as HTMLSelectElement
+    expect(within(next).queryByRole('option', { name: /سلمى/ })).toBeNull()
+    expect(next.options).toHaveLength(1)
   })
 })

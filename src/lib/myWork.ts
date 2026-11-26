@@ -57,6 +57,12 @@ export interface WorkItem {
   updatedAt: string | null
   /** The global board only: a ticket the viewer may not open, shown as a read-only placeholder (no title, no reference, no dates). */
   masked?: boolean
+  /** The global board only, TASK cards: the server says the viewer may edit it (tasks.update, in scope, not locked). */
+  canEdit?: boolean
+  /** The global board only, TASK cards: the server says the viewer may reassign it (tasks.assign, in scope, not locked). */
+  canReassign?: boolean
+  /** The global board only, TASK cards: nobody is assigned (the reassign action then reads «إسناد»). */
+  unassigned?: boolean
   /** The global board only: a locked task (nobody edits it until it is unlocked). */
   locked?: boolean
   /** The global board only: it is the viewer's own assignment. */
@@ -183,6 +189,9 @@ export function workBoardCardToItem(c: WorkBoardCard): WorkItem {
     canReject: c.capabilities.can_reject,
     canComplete: c.capabilities.can_complete,
     canOpen: c.capabilities.can_open,
+    canEdit: c.kind === 'task' && c.capabilities.can_edit,
+    canReassign: c.kind === 'task' && c.capabilities.can_reassign,
+    unassigned: c.kind === 'task' && c.assignee === null,
     awaitingApproval: c.stage_badge !== null,
     stageBadge: c.stage_badge,
     nextStep: c.next_step,

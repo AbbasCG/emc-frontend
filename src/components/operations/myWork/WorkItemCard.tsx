@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Building2, CalendarClock, CheckCircle2, Lock, Sparkles, Ticket as TicketIcon, User, XCircle, ClipboardList } from 'lucide-react'
+import { Building2, CalendarClock, CheckCircle2, Lock, Pencil, Sparkles, Ticket as TicketIcon, User, UserPlus, XCircle, ClipboardList } from 'lucide-react'
 import OpsPriorityBadge from '@/components/operations/OpsPriorityBadge'
 import { formatDue } from '@/lib/dueDate'
 import { creditedDurationText, formatEstimate, hasEstimate } from '@/lib/taskEstimate'
@@ -20,6 +20,8 @@ export default function WorkItemCard({
   onAccept,
   onReject,
   onOpenTask,
+  onEdit,
+  onReassign,
   backPath = MY_WORK_PATH,
 }: {
   item: WorkItem
@@ -27,6 +29,9 @@ export default function WorkItemCard({
   onAccept?: (item: WorkItem) => void
   onReject?: (item: WorkItem) => void
   onOpenTask?: (item: WorkItem) => void
+  /** The global board: «تعديل المهمة» / «إعادة الإسناد», shown only when the server says the viewer may (`item.canEdit` / `item.canReassign`). */
+  onEdit?: (item: WorkItem) => void
+  onReassign?: (item: WorkItem) => void
   /** The page the ticket page's «back» returns to. */
   backPath?: string
 }) {
@@ -39,6 +44,8 @@ export default function WorkItemCard({
       <span className="mt-0.5 block text-[13px] font-black leading-snug text-deepBlue">{item.title}</span>
     </>
   )
+  const showEdit = !isTicket && !item.masked && item.canEdit === true && onEdit !== undefined
+  const showReassign = !isTicket && !item.masked && item.canReassign === true && onReassign !== undefined
   const openCls = 'block w-full text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/40 rounded-lg'
 
   return (
@@ -160,6 +167,35 @@ export default function WorkItemCard({
             >
               <XCircle size={13} aria-hidden="true" />
               اعتذار
+            </button>
+          : null}
+        </div>
+      : null}
+
+      {showEdit || showReassign ?
+        <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5" data-testid="task-write-actions">
+          {showEdit ?
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onEdit?.(item)}
+              className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-1.5 text-xs font-black text-deepBlue transition hover:border-customBlue hover:text-customBlue disabled:opacity-60"
+              aria-label={`تعديل المهمة: ${item.title}`}
+            >
+              <Pencil size={13} aria-hidden="true" />
+              تعديل المهمة
+            </button>
+          : null}
+          {showReassign ?
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onReassign?.(item)}
+              className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-1.5 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+              aria-label={`${item.unassigned ? 'إسناد لعضو' : 'إعادة إسناد'}: ${item.title}`}
+            >
+              <UserPlus size={13} aria-hidden="true" />
+              {item.unassigned ? 'إسناد لعضو' : 'إعادة إسناد'}
             </button>
           : null}
         </div>

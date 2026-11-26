@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AxiosError } from 'axios'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
-import type { WorkBoardCard } from '@/api/operationsWorkBoardApi'
+import type { WorkBoardCard, WorkBoardTaskActions } from '@/api/operationsWorkBoardApi'
 import type { MyWorkColumnKey } from '@/lib/myWorkColumns'
 
 const mocks = vi.hoisted(() => ({
@@ -17,9 +17,12 @@ const mocks = vi.hoisted(() => ({
   fetchTask: vi.fn(),
   departments: vi.fn(),
   members: vi.fn(),
+  scopeDepartments: vi.fn(),
+  editable: vi.fn(),
+  patch: vi.fn(),
   role: { current: 'operations_manager' as string },
 }))
-vi.mock('@/api/axios', () => ({ default: { get: mocks.get, post: mocks.post, patch: vi.fn(), put: vi.fn() } }))
+vi.mock('@/api/axios', () => ({ default: { get: mocks.get, post: mocks.post, patch: mocks.patch, put: vi.fn() } }))
 vi.mock('@/services/ticketService', () => ({ ticketService: { acceptTask: mocks.acceptTicket, rejectTask: mocks.rejectTicket } }))
 vi.mock('@/api/tasksApi', () => ({
   acceptMyTask: mocks.acceptTask,
@@ -39,19 +42,27 @@ vi.mock('@/components/operations/TaskEvaluationModal', () => ({
   default: ({ open, onEvaluated }: { open: boolean; onEvaluated: () => void }) => (open ? <button type="button" onClick={onEvaluated}>إنهاء التقييم</button> : null),
 }))
 vi.mock('@/api/jobTitlesApi', () => ({ fetchDepartmentOptions: mocks.departments }))
-vi.mock('@/api/operationsReportsApi', () => ({ fetchDepartmentMembers: mocks.members }))
+// The task-scope READS are the form's data source; the write (PATCH) stays the real function over the mocked HTTP client.
+vi.mock('@/api/taskScopeApi', async (orig) => ({
+  ...(await orig<typeof import('@/api/taskScopeApi')>()),
+  fetchTaskScopeDepartments: mocks.scopeDepartments,
+  fetchTaskScopeMembers: mocks.members,
+  fetchEditableTask: mocks.editable,
+}))
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 7, name: 'سلمى', role: mocks.role.current } }) }))
 vi.mock('react-hot-toast', () => ({ default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }))
 vi.mock('@/lib/toast', () => ({ default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() } }))
 
 import toast from 'react-hot-toast'
 import OperationsBoardPage from '@/pages/operations/OperationsBoardPage'
+import WorkItemCard from '@/components/operations/myWork/WorkItemCard'
 import { MY_WORK_COLUMNS, columnForTask, columnForTicket } from '@/lib/myWorkColumns'
 import { appendColumnPage, columnsFromRead, dedupeBoard, emptyColumns, matchesQuickView, refreshSize } from '@/lib/workBoard'
 import { workBoardCardToItem } from '@/lib/myWork'
-import { normalizeWorkBoardCard } from '@/api/operationsWorkBoardApi'
+import { normalizeTaskActions, normalizeWorkBoardCard } from '@/api/operationsWorkBoardApi'
 
-const NO_CAPS = { can_open: false, can_accept: false, can_reject: false, can_complete: false }
+const NO_CAPS = { can_open: false, can_accept: false, can_reject: false, can_complete: false, can_edit: false, can_reassign: false }
+const ALL_ACTIONS: WorkBoardTaskActions = { can_create: true, can_assign: true, can_update: true, manageable_department_ids: null }
 
 function card(over: Partial<WorkBoardCard> = {}): WorkBoardCard {
   return {
@@ -80,7 +91,7 @@ function payload(byCol: Cols, extra: Partial<Record<MyWorkColumnKey, ColExtra>> 
     data: {
       success: true,
       data: { columns },
-      meta: { scope: 'all', kind: 'all', per_column: 30, column: null, page: 1, counts: counts ?? { all, tasks: 0, tickets: 0 }, generated_at: '2026-11-23T10:00:00Z', ...metaOver },
+      meta: { scope: 'all', kind: 'all', per_column: 30, column: null, page: 1, counts: counts ?? { all, tasks: 0, tickets: 0 }, task_actions: { can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] }, generated_at: '2026-11-23T10:00:00Z', ...metaOver },
     },
   }
 }
@@ -127,6 +138,8 @@ beforeEach(() => {
   mocks.get.mockResolvedValue(payload({}))
   mocks.post.mockResolvedValue({ data: { success: true } })
   mocks.members.mockResolvedValue([{ id: 21, name: 'عضو' }])
+  mocks.scopeDepartments.mockResolvedValue({ items: [{ id: 3, name: 'Media', name_ar: 'الإعلام' }], manageableDepartmentIds: null })
+  mocks.patch.mockResolvedValue({ data: { success: true } })
   mocks.departments.mockResolvedValue([{ id: 3, name: 'Media', name_ar: 'الإعلام' }, { id: 4, name: 'Tech', name_ar: 'التقنية' }])
 })
 
@@ -295,7 +308,7 @@ describe('what a card lets the viewer do', () => {
     mocks.get.mockResolvedValue(
       payload({
         pending: [
-          ticketCard(1, { column: 'pending', status: 'ASSIGNED', is_mine: true, capabilities: { can_open: true, can_accept: true, can_reject: true, can_complete: false } }),
+          ticketCard(1, { column: 'pending', status: 'ASSIGNED', is_mine: true, capabilities: { ...NO_CAPS, can_open: true, can_accept: true, can_reject: true } }),
           ticketCard(2, { column: 'pending', status: 'ASSIGNED', capabilities: { ...NO_CAPS, can_open: true } }),
         ],
       }),
@@ -309,7 +322,7 @@ describe('what a card lets the viewer do', () => {
 
   it('accepting a ticket calls the existing endpoint and re-reads the board', async () => {
     mocks.acceptTicket.mockResolvedValue({})
-    mocks.get.mockResolvedValue(payload({ pending: [ticketCard(1, { column: 'pending', status: 'ASSIGNED', capabilities: { can_open: true, can_accept: true, can_reject: true, can_complete: false } })] }))
+    mocks.get.mockResolvedValue(payload({ pending: [ticketCard(1, { column: 'pending', status: 'ASSIGNED', capabilities: { ...NO_CAPS, can_open: true, can_accept: true, can_reject: true } })] }))
     mount()
     await userEvent.click(await screen.findByRole('button', { name: /قبول التذكرة/ }))
 
@@ -689,7 +702,9 @@ describe('the data layer', () => {
 })
 
 describe('management controls only for the roles that can really open a task', () => {
-  const managerCard = () => payload({ review: [card({ key: 'task:2', id: 2, title: 'تنتظر التقييم', column: 'review', status: 'needs_evaluation', capabilities: { ...NO_CAPS, can_open: true } })] })
+  // What the server answers an old manager: every task action, everywhere (can_edit / can_reassign on the cards too).
+  const managerCard = (actions = ALL_ACTIONS) =>
+    payload({ review: [card({ key: 'task:2', id: 2, title: 'تنتظر التقييم', column: 'review', status: 'needs_evaluation', capabilities: { ...NO_CAPS, can_open: true, can_edit: actions.can_update, can_reassign: actions.can_assign } })] }, {}, undefined, { task_actions: actions })
 
   it.each(['admin', 'super_admin', 'tech_admin', 'operations_manager'])('%s gets the quick views and «إسناد مهمة جديدة»', async (role) => {
     mocks.role.current = role
@@ -701,9 +716,9 @@ describe('management controls only for the roles that can really open a task', (
     expect(screen.getByRole('button', { name: /إسناد مهمة جديدة/ })).toBeInTheDocument()
   })
 
-  it.each(['executive_admin', 'hr_manager', 'department_manager', 'volunteer', 'instructor'])('%s gets no management control (the server would refuse to open the task)', async (role) => {
+  it.each(['executive_admin', 'hr_manager', 'department_manager', 'volunteer', 'instructor'])('%s gets no management control without the grants (the server would refuse to open the task)', async (role) => {
     mocks.role.current = role
-    mocks.get.mockResolvedValue(managerCard())
+    mocks.get.mockResolvedValue(managerCard({ can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] }))
     mount()
     await screen.findByText('تنتظر التقييم')
 
@@ -719,10 +734,10 @@ describe('the reassign dialog still gets the decline reason', () => {
       id: 2, title: 'مهمة مرفوضة', department_id: '3', status: 'planning', priority: 'medium', acceptance_status: 'rejected', rejection_reason: 'ظروف شخصية طارئة', comments: [], checklist: [],
     })
     mocks.get.mockResolvedValue(
-      payload({ closed: [card({ key: 'task:2', id: 2, title: 'مهمة مرفوضة', column: 'closed', acceptance: 'rejected', capabilities: { ...NO_CAPS, can_open: true } })] }),
+      payload({ closed: [card({ key: 'task:2', id: 2, title: 'مهمة مرفوضة', column: 'closed', acceptance: 'rejected', capabilities: { ...NO_CAPS, can_open: true, can_reassign: true } })] }),
     )
     mount()
-    await userEvent.click(await screen.findByRole('button', { name: /مهمة مرفوضة/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'مهمة مرفوضة' }))
     const mgmt = await screen.findByTestId('board-task-management')
 
     await userEvent.click(within(mgmt).getByRole('button', { name: /إعادة توجيه لعضو آخر/ }))
@@ -863,5 +878,333 @@ describe('the open drawer follows what management actions change', () => {
 
     expect(screen.getByText('المسؤول: الأحدث')).toBeInTheDocument()
     expect(screen.queryByText('المسؤول: قديم')).toBeNull()
+  })
+})
+
+describe('creating, editing and assigning a task follow what the server says (meta.task_actions + card capabilities)', () => {
+  const NOTHING: WorkBoardTaskActions = { can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] }
+  const taskCard = (over: Partial<WorkBoardCard> = {}) => card({ key: 'task:2', id: 2, title: 'تقرير الأسبوع', capabilities: { ...NO_CAPS }, ...over })
+  const board = (cards: WorkBoardCard[], actions: WorkBoardTaskActions | undefined) =>
+    payload({ planning: cards }, {}, undefined, actions === undefined ? { task_actions: undefined } : { task_actions: actions })
+  const SCOPED_DEPTS = { items: [{ id: 3, name: 'Media', name_ar: 'الإعلام' }, { id: 5, name: 'Tech', name_ar: 'التقنية' }], manageableDepartmentIds: [3, 5] }
+  const editableOf = (over: Record<string, unknown> = {}) => ({
+    id: 2, title: 'تقرير الأسبوع', description: 'تفاصيل', notes: null, department_id: 3, section_id: null, assigned_to: { id: 9, name: 'منى' }, priority: 'medium', task_scope: 'medium',
+    points: 100, estimated_hours: 2, status: 'planning', start_date: null, due_date: null, due_datetime: null, is_locked: false, capabilities: { can_edit: true, can_reassign: true }, ...over,
+  })
+  const createButton = () => screen.queryByRole('button', { name: /إسناد مهمة جديدة/ })
+  const writeActions = (key: string) => screen.queryAllByTestId('work-item').find((e) => e.getAttribute('data-key') === key)
+
+  it('an hr_manager with no grants sees no «إسناد مهمة جديدة» and no edit / reassign action on any card', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.get.mockResolvedValue(board([taskCard()], NOTHING))
+    mount()
+    await screen.findByText('تقرير الأسبوع')
+
+    expect(createButton()).toBeNull()
+    expect(screen.queryByTestId('task-write-actions')).toBeNull()
+    expect(screen.queryByRole('button', { name: /تعديل المهمة/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /إسناد/ })).toBeNull()
+  })
+
+  it('a board answer WITHOUT task_actions means no permission: not even an operations_manager is shown the button', async () => {
+    mocks.role.current = 'operations_manager'
+    mocks.get.mockResolvedValue(board([taskCard()], undefined))
+    mount()
+    await screen.findByText('تقرير الأسبوع')
+
+    expect(createButton()).toBeNull()
+  })
+
+  it('the button is absent while the board is loading and when the board could not be read', async () => {
+    mocks.role.current = 'admin'
+    mocks.get.mockImplementationOnce(() => new Promise(() => {}))
+    const first = mount()
+    expect(createButton()).toBeNull()
+    first.unmount()
+
+    mocks.get.mockRejectedValue(apiError(500))
+    mount()
+    await screen.findByText('تعذّر تحميل لوحة التشغيل')
+    expect(createButton()).toBeNull()
+  })
+
+  it('create + assign, no update: the button is there, the form lists only the scoped departments and members, and the task is posted to /admin/tasks with its assignee; cards offer no edit', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue(SCOPED_DEPTS)
+    mocks.members.mockResolvedValue([{ id: 21, user_id: 21, name: 'عضو الفريق', role: 'عضو' }])
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_reassign: true } })], { can_create: true, can_assign: true, can_update: false, manageable_department_ids: [3, 5] }))
+    mount()
+    await screen.findByText('تقرير الأسبوع')
+
+    // No edit on the card (tasks.update is not held); the reassign the server allowed is there.
+    expect(within(writeActions('task:2')!).queryByRole('button', { name: /تعديل المهمة/ })).toBeNull()
+    expect(within(writeActions('task:2')!).getByRole('button', { name: /^إعادة إسناد: / })).toBeInTheDocument()
+
+    await userEvent.click(createButton()!)
+    const dialog = await screen.findByTestId('task-create-modal')
+    const dept = within(dialog).getByLabelText('الإدارة التابعة') as HTMLSelectElement
+    await waitFor(() => expect(within(dept).getAllByRole('option').map((o) => o.textContent)).toEqual(['-- اختر الإدارة --', 'الإعلام', 'التقنية']))
+    expect(mocks.scopeDepartments).toHaveBeenCalled()
+
+    await userEvent.type(within(dialog).getByLabelText(/عنوان المهمة/), 'مهمة من الموارد')
+    await userEvent.selectOptions(dept, '5')
+    await waitFor(() => expect(mocks.members).toHaveBeenCalledWith(5))
+    await within(dialog).findByRole('option', { name: /عضو الفريق/ })
+    await userEvent.selectOptions(within(dialog).getByLabelText('العضو المكلف'), '21')
+    await userEvent.click(within(dialog).getByRole('button', { name: /إسناد المهمة الآن/ }))
+
+    await waitFor(() => expect(mocks.post).toHaveBeenCalled())
+    const [url, body] = mocks.post.mock.calls.at(-1)!
+    expect(url).toBe('/admin/tasks')
+    // The form shows the server's reason itself: the global error toast must not add a second one.
+    expect(mocks.post.mock.calls.at(-1)![2]).toMatchObject({ skipErrorToast: true })
+    expect((body as FormData).get('assigned_to')).toBe('21')
+    expect((body as FormData).get('department_id')).toBe('5')
+    // The board is re-read afterwards.
+    await waitFor(() => expect(mocks.get.mock.calls.length).toBeGreaterThanOrEqual(2))
+  })
+
+  it('create without assign: the form hides the assignee fields, explains, and sends no assignee', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue({ items: [{ id: 5, name: 'Tech', name_ar: 'التقنية' }], manageableDepartmentIds: [5] })
+    mocks.get.mockResolvedValue(board([], { can_create: true, can_assign: false, can_update: false, manageable_department_ids: [5] }))
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: /إسناد مهمة جديدة/ }))
+    const dialog = await screen.findByTestId('task-create-modal')
+
+    expect(within(dialog).queryByLabelText('العضو المكلف')).toBeNull()
+    expect(within(dialog).getByTestId('no-assign-note')).toBeInTheDocument()
+    await userEvent.type(within(dialog).getByLabelText(/عنوان المهمة/), 'مهمة بلا مكلّف')
+    await waitFor(() => expect((within(dialog).getByLabelText('الإدارة التابعة') as HTMLSelectElement).value).toBe('5'))
+    await userEvent.click(within(dialog).getByRole('button', { name: /إنشاء المهمة الآن/ }))
+
+    await waitFor(() => expect(mocks.post).toHaveBeenCalled())
+    const body = mocks.post.mock.calls.at(-1)![1] as FormData
+    expect(body.has('assigned_to')).toBe(false)
+    expect(body.has('assigned_users[]')).toBe(false)
+    expect(mocks.members).not.toHaveBeenCalled()
+  })
+
+  it('edit: a card the server marks can_edit offers «تعديل المهمة»; the form is pre-filled from /editable, saves with PATCH, and the board is re-read', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue(SCOPED_DEPTS)
+    mocks.editable.mockResolvedValue(editableOf())
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_edit: true } })], { can_create: false, can_assign: false, can_update: true, manageable_department_ids: [3, 5] }))
+    mount()
+    await screen.findByText('تقرير الأسبوع')
+    // Edit only: no create button, no reassign.
+    expect(createButton()).toBeNull()
+    expect(within(writeActions('task:2')!).queryByRole('button', { name: /إسناد/ })).toBeNull()
+
+    await userEvent.click(within(writeActions('task:2')!).getByRole('button', { name: /تعديل المهمة/ }))
+    expect(await screen.findByDisplayValue('تقرير الأسبوع')).toBeInTheDocument()
+    expect(mocks.editable).toHaveBeenCalledWith(2)
+    const dialog = screen.getByTestId('task-create-modal')
+    // tasks.assign is not held: no assignee field.
+    expect(within(dialog).queryByLabelText('العضو المكلف')).toBeNull()
+
+    const reads = mocks.get.mock.calls.length
+    await userEvent.clear(within(dialog).getByLabelText(/عنوان المهمة/))
+    await userEvent.type(within(dialog).getByLabelText(/عنوان المهمة/), 'تقرير الأسبوع المحدّث')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'حفظ التعديلات' }))
+
+    await waitFor(() => expect(mocks.patch).toHaveBeenCalled())
+    const [url, body] = mocks.patch.mock.calls.at(-1)!
+    expect(url).toBe('/operations/tasks/2')
+    expect(body).toMatchObject({ title: 'تقرير الأسبوع المحدّث', department_id: 3, priority: 'medium' })
+    expect(body).not.toHaveProperty('assigned_to')
+    await waitFor(() => expect(mocks.get.mock.calls.length).toBeGreaterThan(reads))
+    await waitFor(() => expect(screen.queryByTestId('task-create-modal')).toBeNull())
+  })
+
+  it('edit: the server\'s Arabic 403 is shown and nothing is refreshed or closed', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue(SCOPED_DEPTS)
+    mocks.editable.mockResolvedValue(editableOf())
+    mocks.patch.mockRejectedValue(new AxiosError('x', '403', undefined, undefined, { status: 403, statusText: '', headers: {}, config: {} as never, data: { success: false, message: 'هذه المهمة خارج نطاق الإدارات التي تقودها، فلا يمكنك تعديلها.' } }))
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_edit: true } })], { can_create: false, can_assign: false, can_update: true, manageable_department_ids: [3] }))
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: /تعديل المهمة/ }))
+    await screen.findByDisplayValue('تقرير الأسبوع')
+    await userEvent.click(screen.getByRole('button', { name: 'حفظ التعديلات' }))
+
+    expect(await screen.findByTestId('task-form-error')).toHaveTextContent('هذه المهمة خارج نطاق الإدارات التي تقودها، فلا يمكنك تعديلها.')
+    expect(toast.error).toHaveBeenCalledWith('هذه المهمة خارج نطاق الإدارات التي تقودها، فلا يمكنك تعديلها.')
+    expect(screen.getByTestId('task-create-modal')).toBeInTheDocument()
+  })
+
+  it('update + assign: the edit form also offers the assignee, read from the scoped members, and sends it only when it changed', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue(SCOPED_DEPTS)
+    mocks.members.mockResolvedValue([{ id: 9, user_id: 9, name: 'منى', role: 'عضو' }, { id: 21, user_id: 21, name: 'ليلى', role: 'عضو' }])
+    mocks.editable.mockResolvedValue(editableOf())
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_edit: true, can_reassign: true } })], { can_create: false, can_assign: true, can_update: true, manageable_department_ids: [3, 5] }))
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: /تعديل المهمة/ }))
+    const assignee = (await screen.findByLabelText('العضو المكلف')) as HTMLSelectElement
+    await waitFor(() => expect(assignee.value).toBe('9'))
+    await screen.findByRole('option', { name: /ليلى/ })
+    await userEvent.selectOptions(assignee, '21')
+    await userEvent.click(screen.getByRole('button', { name: 'حفظ التعديلات' }))
+
+    await waitFor(() => expect(mocks.patch).toHaveBeenCalled())
+    expect(mocks.patch.mock.calls.at(-1)![1]).toMatchObject({ assigned_to: 21 })
+  })
+
+  it('reassign: offered on the card by capabilities.can_reassign (not by the unassigned / declined heuristic), through the scoped members and POST /admin/tasks/{id}/reassign', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.members.mockResolvedValue([{ id: 21, user_id: 21, name: 'ليلى', role: 'عضو' }])
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_reassign: true } })], { can_create: false, can_assign: true, can_update: false, manageable_department_ids: [3] }))
+    mount()
+    await screen.findByText('تقرير الأسبوع')
+    expect(within(writeActions('task:2')!).queryByRole('button', { name: /تعديل المهمة/ })).toBeNull()
+
+    await userEvent.click(within(writeActions('task:2')!).getByRole('button', { name: /^إعادة إسناد: / }))
+    await waitFor(() => expect(mocks.members).toHaveBeenCalledWith(3))
+    await userEvent.selectOptions(await screen.findByLabelText(/توجيه المهمة إلى عضو جديد/), '21')
+    await userEvent.click(screen.getByRole('button', { name: 'تأكيد الإسناد للعضو' }))
+
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledWith('/admin/tasks/2/reassign', { assigned_to: 21, notes: undefined }, { skipErrorToast: true }))
+  })
+
+  it('a ticket card never offers a task action', async () => {
+    mocks.role.current = 'admin'
+    mocks.get.mockResolvedValue(payload({ in_progress: [ticketCard(5, { capabilities: { ...NO_CAPS, can_open: true } })] }, {}, undefined, { task_actions: ALL_ACTIONS }))
+    mount()
+    await screen.findByText('تذكرة 5')
+
+    expect(screen.queryByTestId('task-write-actions')).toBeNull()
+  })
+
+  it.each(['admin', 'super_admin', 'tech_admin'])('%s keeps the old drawer actions (lock) and also gets «تعديل المهمة» there when the server says so', async (role) => {
+    mocks.role.current = role
+    mocks.fetchTask.mockResolvedValue({ id: 2, title: 'تقرير الأسبوع', department_id: '3', status: 'planning', priority: 'medium', comments: [], checklist: [] })
+    mocks.editable.mockResolvedValue(editableOf())
+    mocks.get.mockResolvedValue(board([taskCard({ capabilities: { ...NO_CAPS, can_open: true, can_edit: true, can_reassign: true } })], ALL_ACTIONS))
+    mount()
+    expect(await screen.findByRole('button', { name: /إسناد مهمة جديدة/ })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'تقرير الأسبوع' }))
+
+    const mgmt = await screen.findByTestId('board-task-management')
+    expect(within(mgmt).getByRole('button', { name: /قفل المهمة/ })).toBeInTheDocument()
+    expect(within(mgmt).getByRole('button', { name: /إعادة إسناد/ })).toBeInTheDocument()
+    await userEvent.click(within(mgmt).getByRole('button', { name: /تعديل المهمة/ }))
+    await waitFor(() => expect(mocks.editable).toHaveBeenCalledWith(2))
+  })
+
+  it('without can_edit / can_reassign the drawer of a non-manager has no management section at all', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.fetchTask.mockResolvedValue({ id: 2, title: 'تقرير الأسبوع', department_id: '3', status: 'planning', priority: 'medium', comments: [], checklist: [] })
+    mocks.get.mockResolvedValue(board([taskCard({ is_mine: true, capabilities: { ...NO_CAPS, can_open: true } })], NOTHING))
+    mocks.fetchMyTask.mockResolvedValue({ id: 2, title: 'تقرير الأسبوع', department_id: '3', status: 'planning', priority: 'medium', comments: [], checklist: [] })
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'تقرير الأسبوع' }))
+    await screen.findByRole('heading', { level: 2, name: 'تقرير الأسبوع' })
+
+    expect(screen.queryByTestId('board-task-management')).toBeNull()
+  })
+})
+
+describe('the data layer of the task actions', () => {
+  it('normalises meta.task_actions defensively: a missing or malformed block is «no permission»', () => {
+    expect(normalizeTaskActions(undefined)).toEqual({ can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] })
+    expect(normalizeTaskActions({ can_create: 'yes', can_assign: 1 })).toEqual({ can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] })
+    expect(normalizeTaskActions({ can_create: true, can_assign: false, can_update: true, manageable_department_ids: null })).toEqual({ can_create: true, can_assign: false, can_update: true, manageable_department_ids: null })
+    expect(normalizeTaskActions({ can_create: true, manageable_department_ids: ['3', 5, 'x'] }).manageable_department_ids).toEqual([3, 5])
+  })
+
+  it('a task card\'s can_edit / can_reassign default to false (a ticket never has them)', () => {
+    const c = normalizeWorkBoardCard({ kind: 'task', id: 1, column: 'planning', capabilities: { can_open: true } })!
+    expect(c.capabilities.can_edit).toBe(false)
+    expect(c.capabilities.can_reassign).toBe(false)
+    const e = normalizeWorkBoardCard({ kind: 'task', id: 1, column: 'planning', capabilities: { can_edit: true, can_reassign: true } })!
+    expect(e.capabilities).toMatchObject({ can_edit: true, can_reassign: true })
+  })
+})
+
+describe('an open task form keeps what it was opened with', () => {
+  const ACTIONS: WorkBoardTaskActions = { can_create: true, can_assign: true, can_update: false, manageable_department_ids: [5] }
+  const boardWith = (actions: WorkBoardTaskActions) => payload({ planning: [card({ key: 'task:2', id: 2, title: 'تقرير الأسبوع' })] }, {}, undefined, { task_actions: actions })
+  const refreshButton = () => screen.getByLabelText('تحديث اللوحة')
+
+  async function openCreate() {
+    mocks.role.current = 'hr_manager'
+    mocks.scopeDepartments.mockResolvedValue({ items: [{ id: 5, name: 'Tech', name_ar: 'التقنية' }], manageableDepartmentIds: [5] })
+    mocks.members.mockResolvedValue([{ id: 21, user_id: 21, name: 'ليلى', role: 'عضو' }])
+    mocks.get.mockResolvedValue(boardWith(ACTIONS))
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: /إسناد مهمة جديدة/ }))
+
+    return screen.findByTestId('task-create-modal')
+  }
+
+  it('a refresh that FAILS while the form is open keeps the create button, the assignee controls and the assignee in the payload', async () => {
+    const dialog = await openCreate()
+    await within(dialog).findByLabelText('العضو المكلف')
+    await userEvent.type(within(dialog).getByLabelText(/عنوان المهمة/), 'مهمة مع مكلّف')
+    await screen.findByRole('option', { name: /ليلى/ })
+
+    mocks.get.mockRejectedValueOnce(apiError(500))
+    fireEvent.click(refreshButton())
+    await screen.findByText('تعذّر تحميل لوحة التشغيل')
+
+    // The read failed, the permission did not change: nothing is switched off under the user.
+    expect(screen.getByRole('button', { name: /إسناد مهمة جديدة/ })).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('العضو المكلف')).toBeInTheDocument()
+    await userEvent.selectOptions(within(dialog).getByLabelText('العضو المكلف'), '21')
+    await userEvent.click(within(dialog).getByRole('button', { name: /إسناد المهمة الآن/ }))
+
+    await waitFor(() => expect(mocks.post).toHaveBeenCalled())
+    expect((mocks.post.mock.calls.at(-1)![1] as FormData).get('assigned_to')).toBe('21')
+  })
+
+  it('a refresh that answers «no assign» while the form is open does not change the open form; the next opening follows the new answer', async () => {
+    const dialog = await openCreate()
+    await within(dialog).findByLabelText('العضو المكلف')
+
+    mocks.get.mockResolvedValueOnce(boardWith({ ...ACTIONS, can_assign: false }))
+    fireEvent.click(refreshButton())
+    await waitFor(() => expect(mocks.get.mock.calls.length).toBeGreaterThanOrEqual(2))
+    expect(within(dialog).getByLabelText('العضو المكلف')).toBeInTheDocument()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'إلغاء' }))
+    await waitFor(() => expect(screen.queryByTestId('task-create-modal')).toBeNull())
+    await userEvent.click(screen.getByRole('button', { name: /إسناد مهمة جديدة/ }))
+    const reopened = await screen.findByTestId('task-create-modal')
+    expect(within(reopened).queryByLabelText('العضو المكلف')).toBeNull()
+    expect(within(reopened).getByTestId('no-assign-note')).toBeInTheDocument()
+  })
+
+  it('the very first read failing means no permission (no button), and a failed LATER read keeps the last good answer', async () => {
+    mocks.role.current = 'hr_manager'
+    mocks.get.mockResolvedValue(boardWith(ACTIONS))
+    mount()
+    expect(await screen.findByRole('button', { name: /إسناد مهمة جديدة/ })).toBeInTheDocument()
+    mocks.get.mockRejectedValueOnce(apiError(500))
+    fireEvent.click(refreshButton())
+    await screen.findByText('تعذّر تحميل لوحة التشغيل')
+    expect(screen.getByRole('button', { name: /إسناد مهمة جديدة/ })).toBeInTheDocument()
+  })
+})
+
+describe('the card\'s task buttons', () => {
+  const item = (over: Partial<WorkBoardCard> = {}) => workBoardCardToItem(card({ capabilities: { ...NO_CAPS, can_edit: true, can_reassign: true }, ...over }))
+  const show = (it: ReturnType<typeof item>, busy = false) =>
+    render(<MemoryRouter><WorkItemCard item={it} busy={busy} onEdit={vi.fn()} onReassign={vi.fn()} /></MemoryRouter>)
+
+  it('their accessible names START with the visible text (label in name), for an assigned and an unassigned task', () => {
+    const first = show(item())
+    expect(screen.getByRole('button', { name: /^تعديل المهمة: / })).toHaveTextContent('تعديل المهمة')
+    expect(screen.getByRole('button', { name: /^إعادة إسناد: / })).toHaveTextContent('إعادة إسناد')
+    first.unmount()
+
+    show(item({ assignee: null }))
+    expect(screen.getByRole('button', { name: /^إسناد لعضو: / })).toHaveTextContent('إسناد لعضو')
+  })
+
+  it('are disabled while the card is busy', () => {
+    show(item(), true)
+    expect(screen.getByRole('button', { name: /^تعديل المهمة: / })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^إعادة إسناد: / })).toBeDisabled()
   })
 })

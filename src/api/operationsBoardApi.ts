@@ -118,8 +118,10 @@ export async function updateBoardTaskStatus(id: number, status: string): Promise
 
 /** إنشاء مهمة متقدمة مع دعم المرفقات والإسناد الجماعي */
 export async function createAdvancedBoardTask(formData: FormData): Promise<unknown> {
+  // The form shows the server's reason itself (inline + one toast): the global error toast would be a second one.
   const res = await apiClient.post('/admin/tasks', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    skipErrorToast: true,
   })
   return unwrapData(res.data)
 }
@@ -161,7 +163,8 @@ export async function claimTask(id: number): Promise<void> {
 
 /** إعادة إسناد المهمة */
 export async function reassignTask(id: number, assigned_to: number, notes?: string): Promise<void> {
-  await apiClient.post(`/admin/tasks/${id}/reassign`, { assigned_to, notes })
+  // The reassign dialog toasts the server's reason itself.
+  await apiClient.post(`/admin/tasks/${id}/reassign`, { assigned_to, notes }, { skipErrorToast: true })
 }
 
 /** إنشاء مهمة بسيطة */
