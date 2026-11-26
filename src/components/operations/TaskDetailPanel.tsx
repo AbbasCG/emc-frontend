@@ -5,6 +5,7 @@ import { hasNestedLayer, isTopModal, registerOpenModal } from '@/components/ui/m
 import { X } from 'lucide-react'
 import type { OpsTask, TaskPriority, TaskStatus } from '@/types/operations'
 import { TASK_PRIORITY_AR, TASK_STATUS_AR } from '@/data/operationsLabels'
+import { STATUS_LOCK_HINT, statusControl } from '@/lib/taskStatusTransitions'
 import ChecklistEditor from './ChecklistEditor'
 import CommentThread from './CommentThread'
 import OpsPriorityBadge from './OpsPriorityBadge'
@@ -67,6 +68,12 @@ export default function TaskDetailPanel({
     return () => document.removeEventListener('keydown', onKey)
   }, [active])
 
+  // What the status control offers (the server's own rules, src/lib/taskStatusTransitions.ts): a list of statuses a person may pick,
+  // or a read-only status with the reason (pending acceptance, a completed task for a member, an evaluation outcome on record).
+  const control = task ? statusControl(task, memberView) : null
+  const statusLock = control && control.mode === 'locked' ? control : null
+  const statusOptions = control && control.mode === 'select' ? control.options : []
+
   return (
     <AnimatePresence>
       {open && task && (
@@ -124,12 +131,12 @@ export default function TaskDetailPanel({
               </section>
 
               <section className="grid gap-3 sm:grid-cols-2">
-                {memberView && (task.status === 'completed' || task.acceptance_status === 'pending') ? (
+                {statusLock ? (
                   <div className="grid gap-1 text-right text-xs font-black text-deepBlue" data-testid="status-readonly">
                     الحالة
                     <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue/80">{TASK_STATUS_AR[task.status]}</span>
                     <span className="text-[11px] font-semibold text-slate-500" data-testid="status-hint">
-                      {task.status === 'completed' ? 'المهمة مكتملة، ولا يغيّر العضو حالتها بعد ذلك.' : 'اقبل المهمة أولًا لتتمكن من تحريك حالتها.'}
+                      {STATUS_LOCK_HINT[statusLock.reason]}
                     </span>
                   </div>
                 ) : (
@@ -140,14 +147,13 @@ export default function TaskDetailPanel({
                       onChange={(e) => onPatch({ status: e.target.value as TaskStatus })}
                       className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-deepBlue"
                     >
-                      {(Object.keys(TASK_STATUS_AR) as TaskStatus[])
-                        // A member sends finished work to «بانتظار التقييم»; «مكتملة» is the evaluator's to set.
-                        .filter((k) => !(memberView && k === 'completed'))
-                        .map((k) => (
-                          <option key={k} value={k}>
-                            {TASK_STATUS_AR[k]}
-                          </option>
-                        ))}
+                      {/* Only the statuses the server accepts by hand (src/lib/taskStatusTransitions.ts): «بانتظار الاعتماد» and
+                          «مكتملة» are recorded by the evaluation and the HR approval, so they are never offered. */}
+                      {statusOptions.map((k) => (
+                        <option key={k} value={k}>
+                          {TASK_STATUS_AR[k]}
+                        </option>
+                      ))}
                     </select>
                   </label>
                 )}

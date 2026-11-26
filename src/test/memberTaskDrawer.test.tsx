@@ -226,7 +226,11 @@ describe('the management pages keep the management endpoints and editable detail
     expect(await within(drawer).findByRole('combobox', { name: 'الأولوية' })).toBeInTheDocument()
     expect(http.get.mock.calls.map((c) => c[0])).toContain('/operations/tasks/12')
     const status = within(drawer).getByRole('combobox', { name: 'الحالة' })
-    expect(within(status).getAllByRole('option').map((o) => o.textContent)).toContain('مكتملة')
+    // the manager picks among the statuses the server accepts by hand: «مكتملة» and «بانتظار الاعتماد» are the evaluation's and the HR approval's results
+    const labels = within(status).getAllByRole('option').map((o) => o.textContent)
+    expect(labels).toContain('بحاجة لتقييم')
+    expect(labels).not.toContain('مكتملة')
+    expect(labels).not.toContain('بانتظار الاعتماد')
   })
 })
 
