@@ -256,8 +256,41 @@ export function unwrapAdminUsersList(payload: unknown): AdminManagedUser[] {
     .filter((u) => u.id > 0)
 }
 
-/** Map 403/422 responses to copy required by Super Admin UX. */
-export function getAdminUserMutationMessage(err: unknown): string {
+/** Fields the users form shows right next to the input, so they are not repeated in the toast. */
+export const ADMIN_USER_INLINE_FIELDS = ['role', 'department', 'department_id'] as const
+
+export type AdminUserFieldErrors = { role?: string; department?: string }
+
+const ROLE_REJECTED_AR = 'الدور المختار غير مقبول من الخادم.'
+const DEPARTMENT_REJECTED_AR = 'الإدارة المختارة غير مقبولة من الخادم.'
+const GENERIC_SELECTED_INVALID_AR = 'القيمة المختارة غير مقبولة من الخادم.'
+
+/**
+ * Structured 422 field errors for the role / department inputs. The server's Arabic text passes through untouched
+ * (e.g. «الدور «x» معرَّف في النظام لكنه غير مُفعَّل…»); an old server's English «The selected role is invalid.» is
+ * turned into a clear Arabic sentence. Only fields the server actually reported are returned.
+ */
+export function getAdminUserFieldErrors(err: unknown): AdminUserFieldErrors {
+  if (!axios.isAxiosError(err) || err.response?.status !== 422) return {}
+  const raw = getLaravelFieldErrors(err)
+  const out: AdminUserFieldErrors = {}
+  if (raw.role) {
+    const t = translateLaravelFieldMessage(raw.role)
+    out.role = t === GENERIC_SELECTED_INVALID_AR ? ROLE_REJECTED_AR : t
+  }
+  const dept = raw.department ?? raw.department_id
+  if (dept) {
+    const t = translateLaravelFieldMessage(dept)
+    out.department = t === GENERIC_SELECTED_INVALID_AR ? DEPARTMENT_REJECTED_AR : t
+  }
+  return out
+}
+
+/**
+ * Map 403/422 responses to copy required by Super Admin UX.
+ * `omitFields`: 422 fields already shown beside their input; if nothing else remains the result is '' (no toast needed).
+ */
+export function getAdminUserMutationMessage(err: unknown, omitFields: readonly string[] = []): string {
   if (!axios.isAxiosError(err)) return getApiErrorMessage(err)
 
   const status = err.response?.status
@@ -283,11 +316,15 @@ export function getAdminUserMutationMessage(err: unknown): string {
       is_active: 'الحالة',
     }
     const fieldErrors = getLaravelFieldErrors(err)
-    const lines = Object.entries(fieldErrors).map(([field, msg]) => {
-      const label = FIELD_LABELS[field] ?? field
-      return `${label}: ${translateLaravelFieldMessage(msg)}`
-    })
+    const entries = Object.entries(fieldErrors)
+    const lines = entries
+      .filter(([field]) => !omitFields.includes(field))
+      .map(([field, msg]) => {
+        const label = FIELD_LABELS[field] ?? field
+        return `${label}: ${translateLaravelFieldMessage(msg)}`
+      })
     if (lines.length > 0) return lines.join('\n')
+    if (entries.length > 0) return ''
   }
 
   return getApiErrorMessage(err)
