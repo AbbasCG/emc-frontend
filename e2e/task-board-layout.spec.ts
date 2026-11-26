@@ -36,6 +36,13 @@ async function serve(page: Page) {
   await page.route('**/api/v1/tickets/my-work', (r) => r.fulfill(json(MY_TICKETS, { meta: { open_total: 2, closed_total: 0, truncated: false } })))
   await page.route('**/api/admin/tasks/my', (r) => r.fulfill(json([task(21, 'planning', { acceptance_status: 'pending' }), task(22, 'in_progress')])))
   await page.route('**/api/operations/board**', (r) => r.fulfill(json(BOARD)))
+  // The global board (`/dashboard/operations/board`) reads its columns AND what the viewer may do to tasks from the server:
+  // the «إسناد مهمة جديدة» button exists only when `meta.task_actions.can_create`, and the modal lists the departments of the task-scope endpoint.
+  await page.route('**/api/operations/work-board**', (r) =>
+    r.fulfill(json({ columns: [] }, { meta: { scope: 'all', kind: 'all', per_column: 30, column: null, page: 1, counts: { all: 0, tasks: 0, tickets: 0 }, task_actions: { can_create: true, can_assign: true, can_update: true, manageable_department_ids: null }, generated_at: null } })),
+  )
+  await page.route('**/api/operations/board/task-scope/departments', (r) => r.fulfill(json([{ id: 1, name: 'الإعلام', name_ar: 'الإعلام' }], { meta: { manageable_department_ids: null } })))
+  await page.route('**/api/operations/board/task-scope/departments/*/members', (r) => r.fulfill(json([])))
   await page.route('**/api/v1/tickets/board**', (r) =>
     r.fulfill(json({ columns: ['PENDING_APPROVAL', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ADMIN', 'REJECTED_BY_ASSIGNEE'].map((status) => ({ status, count: 1, tickets: [{ ...MY_TICKETS[0], status, ticket_category: 'OLD_ISSUE', created_by_name: 'x', department_id: 1, created_at: iso(-5), updated_at: iso(-1), capabilities: {} }] })) })),
   )
