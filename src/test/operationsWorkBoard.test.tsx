@@ -858,7 +858,10 @@ describe('the open drawer follows what management actions change', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'إنهاء التقييم' }))
 
     await waitFor(() => expect(mocks.fetchTask).toHaveBeenCalledTimes(2))
-    await waitFor(() => expect(statusSelect().value).toBe('completed'))
+    // the evaluated task now shows its new status, and a completed task is read-only (no status control re-opens it)
+    const drawer = screen.getByRole('complementary')
+    await waitFor(() => expect(within(drawer).getByTestId('status-readonly')).toHaveTextContent('مكتملة'))
+    expect(within(drawer).queryByRole('combobox', { name: 'الحالة' })).not.toBeInTheDocument()
   })
 
   it('a stale re-read can never overwrite a newer answer', async () => {
