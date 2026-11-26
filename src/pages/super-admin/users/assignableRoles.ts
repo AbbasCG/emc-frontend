@@ -134,20 +134,76 @@ export function getSpecializedRoleForDepartment(
   }
 }
 
-export type AssignableRoleOption = { value: string; labelAr: string }
+export type AssignableRoleOption = {
+  value: string
+  labelAr: string
+  /** True when the server's role list lacks this role: shown, but it cannot be picked. */
+  disabled?: boolean
+  /** Short Arabic reason shown next to the label (e.g. the role is not activated in this environment). */
+  hint?: string
+}
 
+/** Hint for a role the front end knows but the server's `roles` table does not have. */
+export const ROLE_NOT_ACTIVATED_HINT = 'غير مفعّل في هذه البيئة'
+
+/** Shown (non-blocking) when the activated-roles list could not be loaded, so the static catalogue is used. */
+export const ROLES_LIST_UNAVAILABLE_NOTICE = 'تعذّر جلب قائمة الأدوار المفعّلة من الخادم؛ قد يرفض الخادم بعض الأدوار'
+
+/** Role slugs the server accepts, or `null` while unknown / when the request failed (static catalogue applies). */
+export type ServerRoleSlugs = ReadonlySet<string> | null | undefined
+
+function isOfferedByServer(slug: string, serverRoles: ServerRoleSlugs): boolean {
+  return !serverRoles || serverRoles.has(slug)
+}
+
+/**
+ * Role options for the admin user forms.
+ * - Starts from the front end's allowed set (ASSIGNABLE_CANONICAL_ROLES; super_admin only when `includeSuperAdmin`).
+ * - With a server role list, a role the server does not know stays visible but disabled with a hint.
+ * - `extraCurrentRole` (the role the edited user already has) is always present and never disabled, so an unrelated
+ *   edit still shows it.
+ */
 export function getAssignableRoleOptions(
   includeSuperAdmin: boolean,
   extraCurrentRole?: string | null,
+  serverRoles?: ServerRoleSlugs,
 ): AssignableRoleOption[] {
   const allowed = ASSIGNABLE_CANONICAL_ROLES.filter((r) => includeSuperAdmin || r !== 'super_admin') as string[]
   if (extraCurrentRole && !allowed.includes(extraCurrentRole)) {
     allowed.push(extraCurrentRole)
   }
-  return allowed.map((value) => ({
-    value,
-    labelAr: ROLE_LABEL_AR[value as (typeof EMC_DASHBOARD_ROLES)[number]] ?? value,
-  }))
+  return allowed.map((value) => {
+    const labelAr = ROLE_LABEL_AR[value as (typeof EMC_DASHBOARD_ROLES)[number]] ?? value
+    if (isOfferedByServer(value, serverRoles)) return { value, labelAr }
+    const isCurrent = value === extraCurrentRole
+    return { value, labelAr, hint: ROLE_NOT_ACTIVATED_HINT, ...(isCurrent ? {} : { disabled: true }) }
+  })
+}
+
+/** Text of one `<option>`: the Arabic label plus the hint when there is one. */
+export function roleOptionText(o: AssignableRoleOption): string {
+  return o.hint ? `${o.labelAr} — ${o.hint}` : o.labelAr
+}
+
+/**
+ * The specialised manager role a department maps to, but only when the server's role list contains it; otherwise
+ * `null`, so the caller keeps `department_manager` and can explain why via `unavailableSpecializedRole`.
+ */
+export function getOfferedSpecializedRole(
+  dept: Parameters<typeof getSpecializedRoleForDepartment>[0],
+  serverRoles?: ServerRoleSlugs,
+): { role: string; labelAr: string } | null {
+  const spec = getSpecializedRoleForDepartment(dept)
+  return spec && isOfferedByServer(spec.role, serverRoles) ? spec : null
+}
+
+/** The mapped role of this department when the server does NOT have it (drives the «غير مفعّل» note). */
+export function unavailableSpecializedRole(
+  dept: Parameters<typeof getSpecializedRoleForDepartment>[0],
+  serverRoles?: ServerRoleSlugs,
+): { role: string; labelAr: string } | null {
+  const spec = getSpecializedRoleForDepartment(dept)
+  return spec && !isOfferedByServer(spec.role, serverRoles) ? spec : null
 }
 
 /** Entire EMC role catalogue for governance screens (readonly). */

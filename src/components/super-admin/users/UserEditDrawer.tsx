@@ -17,8 +17,13 @@ import toast from '@/lib/toast'
 import {
   adminRoleLabelAr,
   DEFAULT_EMC_DEPARTMENTS,
-  getSpecializedRoleForDepartment,
+  getOfferedSpecializedRole,
   isSpecializedManagerRole,
+  ROLES_LIST_UNAVAILABLE_NOTICE,
+  roleOptionText,
+  unavailableSpecializedRole,
+  type AssignableRoleOption,
+  type ServerRoleSlugs,
 } from '@/pages/super-admin/users/assignableRoles'
 import apiClient from '@/api/axios'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
@@ -28,7 +33,7 @@ import { generateSecurePassword } from '@/utils/passwordGenerator'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import { cn } from '@/lib/utils'
 
-type RoleOption = { value: string; labelAr: string }
+type RoleOption = AssignableRoleOption
 
 type Props = {
   open: boolean
@@ -53,6 +58,13 @@ type Props = {
   lastLoginAt?: string | null
   createdAt?: string | null
   roleOptions: RoleOption[]
+  /** Role slugs the server accepts (null = unknown): a mapped specialised role is applied only when it is in this set. */
+  serverRoleSlugs?: ServerRoleSlugs
+  /** The activated-roles list could not be loaded: warn, keep the static catalogue. */
+  rolesListFailed?: boolean
+  /** 422 messages the server reported for the role / department inputs. */
+  roleError?: string
+  departmentError?: string
   departmentList?: { id: number; name_ar?: string; name?: string }[]
   formDepartmentId?: string
   onFormDepartmentId?: (v: string) => void
@@ -99,6 +111,10 @@ export function UserEditDrawer({
   lastLoginAt,
   createdAt,
   roleOptions,
+  serverRoleSlugs,
+  rolesListFailed = false,
+  roleError,
+  departmentError,
   departmentList = DEFAULT_EMC_DEPARTMENTS,
   formDepartmentId,
   onFormDepartmentId,
@@ -165,8 +181,13 @@ export function UserEditDrawer({
 
   const specializedInfo = useMemo(() => {
     if (!isManagerRole || !currentSelectedDept) return null
-    return getSpecializedRoleForDepartment(currentSelectedDept)
-  }, [isManagerRole, currentSelectedDept])
+    return getOfferedSpecializedRole(currentSelectedDept, serverRoleSlugs)
+  }, [isManagerRole, currentSelectedDept, serverRoleSlugs])
+
+  const missingSpecializedInfo = useMemo(() => {
+    if (!isManagerRole || !currentSelectedDept) return null
+    return unavailableSpecializedRole(currentSelectedDept, serverRoleSlugs)
+  }, [isManagerRole, currentSelectedDept, serverRoleSlugs])
 
   // Clear the validation/reveal state during render when the drawer closes or points at
   // another user (react.dev "adjusting state when a prop changes") — every one of these
@@ -311,7 +332,7 @@ export function UserEditDrawer({
                 <input value={formPhone} onChange={(e) => onFormPhone(e.target.value)} className={INPUT} dir="ltr" />
               </Field>
               {!isDeptRole && (
-                <Field label="القسم / الإدارة">
+                <Field label="القسم / الإدارة" error={departmentError}>
                   <input value={formDepartment} onChange={(e) => onFormDepartment(e.target.value)} className={INPUT} />
                 </Field>
               )}
@@ -328,14 +349,23 @@ export function UserEditDrawer({
           </Section>
 
           <Section title="الأدوار والصلاحيات" icon={ShieldCheck}>
-            <Field label="الدور">
+            {rolesListFailed ?
+              <p
+                role="status"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950"
+              >
+                {ROLES_LIST_UNAVAILABLE_NOTICE}
+              </p>
+            : null}
+            <Field label="الدور" error={roleError}>
               <select
                 value={formRole}
+                aria-invalid={roleError ? true : undefined}
                 onChange={(e) => {
                   const nextRole = e.target.value
                   onFormRole(nextRole)
                   if (nextRole === 'department_manager' && currentSelectedDept) {
-                    const spec = getSpecializedRoleForDepartment(currentSelectedDept)
+                    const spec = getOfferedSpecializedRole(currentSelectedDept, serverRoleSlugs)
                     if (spec) onFormRole(spec.role)
                   }
                   if (nextRole === 'department_member' && !formDepartmentId && formDepartment) {
@@ -346,8 +376,8 @@ export function UserEditDrawer({
                 className={INPUT}
               >
                 {roleOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.labelAr}
+                  <option key={o.value} value={o.value} disabled={o.disabled}>
+                    {roleOptionText(o)}
                   </option>
                 ))}
                 {!roleOptions.some((o) => o.value === formRole) && (
@@ -361,7 +391,7 @@ export function UserEditDrawer({
             {isDeptRole && (
               <Field
                 label={isManagerRole ? 'الإدارة التي يديرها *' : 'الإدارة التابع لها *'}
-                error={!formDepartmentId && !formDepartment ? 'يرجى اختيار الإدارة المعنية' : undefined}
+                error={departmentError ?? (!formDepartmentId && !formDepartment ? 'يرجى اختيار الإدارة المعنية' : undefined)}
               >
                 <select
                   value={formDepartmentId || ''}
@@ -372,7 +402,7 @@ export function UserEditDrawer({
                     const deptName = matched ? matched.name_ar || matched.name || '' : ''
                     onFormDepartment(deptName)
                     if (isManagerRole && matched) {
-                      const spec = getSpecializedRoleForDepartment(matched)
+                      const spec = getOfferedSpecializedRole(matched, serverRoleSlugs)
                       if (spec) {
                         onFormRole(spec.role)
                       }
@@ -391,6 +421,12 @@ export function UserEditDrawer({
                   ))}
                 </select>
               </Field>
+            )}
+
+            {isManagerRole && !specializedInfo && missingSpecializedInfo && (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] font-bold text-amber-950">
+                الدور التخصصي «{missingSpecializedInfo.labelAr}» غير مفعّل في هذه البيئة، لذلك سيبقى الدور «{adminRoleLabelAr(formRole)}».
+              </p>
             )}
 
             {isManagerRole && specializedInfo && (

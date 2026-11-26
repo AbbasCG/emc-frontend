@@ -24,6 +24,8 @@ import {
   fetchAdminUsersPage,
   type AdminUsersSortDir,
   type AdminUsersSortKey,
+  ADMIN_USER_INLINE_FIELDS,
+  getAdminUserFieldErrors,
   getAdminUserMutationMessage,
   getResendVerificationErrorMessage,
   resendUserVerification,
@@ -47,8 +49,11 @@ import {
   adminRoleLabelAr,
   getAssignableRoleOptions,
   DEFAULT_EMC_DEPARTMENTS,
-  getSpecializedRoleForDepartment,
+  getOfferedSpecializedRole,
   isSpecializedManagerRole,
+  ROLES_LIST_UNAVAILABLE_NOTICE,
+  roleOptionText,
+  unavailableSpecializedRole,
   type DepartmentOption,
 } from '@/pages/super-admin/users/assignableRoles'
 import {
@@ -56,6 +61,7 @@ import {
   canEditAdminUserRow,
   canOfferSuperAdminRoleOption,
 } from '@/pages/super-admin/users/superAdminUserPolicy'
+import { useServerRoleSlugs } from '@/pages/super-admin/users/useServerRoleSlugs'
 import { UsersEnterpriseDetailDrawer } from '@/pages/super-admin/users/UsersEnterpriseDetailDrawer'
 import { ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import type { MenuAction } from '@/pages/super-admin/crud/shared/RowActions'
@@ -129,9 +135,16 @@ export default function UsersManagementPage() {
   )
 
   const includeSuperAdminAssignment = canOfferSuperAdminRoleOption(currentUser?.role)
-  const roleOptionsForm = useMemo(
+  /** Roles the server can really assign here (its `roles` table); null while loading or if the request failed. */
+  const { slugs: serverRoleSlugs, failed: rolesListFailed } = useServerRoleSlugs()
+  /** Static catalogue: used by the list filter, which must keep offering every role regardless of activation. */
+  const roleOptionsStatic = useMemo(
     () => getAssignableRoleOptions(includeSuperAdminAssignment),
     [includeSuperAdminAssignment],
+  )
+  const roleOptionsForm = useMemo(
+    () => getAssignableRoleOptions(includeSuperAdminAssignment, null, serverRoleSlugs),
+    [includeSuperAdminAssignment, serverRoleSlugs],
   )
 
   useEffect(() => {
@@ -152,8 +165,8 @@ export default function UsersManagementPage() {
   }, [])
 
   const roleFilterOptions = useMemo(
-    () => [{ value: 'all', labelAr: 'كل الأدوار' }, ...roleOptionsForm],
-    [roleOptionsForm],
+    () => [{ value: 'all', labelAr: 'كل الأدوار' }, ...roleOptionsStatic],
+    [roleOptionsStatic],
   )
 
   const [editLoading, setEditLoading] = useState(false)
@@ -415,17 +428,48 @@ export default function UsersManagementPage() {
     createdAt?: string | null
   }>({})
 
+  /** The role the edited user had when the drawer opened: always listed, never disabled. */
+  const [editOriginalRole, setEditOriginalRole] = useState<string | null>(null)
   const roleOptionsEdit = useMemo(() => {
+    const opts = getAssignableRoleOptions(includeSuperAdminAssignment, editOriginalRole, serverRoleSlugs)
     const rn = normalizeRole(formRole ?? null)
-    const opts = [...roleOptionsForm]
     if (rn && !opts.some((o) => o.value === rn)) opts.unshift({ value: rn, labelAr: adminRoleLabelAr(formRole) })
     return opts
-  }, [roleOptionsForm, formRole])
+  }, [includeSuperAdminAssignment, editOriginalRole, serverRoleSlugs, formRole])
+
+  /**
+   * 422 errors for the role / department inputs, kept with the value they were reported for so they disappear by
+   * themselves as soon as that input changes.
+   */
+  const [serverFieldErrors, setServerFieldErrors] = useState<{
+    role?: { message: string; forValue: string }
+    department?: { message: string; forValue: string }
+  }>({})
+  const departmentKey = `${formDepartmentId}|${formDepartment}`
+  const roleServerError =
+    serverFieldErrors.role && serverFieldErrors.role.forValue === formRole ? serverFieldErrors.role.message : undefined
+  const departmentServerError =
+    serverFieldErrors.department && serverFieldErrors.department.forValue === departmentKey ?
+      serverFieldErrors.department.message
+    : undefined
+
+  /** Records the role / department errors of a failed save and returns the toast text for the other fields ('' = none). */
+  function reportMutationFailure(e: unknown): string {
+    const fe = getAdminUserFieldErrors(e)
+    setServerFieldErrors({
+      ...(fe.role ? { role: { message: fe.role, forValue: formRole } } : {}),
+      ...(fe.department ? { department: { message: fe.department, forValue: departmentKey } } : {}),
+    })
+    const message = getAdminUserMutationMessage(e, ADMIN_USER_INLINE_FIELDS)
+    // Field errors render next to their field, which can be scrolled out of view in the drawer: never fail silently.
+    return message || (fe.role || fe.department ? 'تعذّر الحفظ، راجع الحقول المظلّلة بالأحمر.' : '')
+  }
 
   function openCreate() {
     setFormName('')
     setFormEmail('')
     setFormRole('student')
+    setServerFieldErrors({})
     setFormPhone('')
     setFormDepartment('')
     setFormDepartmentId('')
@@ -449,11 +493,13 @@ export default function UsersManagementPage() {
     setPw('')
     setPwConf('')
     setEditMeta({})
+    setServerFieldErrors({})
     try {
       const u = await fetchAdminUser(id)
       setFormName(u.name)
       setFormEmail(u.email)
       setFormRole((u.role && String(u.role)) || 'student')
+      setEditOriginalRole(normalizeRole(u.role ?? null) || null)
       setFormPhone(u.phone ?? '')
       setFormDepartment(u.department ?? '')
       if (u.department_id) {
@@ -534,7 +580,7 @@ export default function UsersManagementPage() {
     try {
       const matched = departmentList.find((d) => String(d.id) === formDepartmentId || d.name_ar === formDepartment)
       const isManager = isSpecializedManagerRole(formRole)
-      const targetRole = isManager && matched ? (getSpecializedRoleForDepartment(matched)?.role || formRole) : formRole
+      const targetRole = isManager && matched ? (getOfferedSpecializedRole(matched, serverRoleSlugs)?.role || formRole) : formRole
 
       const body: CreateAdminUserInput = {
         name: formName,
@@ -549,11 +595,20 @@ export default function UsersManagementPage() {
         country: formCountry.trim() || undefined,
         how_did_you_hear_about_us: formHow.trim() || undefined,
       }
+      setServerFieldErrors({})
       await createAdminUser(body)
       setCreateSuccessOpen(true)
       void load()
     } catch (e) {
-      toast.warning(getAdminUserMutationMessage(e))
+      const message = reportMutationFailure(e)
+      if (message) toast.warning(message)
+      // The rejected role / department inputs live on step 2 (department also on step 1): bring them into view.
+      const fe = getAdminUserFieldErrors(e)
+      if (fe.role || (fe.department && (isSpecializedManagerRole(formRole) || formRole === 'department_member'))) {
+        setCreateWizardStep(2)
+      } else if (fe.department) {
+        setCreateWizardStep(1)
+      }
     } finally {
       setSaving(false)
     }
@@ -571,7 +626,7 @@ export default function UsersManagementPage() {
     try {
       const matched = departmentList.find((d) => String(d.id) === formDepartmentId || d.name_ar === formDepartment)
       const isManager = isSpecializedManagerRole(formRole)
-      const targetRole = isManager && matched ? (getSpecializedRoleForDepartment(matched)?.role || formRole) : formRole
+      const targetRole = isManager && matched ? (getOfferedSpecializedRole(matched, serverRoleSlugs)?.role || formRole) : formRole
 
       const patch: UpdateAdminUserInput = {
         name: formName,
@@ -591,12 +646,14 @@ export default function UsersManagementPage() {
         patch.password = pwTrim
         patch.password_confirmation = pwcTrim || pwTrim
       }
+      setServerFieldErrors({})
       await updateAdminUser(focusedId, patch)
       toast.success('تم الحفظ')
       closeModal()
       void load()
     } catch (e) {
-      toast.warning(getAdminUserMutationMessage(e))
+      const message = reportMutationFailure(e)
+      if (message) toast.warning(message)
     } finally {
       setSaving(false)
     }
@@ -894,7 +951,11 @@ export default function UsersManagementPage() {
                       <Labeled label="الاسم الكامل" children={<Input value={formName} onChange={setFormName} />} />
                       <Labeled label="البريد الإلكتروني" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
                       <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
-                      <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
+                      <Labeled
+                        label="القسم / الإدارة"
+                        error={isSpecializedManagerRole(formRole) || formRole === 'department_member' ? undefined : departmentServerError}
+                        children={<Input value={formDepartment} onChange={setFormDepartment} />}
+                      />
                       <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
                       <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
                       <Labeled label="كيف عرفتم المنصّة؟" children={<Input value={formHow} onChange={setFormHow} />} />
@@ -906,18 +967,28 @@ export default function UsersManagementPage() {
                           خيار «سوبر مشرف» مخفي وفق سياسات الإسناد.
                         </p>
                       : null}
+                      {rolesListFailed ?
+                        <p
+                          role="status"
+                          className="rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-[11px] font-black text-amber-950"
+                        >
+                          {ROLES_LIST_UNAVAILABLE_NOTICE}
+                        </p>
+                      : null}
                       <Labeled
                         label="الدور"
+                        error={roleServerError}
                         children={
                           <select
                             value={formRole}
+                            aria-invalid={roleServerError ? true : undefined}
                             onChange={(e) => {
                               const nextRole = e.target.value
                               setFormRole(nextRole)
                               if (nextRole === 'department_manager' && formDepartmentId) {
                                 const matched = departmentList.find((d) => String(d.id) === formDepartmentId)
                                 if (matched) {
-                                  const spec = getSpecializedRoleForDepartment(matched)
+                                  const spec = getOfferedSpecializedRole(matched, serverRoleSlugs)
                                   if (spec) setFormRole(spec.role)
                                 }
                               }
@@ -925,8 +996,8 @@ export default function UsersManagementPage() {
                             className={EMC_WIZARD_INPUT_BASE}
                           >
                             {roleOptionsForm.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.labelAr}
+                              <option key={o.value} value={o.value} disabled={o.disabled}>
+                                {roleOptionText(o)}
                               </option>
                             ))}
                             {!roleOptionsForm.some((o) => o.value === formRole) && (
@@ -941,6 +1012,7 @@ export default function UsersManagementPage() {
                         <>
                           <Labeled
                             label={isSpecializedManagerRole(formRole) ? 'الإدارة التي يديرها *' : 'الإدارة التابع لها *'}
+                            error={departmentServerError}
                             children={
                               <select
                                 value={formDepartmentId}
@@ -950,7 +1022,7 @@ export default function UsersManagementPage() {
                                   const matched = departmentList.find((d) => String(d.id) === id)
                                   setFormDepartment(matched ? matched.name_ar || matched.name || '' : '')
                                   if (isSpecializedManagerRole(formRole) && matched) {
-                                    const spec = getSpecializedRoleForDepartment(matched)
+                                    const spec = getOfferedSpecializedRole(matched, serverRoleSlugs)
                                     if (spec) setFormRole(spec.role)
                                   }
                                 }}
@@ -970,7 +1042,15 @@ export default function UsersManagementPage() {
                           />
                           {isSpecializedManagerRole(formRole) && formDepartmentId && (() => {
                             const matched = departmentList.find((d) => String(d.id) === formDepartmentId)
-                            const spec = getSpecializedRoleForDepartment(matched)
+                            const spec = getOfferedSpecializedRole(matched, serverRoleSlugs)
+                            const missing = unavailableSpecializedRole(matched, serverRoleSlugs)
+                            if (!spec && missing) {
+                              return (
+                                <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-right text-[12px] font-bold text-amber-950">
+                                  الدور التخصصي «{missing.labelAr}» غير مفعّل في هذه البيئة، لذلك سيبقى الدور «{adminRoleLabelAr(formRole)}».
+                                </p>
+                              )
+                            }
                             if (!spec) return null
                             return (
                               <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-[12px] text-emerald-900 shadow-sm text-right">
@@ -1087,6 +1167,10 @@ export default function UsersManagementPage() {
         lastLoginAt={editMeta.lastLoginAt}
         createdAt={editMeta.createdAt}
         roleOptions={roleOptionsEdit}
+        serverRoleSlugs={serverRoleSlugs}
+        rolesListFailed={rolesListFailed}
+        roleError={roleServerError}
+        departmentError={departmentServerError}
         departmentList={departmentList}
         formDepartmentId={formDepartmentId}
         onFormDepartmentId={setFormDepartmentId}
@@ -1201,11 +1285,12 @@ function PasswordInlineTools({
   )
 }
 
-function Labeled({ label, children }: { label: string; children: ReactNode }) {
+function Labeled({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <label className="block text-right rtl:text-right">
       <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
       {children}
+      {error ? <p role="alert" className="mt-1.5 text-[11px] font-bold text-rose-600">{error}</p> : null}
     </label>
   )
 }
