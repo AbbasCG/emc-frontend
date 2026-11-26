@@ -33,6 +33,13 @@ export interface WorkBoardCardCapabilities {
   can_accept: boolean
   can_reject: boolean
   can_complete: boolean
+  /**
+   * TASK cards only (a ticket never carries them): the viewer holds tasks.update, the task is inside their scope and it is not
+   * locked. The server computes it; the UI never infers it from a role.
+   */
+  can_edit: boolean
+  /** TASK cards only: the viewer holds tasks.assign, the task is inside their scope and it is not locked. */
+  can_reassign: boolean
 }
 
 export interface WorkBoardCard {
@@ -76,6 +83,20 @@ export interface WorkBoardColumnData {
   items: WorkBoardCard[]
 }
 
+/**
+ * What THIS viewer may do to tasks (`meta.task_actions`): create / assign / update, three independent permissions, and where.
+ * `manageable_department_ids`: null = every department, a list = only those, an empty list = nowhere.
+ */
+export interface WorkBoardTaskActions {
+  can_create: boolean
+  can_assign: boolean
+  can_update: boolean
+  manageable_department_ids: number[] | null
+}
+
+/** No permission at all: what an answer without `task_actions` (or no answer yet) means. */
+export const NO_TASK_ACTIONS: WorkBoardTaskActions = { can_create: false, can_assign: false, can_update: false, manageable_department_ids: [] }
+
 export interface WorkBoardMeta {
   scope: WorkBoardScope
   kind: WorkBoardKindFilter
@@ -84,6 +105,7 @@ export interface WorkBoardMeta {
   page: number
   /** Totals of the WHOLE board under the filters; always present, also on a «load more» answer. Never recompute them from loaded cards. */
   counts: { all: number; tasks: number; tickets: number }
+  task_actions: WorkBoardTaskActions
   generated_at: string | null
 }
 
@@ -149,7 +171,23 @@ export function normalizeWorkBoardCard(raw: unknown): WorkBoardCard | null {
       can_accept: caps.can_accept === true,
       can_reject: caps.can_reject === true,
       can_complete: caps.can_complete === true,
+      can_edit: caps.can_edit === true,
+      can_reassign: caps.can_reassign === true,
     },
+  }
+}
+
+/** `meta.task_actions` from whatever the server sent: a missing or malformed block is «no permission», never a guess. */
+export function normalizeTaskActions(raw: unknown): WorkBoardTaskActions {
+  const a = rec(raw)
+  const ids = a.manageable_department_ids
+  const manageable = ids === null ? null : Array.isArray(ids) ? ids.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0) : []
+
+  return {
+    can_create: a.can_create === true,
+    can_assign: a.can_assign === true,
+    can_update: a.can_update === true,
+    manageable_department_ids: manageable,
   }
 }
 
@@ -187,6 +225,7 @@ export async function fetchWorkBoard(params: WorkBoardParams = {}, { signal }: {
       column: COLUMN_KEYS.find((k) => k === meta.column) ?? null,
       page: num(meta.page, 1),
       counts: { all: num(counts.all), tasks: num(counts.tasks), tickets: num(counts.tickets) },
+      task_actions: normalizeTaskActions(meta.task_actions),
       generated_at: strOrNull(meta.generated_at),
     },
   }

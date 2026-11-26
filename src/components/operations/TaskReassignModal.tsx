@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AlertCircle, ArrowRightLeft, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { getApiMessageOr } from '@/api/apiErrors'
 import { reassignTask, type BoardTask } from '@/api/operationsBoardApi'
+import type { DepartmentMember } from '@/api/operationsReportsApi'
+import { taskApiMessage } from '@/api/taskErrors'
+import { fetchTaskScopeMembers } from '@/api/taskScopeApi'
 import { CenteredModal } from '@/components/ui/CenteredModal'
-import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
 
 type Props = {
   task: BoardTask | null
@@ -18,29 +19,45 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
   const [selectedMember, setSelectedMember] = useState<string>('')
   const [notes, setNotes] = useState<string>('')
   const [loadingMembers, setLoadingMembers] = useState(false)
+  const [membersError, setMembersError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // A new task (or a re-opened window) starts blank: never the member or note chosen for the previous one.
-  const [seen, setSeen] = useState({ open, id: task?.id })
-  if (seen.open !== open || seen.id !== task?.id) {
-    setSeen({ open, id: task?.id })
+  // The members of the previous task (or of a card with no department at all) are never offered for this one either.
+  const departmentId = task?.department?.id ?? null
+  const [seen, setSeen] = useState({ open, id: task?.id, departmentId })
+  if (seen.open !== open || seen.id !== task?.id || seen.departmentId !== departmentId) {
+    setSeen({ open, id: task?.id, departmentId })
     setSelectedMember('')
     setNotes('')
+    setMembers([])
+    setMembersError(null)
+    setLoadingMembers(false)
   }
 
   useEffect(() => {
     if (open && task?.department?.id) {
+      let live = true
       // eslint-disable-next-line react-hooks/set-state-in-effect -- the loading flag must flip before the members request starts, whenever the task or visibility changes
       setLoadingMembers(true)
-      fetchDepartmentMembers(task.department.id)
+      // The members of the viewer's own write scope: a leader sees only the departments they lead, a global actor every one.
+      fetchTaskScopeMembers(task.department.id)
         .then((m) => {
+          if (!live) return
           setMembers(m)
+          setMembersError(null)
           setLoadingMembers(false)
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          if (!live) return
           setMembers([])
+          setMembersError(taskApiMessage(err, 'تعذّر تحميل أعضاء الإدارة.'))
           setLoadingMembers(false)
         })
+
+      return () => {
+        live = false
+      }
     }
   }, [open, task])
 
@@ -60,7 +77,7 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
       onReassigned()
       onClose()
     } catch (err: unknown) {
-      toast.error(getApiMessageOr(err, 'تعذر إعادة الإسناد'))
+      toast.error(taskApiMessage(err, 'تعذر إعادة الإسناد'))
     } finally {
       setSubmitting(false)
     }
@@ -102,6 +119,13 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
     >
       <div className="space-y-4 text-right">
         {/* إذا كانت المهمة مرفوضة: إظهار سبب الرفض بوضوح للمدير */}
+        {/* A task that someone already holds (not a declined one): the move is not harmless, so it is said before it is confirmed. */}
+        {task.assigned_to && task.acceptance_status !== 'rejected' ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3.5 text-right text-xs font-bold leading-relaxed text-amber-900" data-testid="reassign-confirm-note">
+            هذه المهمة مسندة حاليًا إلى {task.assigned_to.name}. إعادة إسنادها تنقلها إلى العضو الجديد وتعيد حالة القبول إلى «بانتظار الموافقة»، وأي ملاحظات تكتبها هنا تحلّ محل ملاحظات المهمة الحالية.
+          </div>
+        ) : null}
+
         {task.rejection_reason && (
           <div className="rounded-2xl border border-rose-200/60 bg-rose-50 p-3.5 text-right">
             <div className="mb-1 flex items-center gap-1.5 text-xs font-black text-rose-700">
@@ -119,6 +143,8 @@ export default function TaskReassignModal({ task, open, onClose, onReassigned }:
             </label>
             {loadingMembers ? (
               <p className="text-xs text-slate-400">جاري تحميل الأعضاء...</p>
+            ) : membersError ? (
+              <p role="alert" className="text-xs font-bold text-rose-600" data-testid="reassign-members-error">{membersError}</p>
             ) : (
               <select
                 id="task-reassign-member"

@@ -9,6 +9,7 @@ const api = vi.hoisted(() => ({
   createAdvancedBoardTask: vi.fn(),
   fetchWorkspaceDepartments: vi.fn(),
   fetchDepartmentMembers: vi.fn(),
+  scopeDepartments: vi.fn(),
   reassignTask: vi.fn(),
   rejectTask: vi.fn(),
   fetchTasks: vi.fn(),
@@ -21,6 +22,8 @@ vi.mock('@/api/operationsBoardApi', () => ({
 }))
 vi.mock('@/api/operationsApi', () => ({ fetchWorkspaceDepartments: api.fetchWorkspaceDepartments }))
 vi.mock('@/api/operationsReportsApi', () => ({ fetchDepartmentMembers: api.fetchDepartmentMembers }))
+// The create / reassign forms read the departments and members of the viewer's write scope (same fixtures as before).
+vi.mock('@/api/taskScopeApi', () => ({ fetchTaskScopeDepartments: api.scopeDepartments, fetchTaskScopeMembers: api.fetchDepartmentMembers, fetchEditableTask: vi.fn(), updateTaskFields: vi.fn() }))
 vi.mock('@/api/tasksApi', () => ({ fetchTasks: api.fetchTasks, fetchMyTasks: vi.fn(), fetchTask: vi.fn(), updateTask: vi.fn(), addTaskComment: vi.fn() }))
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 7, name: 'مدير' } }) }))
 vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }))
@@ -47,6 +50,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   api.fetchWorkspaceDepartments.mockResolvedValue({ items: [{ id: '3', title: 'الإعلام' }] })
   api.fetchDepartmentMembers.mockResolvedValue([{ id: 9, user_id: 9, name: 'سلمى', role: 'member' }])
+  api.scopeDepartments.mockResolvedValue({ items: [{ id: 3, name: 'Media', name_ar: 'الإعلام' }], manageableDepartmentIds: null })
   api.createAdvancedBoardTask.mockResolvedValue({})
   api.reassignTask.mockResolvedValue(undefined)
 })
@@ -56,7 +60,7 @@ const board = (id: number, title: string) => ({ id, title, description: null, pr
 
 describe('1. an emptied duration is never sent as the text "undefined"', () => {
   it('clearing the pre-filled hours and saving sends no estimated_hours at all', async () => {
-    render(<TaskCreateModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    render(<TaskCreateModal open canAssign onClose={vi.fn()} onCreated={vi.fn()} />)
     await userEvent.type(screen.getByLabelText(/عنوان المهمة/), 'مهمة')
     await userEvent.clear(screen.getByLabelText('المدة التقريبية'))
     await userEvent.click(screen.getByRole('button', { name: /إسناد المهمة الآن/ }))
@@ -69,15 +73,15 @@ describe('1. an emptied duration is never sent as the text "undefined"', () => {
 
 describe('6. always-mounted modals do not keep the previous task\'s input', () => {
   it('the create form is blank again after a successful save and when it is closed and reopened', async () => {
-    const { rerender } = render(<TaskCreateModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    const { rerender } = render(<TaskCreateModal open canAssign onClose={vi.fn()} onCreated={vi.fn()} />)
     await userEvent.type(screen.getByLabelText(/عنوان المهمة/), 'مهمة أولى')
     await userEvent.click(screen.getByRole('button', { name: /إسناد المهمة الآن/ }))
     await waitFor(() => expect(api.createAdvancedBoardTask).toHaveBeenCalled())
     await waitFor(() => expect((screen.getByLabelText(/عنوان المهمة/) as HTMLInputElement).value).toBe(''))
 
     await userEvent.type(screen.getByLabelText(/عنوان المهمة/), 'مسودة')
-    rerender(<TaskCreateModal open={false} onClose={vi.fn()} onCreated={vi.fn()} />)
-    rerender(<TaskCreateModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    rerender(<TaskCreateModal open={false} canAssign onClose={vi.fn()} onCreated={vi.fn()} />)
+    rerender(<TaskCreateModal open canAssign onClose={vi.fn()} onCreated={vi.fn()} />)
     expect((screen.getByLabelText(/عنوان المهمة/) as HTMLInputElement).value).toBe('')
   })
 
@@ -183,14 +187,14 @@ describe('10. points must be whole numbers', () => {
 
 describe('11. dialog focus and the cancel button', () => {
   it('focus starts on the first field of the body, not the close button', async () => {
-    render(<TaskCreateModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    render(<TaskCreateModal open canAssign onClose={vi.fn()} onCreated={vi.fn()} />)
     const title = await screen.findByLabelText(/عنوان المهمة/)
     expect(document.activeElement).toBe(title)
   })
 
   it('the footer «إلغاء» asks before throwing away input, exactly like Escape', async () => {
     const onClose = vi.fn()
-    render(<TaskCreateModal open onClose={onClose} onCreated={vi.fn()} />)
+    render(<TaskCreateModal open canAssign onClose={onClose} onCreated={vi.fn()} />)
     await userEvent.type(await screen.findByLabelText(/عنوان المهمة/), 'مسودة')
     await userEvent.click(screen.getByRole('button', { name: 'إلغاء' }))
     expect(onClose).not.toHaveBeenCalled()
@@ -201,7 +205,7 @@ describe('11. dialog focus and the cancel button', () => {
 
   it('with nothing typed, «إلغاء» closes at once', async () => {
     const onClose = vi.fn()
-    render(<TaskCreateModal open onClose={onClose} onCreated={vi.fn()} />)
+    render(<TaskCreateModal open canAssign onClose={onClose} onCreated={vi.fn()} />)
     await userEvent.click(await screen.findByRole('button', { name: 'إلغاء' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
